@@ -28,7 +28,7 @@ export const authOptions: NextAuthOptions = {
       // Expose user.id and role from JWT to the session object
       if (session.user) {
         session.user.id = token.id as string;
-        session.user.role = token.role as string;
+        session.user.role = token.role as "CUSTOMER" | "ADMIN";
       }
       return session;
     },
