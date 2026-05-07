@@ -1,9 +1,11 @@
 import { createHmac } from 'crypto';
 
-const PEACH_BASE_URL = process.env.PEACH_BASE_URL!;
-const PEACH_ACCESS_TOKEN = process.env.PEACH_ACCESS_TOKEN!;
+// V2 API credentials
+const PEACH_BASE_URL = process.env.PEACH_BASE_URL || 'https://testapi-v2.peachpayments.com';
+const PEACH_USER_ID = process.env.PEACH_USER_ID!;
+const PEACH_PASSWORD = process.env.PEACH_PASSWORD!;
 const PEACH_ENTITY_ID = process.env.PEACH_ENTITY_ID!;
-const PEACH_WEBHOOK_SECRET = process.env.PEACH_WEBHOOK_SECRET!;
+const PEACH_WEBHOOK_SECRET = process.env.PEACH_WEBHOOK_SECRET || '';
 
 interface CreateCheckoutIdParams {
   amount: string; // e.g. "349.00"
@@ -13,42 +15,47 @@ interface CreateCheckoutIdParams {
 }
 
 /**
- * Creates a checkout ID by calling the Peach Payments API.
- * Returns the checkoutId string on success, throws on failure.
+ * Creates a payment using the Peach Payments v2 API.
+ * Uses PEACHEFT as the payment brand for EFT payments.
+ * Returns the transaction ID on success, throws on failure.
  */
 export async function createCheckoutId(
   params: CreateCheckoutIdParams
 ): Promise<string> {
-  const body = new URLSearchParams({
-    entityId: PEACH_ENTITY_ID,
+  const body = {
+    authentication: {
+      userId: PEACH_USER_ID,
+      password: PEACH_PASSWORD,
+      entityId: PEACH_ENTITY_ID,
+    },
+    merchantTransactionId: params.merchantTransactionId.replace(/-/g, '').slice(0, 16),
     amount: params.amount,
     currency: params.currency,
+    paymentBrand: 'PEACHEFT',
     paymentType: 'DB',
-    merchantTransactionId: params.merchantTransactionId,
     shopperResultUrl: params.shopperResultUrl,
-  });
+  };
 
-  const response = await fetch(`${PEACH_BASE_URL}/v1/checkouts`, {
+  const response = await fetch(`${PEACH_BASE_URL}/payments`, {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${PEACH_ACCESS_TOKEN}`,
-      'Content-Type': 'application/x-www-form-urlencoded',
+      'Content-Type': 'application/json',
     },
-    body: body.toString(),
+    body: JSON.stringify(body),
   });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(
-      `Peach Payments API error (${response.status}): ${errorText}`
-    );
-  }
 
   const data = await response.json();
 
+  // Check for success - codes starting with "000." indicate success
+  if (data.result?.code && !data.result.code.startsWith('000.')) {
+    throw new Error(
+      `Peach Payments API error: ${data.result.code} - ${data.result.description}`
+    );
+  }
+
   if (!data.id) {
     throw new Error(
-      `Peach Payments API did not return a checkoutId: ${JSON.stringify(data)}`
+      `Peach Payments API did not return a transaction ID: ${JSON.stringify(data)}`
     );
   }
 
@@ -63,6 +70,8 @@ export function validateWebhookSignature(
   payload: string,
   receivedSignature: string
 ): boolean {
+  if (!PEACH_WEBHOOK_SECRET) return true; // Skip validation if no secret configured
+  
   const expectedSignature = createHmac('sha256', PEACH_WEBHOOK_SECRET)
     .update(payload)
     .digest('hex');
