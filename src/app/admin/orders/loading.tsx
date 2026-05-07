@@ -1,0 +1,57 @@
+/**
+ * Loading skeleton for the admin orders listing page.
+ * Displays pulse-animated placeholders matching the order table layout.
+ *
+ * Requirements: 10.4
+ */
+export default function OrdersLoading() {
+  return (
+    <div className="space-y-6">
+      {/* Header skeleton */}
+      <div className="h-8 w-24 rounded bg-surface-muted animate-pulse" />
+
+      {/* Filters skeleton */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="flex-1 h-10 rounded-md bg-surface-muted animate-pulse" />
+        <div className="h-10 w-36 rounded-md bg-surface-muted animate-pulse" />
+      </div>
+
+      {/* Table skeleton */}
+      <div className="rounded-lg border border-border overflow-hidden">
+        {/* Table header */}
+        <div className="flex items-center gap-4 px-4 py-3 bg-surface border-b border-border">
+          {Array.from({ length: 7 }).map((_, i) => (
+            <div
+              key={i}
+              className="h-4 rounded bg-surface-muted animate-pulse"
+              style={{ width: `${i === 0 ? 10 : i === 2 ? 18 : 12}%` }}
+            />
+          ))}
+        </div>
+
+        {/* Table rows */}
+        {Array.from({ length: 10 }).map((_, rowIndex) => (
+          <div
+            key={rowIndex}
+            className="flex items-center gap-4 px-4 py-3 border-b border-border last:border-b-0"
+          >
+            <div className="h-4 w-[10%] rounded bg-surface-muted animate-pulse" />
+            <div className="h-4 w-[12%] rounded bg-surface-muted animate-pulse" />
+            <div className="h-4 w-[18%] rounded bg-surface-muted animate-pulse" />
+            <div className="h-4 w-[10%] rounded bg-surface-muted animate-pulse" />
+            <div className="h-5 w-[8%] rounded-full bg-surface-muted animate-pulse" />
+            <div className="h-4 w-[10%] rounded bg-surface-muted animate-pulse" />
+            <div className="h-4 w-[12%] rounded bg-surface-muted animate-pulse" />
+          </div>
+        ))}
+      </div>
+
+      {/* Pagination skeleton */}
+      <div className="flex items-center justify-center gap-2">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div key={i} className="h-8 w-8 rounded bg-surface-muted animate-pulse" />
+        ))}
+      </div>
+    </div>
+  );
+}
