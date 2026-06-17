@@ -11,7 +11,6 @@
  */
 
 import { useCallback } from 'react';
-import { useGLTF } from '@react-three/drei';
 import type { ProductVariant } from './types';
 
 // ─── Types ────────────────────────────────────────────────────────
@@ -29,9 +28,8 @@ export function VariantSelector({
   selectedVariantId,
   onSelect,
 }: VariantSelectorProps) {
-  const handleHover = useCallback((modelPath: string) => {
-    // Prefetch the .glb model on hover to minimize swap latency
-    useGLTF.preload(modelPath);
+  const handleHover = useCallback((_modelPath: string) => {
+    // No-op: 3D models removed
   }, []);
 
   if (variants.length === 0) return null;

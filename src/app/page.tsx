@@ -1,30 +1,41 @@
 /**
  * Home page — Server Component.
  *
- * Fetches up to 6 active featured products from the database and renders:
- *   1. HeroSection — Client Component island with scroll-driven 3D candle + parallax
- *   2. Featured products section — responsive grid with scroll-triggered entrance
+ * Composes all Home page sections and fetches collection data server-side.
+ * The root layout already provides <main> landmark, NavBar, and Footer.
+ * Sections are wrapped in AnimatedSection for scroll-triggered GSAP animations.
  *
- * Requirements: 3.1, 4.1
+ * Requirements: 2.1, 3.1, 4.1, 5.1, 6.1, 7.1, 8.1, 15.3, 16.3
  */
 
-import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
+import { CollectionCard } from '@/lib/constants/brand';
 import { HeroSection } from '@/components/home/HeroSection';
-import { FeaturedParallax } from '@/components/home/FeaturedParallax';
-import { FeaturedProductCard } from '@/components/home/FeaturedProductCard';
-import { RecentlyViewed } from '@/components/product/RecentlyViewed';
+import { AboutPreview } from '@/components/home/AboutPreview';
+import { CollectionsPreview } from '@/components/home/CollectionsPreview';
+import { Gallery } from '@/components/home/Gallery';
+import { Testimonials } from '@/components/home/Testimonials';
+import { Services } from '@/components/home/Services';
+import { ContactSection } from '@/components/home/ContactSection';
+import { AnimatedSection } from '@/components/home/AnimatedSection';
 
 // ─── Data fetching ────────────────────────────────────────────────
 
-async function getFeaturedProducts() {
+async function getCollections(): Promise<CollectionCard[]> {
   try {
-    return await prisma.product.findMany({
+    const products = await prisma.product.findMany({
       where: { isActive: true },
-      include: { variants: true },
-      orderBy: { createdAt: 'desc' },
-      take: 6,
+      select: { waxType: true, scentProfile: true },
+      distinct: ['waxType'],
     });
+
+    // Map distinct wax types to CollectionCard format (max 3)
+    return products.slice(0, 3).map((p) => ({
+      title: `${p.waxType} Collection`,
+      description: `Explore our ${p.waxType.toLowerCase()} candle range — hand-poured with care using premium materials`,
+      imageUrl: `/images/collections/${p.waxType.toLowerCase()}.jpg`,
+      filterParam: `waxType=${p.waxType}`,
+    }));
   } catch {
     // Gracefully handle DB errors (e.g. during build / no DB connection)
     return [];
@@ -34,111 +45,35 @@ async function getFeaturedProducts() {
 // ─── Home Page ────────────────────────────────────────────────────
 
 export default async function Home() {
-  const featuredProducts = await getFeaturedProducts();
+  const collections = await getCollections();
 
   return (
-    <div className="flex flex-col min-h-screen bg-[var(--theme-bg)] transition-colors duration-700">
-      {/* 3D Hero Section — Client Component island */}
+    <>
       <HeroSection />
 
-      {/* Featured Products Section */}
-      <FeaturedParallax>
-      <section
-        className="py-24 px-6 sm:px-8 lg:px-16 bg-[var(--theme-bg)] transition-colors duration-700"
-        aria-labelledby="featured-heading"
-      >
-        <div className="max-w-7xl mx-auto">
-          {/* Section header */}
-          <div data-parallax="heading" className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-12">
-            <div>
-              <h2
-                id="featured-heading"
-                className="text-3xl sm:text-4xl font-bold text-[var(--theme-accent)] leading-tight"
-              >
-                Our Collection
-              </h2>
-              <p className="mt-2 text-[var(--theme-accent)]/70 text-lg">
-                Hand-poured candles designed to elevate everyday living through scent, warmth, and quiet luxury.
-              </p>
-            </div>
-            <Link
-              href="/collection"
-              className={[
-                'inline-flex items-center gap-2 shrink-0',
-                'text-[var(--theme-accent)] font-medium text-base',
-                'border border-[var(--theme-accent)] rounded-lg px-5 py-2.5',
-                'hover:bg-[var(--theme-accent)]/10 active:bg-[var(--theme-accent)]/20',
-                'transition-colors duration-150',
-                'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent)]',
-              ].join(' ')}
-            >
-              View all
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 16 16"
-                fill="none"
-                aria-hidden="true"
-              >
-                <path
-                  d="M3 8h10M9 4l4 4-4 4"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </Link>
-          </div>
+      <AnimatedSection type="fadeUp" duration={0.9}>
+        <AboutPreview />
+      </AnimatedSection>
 
-          {/* Product grid */}
-          {featuredProducts.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-24 gap-4 text-center">
-              <p className="text-[var(--theme-accent)]/60 text-lg">
-                No products available yet. Check back soon!
-              </p>
-              <Link
-                href="/collection"
-                className="text-[var(--theme-accent)] underline underline-offset-4 hover:opacity-80 transition-opacity"
-              >
-                Browse the collection
-              </Link>
-            </div>
-          ) : (
-            <ul
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"
-              role="list"
-              aria-label="Featured candle products"
-            >
-              {featuredProducts.map((product) => {
-                const defaultVariant = product.variants[0];
-                return (
-                  <li key={product.id} data-parallax="card">
-                    <FeaturedProductCard
-                      name={product.name}
-                      slug={product.slug}
-                      description={product.description}
-                      price={product.price}
-                      scentProfile={product.scentProfile}
-                      waxType={product.waxType}
-                      burnTimeHours={product.burnTimeHours}
-                      modelPath={defaultVariant?.modelPath || '/models/candle-compressed.glb'}
-                    />
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </div>
-      </section>
-      </FeaturedParallax>
+      <AnimatedSection type="staggerUp" stagger={0.2} duration={0.8}>
+        <CollectionsPreview collections={collections} />
+      </AnimatedSection>
 
-      {/* Recently Viewed Section */}
-      <section className="py-12 px-6 sm:px-8 lg:px-16 bg-[var(--theme-bg)] transition-colors duration-700">
-        <div className="max-w-7xl mx-auto">
-          <RecentlyViewed />
-        </div>
-      </section>
-    </div>
+      <AnimatedSection type="staggerUp" stagger={0.1} duration={0.7}>
+        <Gallery />
+      </AnimatedSection>
+
+      <AnimatedSection type="fadeScale" duration={1}>
+        <Testimonials />
+      </AnimatedSection>
+
+      <AnimatedSection type="staggerUp" stagger={0.18} duration={0.8}>
+        <Services />
+      </AnimatedSection>
+
+      <AnimatedSection type="fadeUp" duration={0.9}>
+        <ContactSection />
+      </AnimatedSection>
+    </>
   );
 }

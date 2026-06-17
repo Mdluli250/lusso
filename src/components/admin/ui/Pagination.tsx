@@ -42,7 +42,7 @@ export function Pagination({ currentPage, totalPages, onPageChange }: Pagination
             className={[
               'px-3 py-1.5 text-sm rounded-md transition-colors',
               page === currentPage
-                ? 'bg-theme-accent text-white font-medium'
+                ? 'bg-theme-accent text-theme-bg font-medium'
                 : 'border border-border text-foreground hover:bg-surface-muted',
             ].join(' ')}
             aria-label={`Page ${page}`}

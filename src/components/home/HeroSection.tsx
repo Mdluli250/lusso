@@ -1,274 +1,147 @@
 'use client';
 
 /**
- * HeroSection — immersive 3D hero component for the Home Page.
+ * HeroSection — brand landing hero for the Home Page.
  *
- * - Renders CandleViewer with scroll-driven rotation
- * - Initialises AnimationEngine hero rotation on mount
- * - Wires scroll-driven color theme shifts for lavender and cinnamon scent sections
- * - Displays headline copy and a CTA link to /collection
+ * - Renders h1 "Quiet Luxury Candles"
+ * - Subheading mentioning "Lusso Picnic" (≤150 chars)
+ * - "Shop now" CTA → /collection
+ * - Full-viewport background image with parallax scroll effect
+ * - GSAP staggered entrance animation + scroll-driven parallax
+ * - Min-height 100vh, full-width, no horizontal overflow
  *
- * Requirements: 3.1, 3.2, 3.3, 3.4, 3.5
+ * Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6
  */
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import * as THREE from 'three';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import gsap from 'gsap';
-import { CandleViewer } from '@/components/three/CandleViewer';
-import { animationEngine } from '@/components/animation/AnimationEngine';
-import { getColorTheme } from '@/lib/scentColorMap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
-// ─── Scent sections ───────────────────────────────────────────────
-// Each section defines the scroll progress range [start, end] at which
-// the color theme should transition to that scent's palette.
+gsap.registerPlugin(ScrollTrigger);
 
-interface ScentSection {
-  name: string;
-  start: number; // scroll progress [0, 1]
-  end: number;
-}
-
-const SCENT_SECTIONS: ScentSection[] = [
-  { name: 'lavender', start: 0, end: 0.5 },
-  { name: 'cinnamon', start: 0.5, end: 1 },
-];
-
-// ─── HeroSection ─────────────────────────────────────────────────
+const HERO_BG_IMAGE = '/images/gallery/styled-trio-1.png';
 
 export function HeroSection() {
-  const candleRef = useRef<THREE.Group | null>(null);
-  const containerRef = useRef<HTMLElement | null>(null);
-  const headlineRef = useRef<HTMLHeadingElement | null>(null);
-  const subtitleRef = useRef<HTMLParagraphElement | null>(null);
-  const ctaRef = useRef<HTMLAnchorElement | null>(null);
-  const candleWrapperRef = useRef<HTMLDivElement | null>(null);
-  const scrollIndicatorRef = useRef<HTMLDivElement | null>(null);
+  const [imageError, setImageError] = useState(false);
+  const sectionRef = useRef<HTMLElement>(null);
+  const imageRef = useRef<HTMLImageElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const subtextRef = useRef<HTMLParagraphElement>(null);
+  const ctaRef = useRef<HTMLAnchorElement>(null);
 
   useEffect(() => {
-    // Initialise scroll-driven candle rotation
-    animationEngine.initHeroRotation(candleRef, containerRef);
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReducedMotion) return;
 
-    // Wire color theme shifts as scroll progresses through scent sections.
-    if (!containerRef.current) return;
+    // ─── Entrance animations (staggered fade-up) ───────────────────
+    const tl = gsap.timeline({ delay: 0.3 });
 
-    // Apply the initial theme immediately (lavender at scroll 0)
-    const initialTheme = getColorTheme(SCENT_SECTIONS[0].name);
-    animationEngine.animateColorTheme(initialTheme.bg, initialTheme.accent);
-
-    // ─── GSAP Parallax Effects ────────────────────────────────────
-    // Each element moves at a different speed on scroll for depth illusion.
-    const parallaxTriggers: globalThis.ScrollTrigger[] = [];
-
-    // Headline moves up faster (parallax speed: -200px over scroll)
-    if (headlineRef.current) {
-      parallaxTriggers.push(
-        ScrollTrigger.create({
-          trigger: containerRef.current,
-          start: 'top top',
-          end: 'bottom top',
-          scrub: 1.5,
-          animation: gsap.to(headlineRef.current, {
-            y: -200,
-            opacity: 0,
-            ease: 'power1.out',
-          }),
-        }),
-      );
+    if (headingRef.current) {
+      gsap.set(headingRef.current, { opacity: 0, y: 40, scale: 0.97 });
+      tl.to(headingRef.current, { opacity: 1, y: 0, scale: 1, duration: 1, ease: 'power3.out' });
     }
 
-    // Subtitle moves slightly slower than headline
-    if (subtitleRef.current) {
-      parallaxTriggers.push(
-        ScrollTrigger.create({
-          trigger: containerRef.current,
-          start: 'top top',
-          end: 'bottom top',
-          scrub: 1.5,
-          animation: gsap.to(subtitleRef.current, {
-            y: -150,
-            opacity: 0,
-            ease: 'power1.out',
-          }),
-        }),
-      );
+    if (subtextRef.current) {
+      gsap.set(subtextRef.current, { opacity: 0, y: 30 });
+      tl.to(subtextRef.current, { opacity: 1, y: 0, duration: 0.8, ease: 'power2.out' }, '-=0.6');
     }
 
-    // CTA button moves even slower — creates layered depth
     if (ctaRef.current) {
-      parallaxTriggers.push(
-        ScrollTrigger.create({
-          trigger: containerRef.current,
+      gsap.set(ctaRef.current, { opacity: 0, y: 20, scale: 0.95 });
+      tl.to(ctaRef.current, { opacity: 1, y: 0, scale: 1, duration: 0.7, ease: 'power2.out' }, '-=0.5');
+    }
+
+    // ─── Parallax: background image moves slower than content ──────
+    if (imageRef.current && sectionRef.current) {
+      gsap.to(imageRef.current, {
+        yPercent: 20,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: sectionRef.current,
           start: 'top top',
           end: 'bottom top',
-          scrub: 1.5,
-          animation: gsap.to(ctaRef.current, {
-            y: -100,
-            opacity: 0,
-            ease: 'power1.out',
-          }),
-        }),
-      );
+          scrub: true,
+        },
+      });
     }
 
-    // 3D candle moves slowest — appears to recede into background
-    if (candleWrapperRef.current) {
-      parallaxTriggers.push(
-        ScrollTrigger.create({
-          trigger: containerRef.current,
+    // ─── Parallax: content fades out and moves up as user scrolls ──
+    if (contentRef.current && sectionRef.current) {
+      gsap.to(contentRef.current, {
+        yPercent: -30,
+        opacity: 0,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: sectionRef.current,
           start: 'top top',
           end: 'bottom top',
-          scrub: 1.8,
-          animation: gsap.to(candleWrapperRef.current, {
-            scale: 0.95,
-            opacity: 0.8,
-            ease: 'power1.out',
-          }),
-        }),
-      );
+          scrub: true,
+        },
+      });
     }
-
-    // Scroll indicator fades out quickly
-    if (scrollIndicatorRef.current) {
-      parallaxTriggers.push(
-        ScrollTrigger.create({
-          trigger: containerRef.current,
-          start: 'top top',
-          end: '20% top',
-          scrub: 1.2,
-          animation: gsap.to(scrollIndicatorRef.current, {
-            opacity: 0,
-            y: 20,
-            ease: 'power1.out',
-          }),
-        }),
-      );
-    }
-
-    // ─── Color Theme Scroll Trigger ───────────────────────────────
-    let lastSectionName = SCENT_SECTIONS[0].name;
-
-    const colorTrigger = ScrollTrigger.create({
-      trigger: containerRef.current,
-      start: 'top top',
-      end: 'bottom bottom',
-      scrub: true,
-      onUpdate: (self) => {
-        const progress = self.progress;
-
-        const activeSection = SCENT_SECTIONS.find(
-          (section) => progress >= section.start && progress <= section.end,
-        );
-
-        if (activeSection && activeSection.name !== lastSectionName) {
-          lastSectionName = activeSection.name;
-          const theme = getColorTheme(activeSection.name);
-          animationEngine.animateColorTheme(theme.bg, theme.accent);
-        }
-      },
-    });
 
     return () => {
-      colorTrigger.kill();
-      parallaxTriggers.forEach((t) => t.kill());
-      animationEngine.destroy();
+      tl.kill();
+      ScrollTrigger.getAll().forEach((t) => {
+        if (t.trigger === sectionRef.current) t.kill();
+      });
     };
   }, []);
 
   return (
     <section
-      ref={containerRef as React.RefObject<HTMLElement>}
-      className="relative min-h-screen flex flex-col items-center justify-center bg-[var(--theme-bg)] transition-colors duration-700"
-      aria-label="Hero section — Lusso"
+      ref={sectionRef}
+      className="relative flex min-h-screen w-full items-center justify-center overflow-hidden"
+      style={{
+        backgroundColor: 'var(--brand-cream)',
+      }}
+      aria-label="Hero section — Lusso Candles"
     >
-      {/* 3D Candle Viewer — centered, takes up most of the viewport */}
-      <div ref={candleWrapperRef} className="absolute inset-0 z-0 flex items-center justify-center will-change-transform">
-        <div className="w-full h-full max-w-2xl mx-auto">
-          <CandleViewer
-            modelPath="/models/hero-candle.glb"
-            scrollDriven={true}
-            className="w-full h-full"
-          />
-        </div>
-      </div>
+      {/* Background image with parallax */}
+      {!imageError && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          ref={imageRef}
+          src={HERO_BG_IMAGE}
+          alt=""
+          role="presentation"
+          onError={() => setImageError(true)}
+          className="absolute inset-0 h-[120%] w-full object-cover will-change-transform"
+          style={{ top: '-10%' }}
+        />
+      )}
 
-      {/* Overlay content — headline and CTA */}
-      <div className="relative z-10 flex flex-col items-center gap-8 px-6 text-center pointer-events-none -mt-24">
+      {/* Dark overlay for text readability */}
+      <div className="absolute inset-0 bg-black/20" />
+
+      {/* Content overlay with parallax */}
+      <div
+        ref={contentRef}
+        className="relative z-10 flex flex-col items-center gap-6 px-6 text-center will-change-transform"
+      >
         <h1
-          ref={headlineRef}
-          className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-tight tracking-tight text-[var(--theme-accent)] will-change-transform"
+          ref={headingRef}
+          className="font-serif text-4xl font-bold leading-tight tracking-tight text-white drop-shadow-lg sm:text-5xl md:text-6xl lg:text-7xl"
         >
-          Handcrafted Candles,
-          <br />
-          Quiet Luxury
+          Quiet Luxury Candles
         </h1>
 
         <p
-          ref={subtitleRef}
-          className="max-w-md text-lg sm:text-xl text-[var(--theme-accent)]/70 leading-relaxed will-change-transform"
+          ref={subtextRef}
+          className="max-w-lg text-lg leading-relaxed text-white/90 drop-shadow-md sm:text-xl"
         >
-          Elevate your space with scent, warmth, and lasting beauty.
+          Born from Lusso Picnic, we craft hand-poured candles with premium waxes and fine fragrances — quiet luxury for your everyday moments.
         </p>
 
-        {/* CTA button — pointer-events re-enabled so it's clickable */}
         <Link
           ref={ctaRef}
           href="/collection"
-          className={[
-            'pointer-events-auto will-change-transform',
-            'inline-flex items-center justify-center gap-2',
-            'px-8 py-4 rounded-xl',
-            'bg-white text-gray-900',
-            'font-semibold text-lg leading-normal',
-            'shadow-lg',
-            'transition-all duration-150',
-            'hover:opacity-90 active:opacity-80',
-            'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent)]',
-          ].join(' ')}
-          aria-label="Browse the candle collection"
+          className="mt-4 inline-flex min-h-[44px] min-w-[120px] items-center justify-center rounded-lg bg-white/95 px-8 py-3 text-lg font-semibold text-[var(--brand-charcoal)] shadow-lg backdrop-blur-sm transition-all hover:bg-white hover:scale-[1.02] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
         >
-          Shop the Collection
+          Shop now
         </Link>
-
-        {/* Secondary CTA — Scent Quiz */}
-        <Link
-          href="/quiz"
-          className={[
-            'pointer-events-auto will-change-transform',
-            'text-[var(--theme-accent)]/80 font-medium text-base',
-            'transition-opacity duration-150',
-            'hover:opacity-80',
-            'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent)]',
-          ].join(' ')}
-        >
-          Take the Scent Quiz →
-        </Link>
-      </div>
-
-      {/* Scroll indicator */}
-      <div
-        ref={scrollIndicatorRef}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-[var(--theme-accent)]/60 animate-bounce will-change-transform"
-        aria-hidden="true"
-      >
-        <span className="text-sm font-medium tracking-widest uppercase">Scroll</span>
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 20 20"
-          fill="none"
-          aria-hidden="true"
-          className="text-[var(--theme-accent)]/60"
-        >
-          <path
-            d="M10 3v14M4 11l6 6 6-6"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
       </div>
     </section>
   );

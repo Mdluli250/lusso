@@ -13,6 +13,7 @@
 import type { Metadata } from 'next';
 import { prisma } from '@/lib/prisma';
 import { CollectionClient } from '@/components/product/CollectionClient';
+import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 
 // ─── Metadata ─────────────────────────────────────────────────────
 
@@ -45,6 +46,9 @@ export default async function CollectionPage() {
   return (
     <div className="min-h-screen bg-[var(--theme-bg)] transition-colors duration-700">
       <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-16 py-16">
+        {/* Breadcrumb navigation */}
+        <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Shop' }]} />
+
         {/* Page header */}
         <header className="mb-12">
           <h1 className="text-4xl sm:text-5xl font-bold text-[var(--theme-accent)] leading-tight">

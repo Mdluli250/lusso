@@ -14,7 +14,12 @@ interface AdminLayoutProps {
  * - Users with role ADMIN are granted access (Requirement 1.3).
  */
 export default async function AdminLayout({ children }: AdminLayoutProps) {
-  const session = await getServerSession(authOptions);
+  let session;
+  try {
+    session = await getServerSession(authOptions);
+  } catch {
+    redirect('/auth/signin');
+  }
 
   if (!session) {
     redirect('/auth/signin');

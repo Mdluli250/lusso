@@ -68,7 +68,7 @@ export function SubscriptionSelector({ variantId, price }: SubscriptionSelectorP
             className={[
               'px-3 py-2 rounded-lg text-xs font-medium transition-all',
               selectedFrequency === freq.value
-                ? 'bg-[var(--theme-accent)] text-white'
+                ? 'bg-[var(--theme-accent)] text-cream'
                 : 'bg-[var(--theme-accent)]/10 text-[var(--theme-accent)]/70 hover:bg-[var(--theme-accent)]/20',
             ].join(' ')}
             aria-pressed={selectedFrequency === freq.value}

@@ -17,8 +17,6 @@ import { useState, useCallback } from 'react';
 import { FilterPanel } from './FilterPanel';
 import { ProductGrid } from './ProductGrid';
 import { QuickViewModal } from './QuickViewModal';
-import { getColorTheme } from '@/lib/scentColorMap';
-import { animationEngine } from '@/components/animation/AnimationEngine';
 import type { ProductWithVariants } from './types';
 
 interface CollectionClientProps {
@@ -37,14 +35,9 @@ export function CollectionClient({ allProducts }: CollectionClientProps) {
     setFilteredProducts(allProducts);
   }, [allProducts]);
 
-  const handleScentChange = useCallback((scent: string | null) => {
-    if (scent) {
-      const theme = getColorTheme(scent);
-      animationEngine.animateColorTheme(theme.bg, theme.accent);
-    } else {
-      // Animate back to default theme
-      animationEngine.animateColorTheme('#1A1A1A', '#FFFFFF');
-    }
+  const handleScentChange = useCallback((_scent: string | null) => {
+    // No-op: global theme no longer changes per scent.
+    // The luxury cream/charcoal palette stays constant.
   }, []);
 
   const handleQuickView = useCallback((product: ProductWithVariants) => {

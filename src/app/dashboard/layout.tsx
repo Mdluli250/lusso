@@ -13,7 +13,13 @@ interface DashboardLayoutProps {
  * Provides consistent sub-navigation across all dashboard pages.
  */
 export default async function DashboardLayout({ children }: DashboardLayoutProps) {
-  const session = await getServerSession(authOptions);
+  let session;
+  try {
+    session = await getServerSession(authOptions);
+  } catch {
+    // Auth/DB unavailable — redirect to sign in
+    redirect('/auth/signin');
+  }
 
   if (!session) {
     redirect('/auth/signin');

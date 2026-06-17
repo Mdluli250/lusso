@@ -18,24 +18,30 @@ export default async function DashboardPage() {
     redirect('/auth/signin');
   }
 
-  const orders = await prisma.order.findMany({
-    where: { userId: session.user.id },
-    orderBy: { createdAt: 'desc' },
-    select: {
-      id: true,
-      createdAt: true,
-      totalAmountZAR: true,
-      status: true,
-    },
-  });
+  let serializedOrders: OrderData[] = [];
 
-  // Serialize dates for the client component
-  const serializedOrders: OrderData[] = orders.map((order) => ({
-    id: order.id,
-    createdAt: order.createdAt.toISOString(),
-    totalAmountZAR: order.totalAmountZAR,
-    status: order.status,
-  }));
+  try {
+    const orders = await prisma.order.findMany({
+      where: { userId: session.user.id },
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        createdAt: true,
+        totalAmountZAR: true,
+        status: true,
+      },
+    });
+
+    // Serialize dates for the client component
+    serializedOrders = orders.map((order) => ({
+      id: order.id,
+      createdAt: order.createdAt.toISOString(),
+      totalAmountZAR: order.totalAmountZAR,
+      status: order.status,
+    }));
+  } catch {
+    // Database unavailable — show empty state
+  }
 
   return (
     <main className="px-4 py-12 sm:px-6 lg:px-8">

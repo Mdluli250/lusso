@@ -1,24 +1,17 @@
 'use client';
 
 import { useEffect } from 'react';
-import { animationEngine } from './AnimationEngine';
-import { getColorTheme } from '../../lib/scentColorMap';
 
 /**
- * React hook that animates the CSS color theme whenever `colorHex` changes.
- * Looks up the `ColorTheme` via `getColorTheme` and calls
- * `animationEngine.animateColorTheme()` to smoothly transition
- * `--theme-bg` and `--theme-accent` on `:root`.
+ * React hook that previously animated the global CSS color theme on scent change.
+ * 
+ * Disabled as part of the luxury rebrand — the site now maintains a consistent
+ * cream/charcoal palette. The scent color is still available via the variant's
+ * `colorHex` property for use in product-specific UI elements (badges, accents).
  *
- * @param colorHex - The scent profile string (e.g. "lavender", "cinnamon") or null to skip animation.
- *
- * Requirements: 3.4, 5.4
+ * @param _colorHex - Unused. Kept for API compatibility.
  */
-export function useColorTheme(colorHex: string | null): void {
-  useEffect(() => {
-    if (colorHex === null) return;
-
-    const theme = getColorTheme(colorHex);
-    animationEngine.animateColorTheme(theme.bg, theme.accent);
-  }, [colorHex]);
+export function useColorTheme(_colorHex: string | null): void {
+  // No-op: global theme no longer changes per scent.
+  // Product-specific color accents are handled locally via variant.colorHex.
 }

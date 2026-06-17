@@ -16,25 +16,31 @@ export const metadata: Metadata = {
 };
 
 export default async function BundlePage() {
-  const products = await prisma.product.findMany({
-    where: { isActive: true },
-    include: {
-      variants: {
-        take: 1,
-      },
-    },
-    orderBy: { name: 'asc' },
-  });
+  let productData: { id: string; name: string; slug: string; price: number; scentProfile: string; modelPath: string; variantId: string }[] = [];
 
-  const productData = products.map((p) => ({
-    id: p.id,
-    name: p.name,
-    slug: p.slug,
-    price: p.price,
-    scentProfile: p.scentProfile,
-    modelPath: p.variants[0]?.modelPath ?? '/models/candle-compressed.glb',
-    variantId: p.variants[0]?.id ?? '',
-  }));
+  try {
+    const products = await prisma.product.findMany({
+      where: { isActive: true },
+      include: {
+        variants: {
+          take: 1,
+        },
+      },
+      orderBy: { name: 'asc' },
+    });
+
+    productData = products.map((p) => ({
+      id: p.id,
+      name: p.name,
+      slug: p.slug,
+      price: p.price,
+      scentProfile: p.scentProfile,
+      modelPath: p.variants[0]?.modelPath ?? '',
+      variantId: p.variants[0]?.id ?? '',
+    }));
+  } catch {
+    // Database unavailable — show empty state
+  }
 
   return (
     <main className="min-h-screen bg-[var(--theme-bg)] py-12 px-4">

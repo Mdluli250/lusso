@@ -11,7 +11,8 @@ import { useCartStore } from '@/store/cartStore';
 import { CartItem } from './CartItem';
 import { CartSummary } from './CartSummary';
 import { FreeShippingBar } from './FreeShippingBar';
-import Link from 'next/link';
+import { GiftWrapOption } from '@/components/checkout/GiftWrapOption';
+import { EmptyState } from '@/components/ui/EmptyState';
 
 export function CartDrawer() {
   const items = useCartStore((s) => s.items);
@@ -23,17 +24,11 @@ export function CartDrawer() {
       </h1>
 
       {items.length === 0 ? (
-        <div className="text-center py-16">
-          <p className="text-theme-accent/60 text-lg mb-4">
-            Your cart is empty
-          </p>
-          <Link
-            href="/collection"
-            className="inline-flex items-center gap-2 text-theme-accent underline underline-offset-4 hover:opacity-80 transition-opacity"
-          >
-            Browse the collection
-          </Link>
-        </div>
+        <EmptyState
+          title="Your cart is waiting"
+          description="Fill it with warmth — browse our hand-poured candle collection."
+          action={{ label: 'Browse Collection', href: '/collection' }}
+        />
       ) : (
         <>
           <FreeShippingBar />
@@ -49,7 +44,8 @@ export function CartDrawer() {
 
             {/* Summary sidebar */}
             <div className="lg:col-span-1">
-              <div className="sticky top-24">
+              <div className="sticky top-24 space-y-4">
+                <GiftWrapOption />
                 <CartSummary />
               </div>
             </div>

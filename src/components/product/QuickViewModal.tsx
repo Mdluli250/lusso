@@ -12,12 +12,13 @@
  * Requirements: 4.6
  */
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { CandleViewer } from '@/components/three/CandleViewer';
+import Image from 'next/image';
 import { Button } from '@/components/ui/Button';
 import { useToast } from '@/components/ui/Toast';
 import { formatZAR } from '@/lib/formatCurrency';
+import { getProductImage } from '@/lib/getProductImage';
 import { useCartStore } from '@/store/cartStore';
 import type { ProductWithVariants } from './types';
 
@@ -34,7 +35,9 @@ interface QuickViewModalProps {
 export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps) {
   const overlayRef = useRef<HTMLDivElement>(null);
   const addItem = useCartStore((state) => state.addItem);
+  const removeItem = useCartStore((state) => state.removeItem);
   const { showToast } = useToast();
+  const [imgError, setImgError] = useState(false);
 
   // Close on Escape key
   useEffect(() => {
@@ -102,7 +105,9 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
       imageUrl: '',
     });
 
-    showToast(`${product.name} added to cart`);
+    showToast(`${product.name} added to cart`, {
+      action: { label: 'Undo', onClick: () => removeItem(defaultVariant.id) },
+    });
   };
 
   return (
@@ -152,13 +157,34 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
 
         {/* Content grid */}
         <div className="grid md:grid-cols-2 gap-8 p-6 md:p-8">
-          {/* Left: 3D viewer */}
-          <div className="aspect-square rounded-xl overflow-hidden bg-[var(--theme-accent)]/5">
-            <CandleViewer
-              modelPath={defaultVariant?.modelPath || '/models/candle-compressed.glb'}
-              autoRotate={true}
-              className="w-full h-full"
-            />
+          {/* Left: Product visual */}
+          <div className="relative aspect-square rounded-xl overflow-hidden bg-[var(--theme-accent)]/5">
+            {imgError ? (
+              <div className="w-full h-full flex items-center justify-center">
+                <svg
+                  width="96"
+                  height="128"
+                  viewBox="0 0 72 96"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  aria-hidden="true"
+                >
+                  <ellipse cx="36" cy="10" rx="5" ry="8" fill={defaultVariant?.colorHex ?? 'var(--theme-accent)'} opacity="0.9" />
+                  <line x1="36" y1="18" x2="36" y2="26" stroke={defaultVariant?.colorHex ?? 'var(--theme-accent)'} strokeWidth="2" strokeLinecap="round" />
+                  <rect x="18" y="26" width="36" height="58" rx="6" fill={defaultVariant?.colorHex ?? 'var(--theme-accent)'} opacity="0.25" />
+                  <rect x="18" y="26" width="36" height="58" rx="6" stroke={defaultVariant?.colorHex ?? 'var(--theme-accent)'} strokeWidth="1.5" opacity="0.6" />
+                </svg>
+              </div>
+            ) : (
+              <Image
+                src={getProductImage(product.id)}
+                alt={product.name}
+                fill
+                sizes="(max-width: 768px) 100vw, 50vw"
+                className="object-cover"
+                onError={() => setImgError(true)}
+              />
+            )}
           </div>
 
           {/* Right: Product info */}

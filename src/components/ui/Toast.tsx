@@ -27,14 +27,25 @@ import {
 
 type ToastType = 'success' | 'error' | 'info';
 
+interface ToastAction {
+  label: string;
+  onClick: () => void;
+}
+
+interface ToastOptions {
+  type?: ToastType;
+  action?: ToastAction;
+}
+
 interface ToastItem {
   id: string;
   message: string;
   type: ToastType;
+  action?: ToastAction;
 }
 
 interface ToastContextValue {
-  showToast: (message: string, type?: ToastType) => void;
+  showToast: (message: string, typeOrOptions?: ToastType | ToastOptions) => void;
 }
 
 // ─── Context ──────────────────────────────────────────────────────────────────
@@ -46,9 +57,19 @@ const ToastContext = createContext<ToastContextValue | null>(null);
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
 
-  const showToast = useCallback((message: string, type: ToastType = 'success') => {
+  const showToast = useCallback((message: string, typeOrOptions?: ToastType | ToastOptions) => {
     const id = `toast-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-    setToasts((prev) => [...prev, { id, message, type }]);
+    let type: ToastType = 'success';
+    let action: ToastAction | undefined;
+
+    if (typeof typeOrOptions === 'string') {
+      type = typeOrOptions;
+    } else if (typeOrOptions) {
+      type = typeOrOptions.type ?? 'success';
+      action = typeOrOptions.action;
+    }
+
+    setToasts((prev) => [...prev, { id, message, type, action }]);
   }, []);
 
   const dismiss = useCallback((id: string) => {
@@ -177,6 +198,23 @@ function ToastItem({ toast, onDismiss }: ToastItemProps) {
 
       {/* Message */}
       <p className="flex-1 text-sm leading-snug">{toast.message}</p>
+
+      {/* Action button (e.g. Undo) */}
+      {toast.action && (
+        <button
+          onClick={() => {
+            toast.action!.onClick();
+            handleDismiss();
+          }}
+          className={[
+            'flex-shrink-0 px-2 py-1 text-xs font-semibold rounded-md',
+            'text-[var(--theme-accent)] hover:bg-[var(--theme-accent)]/10',
+            'transition-colors duration-150',
+          ].join(' ')}
+        >
+          {toast.action.label}
+        </button>
+      )}
 
       {/* Dismiss button — keyboard accessible (Req 11.7) */}
       <button

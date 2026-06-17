@@ -86,7 +86,7 @@ export function ConfirmDialog({
               'px-4 py-2 text-sm rounded-md font-medium transition-colors',
               destructive
                 ? 'bg-red-600 text-white hover:bg-red-700'
-                : 'bg-theme-accent text-white hover:opacity-90',
+                : 'bg-theme-accent text-theme-bg hover:opacity-90',
             ].join(' ')}
           >
             {confirmLabel}

@@ -8,7 +8,6 @@
  */
 
 import Link from 'next/link';
-import { LazyCandleViewer } from '@/components/three/LazyCandleViewer';
 import { formatZAR } from '@/lib/formatCurrency';
 
 interface FeaturedProductCardProps {
@@ -46,13 +45,21 @@ export function FeaturedProductCard({
       ].join(' ')}
       aria-label={`View ${name}`}
     >
-      {/* 3D Candle thumbnail */}
-      <div className="aspect-square overflow-hidden bg-[var(--theme-accent)]/10">
-        <LazyCandleViewer
-          modelPath={modelPath}
-          autoRotate={true}
-          className="w-full h-full"
-        />
+      {/* Candle thumbnail */}
+      <div className="aspect-square overflow-hidden bg-[var(--theme-accent)]/10 flex items-center justify-center">
+        <svg
+          width="72"
+          height="96"
+          viewBox="0 0 72 96"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
+        >
+          <ellipse cx="36" cy="10" rx="5" ry="8" fill="var(--theme-accent)" opacity="0.9" />
+          <line x1="36" y1="18" x2="36" y2="26" stroke="var(--theme-accent)" strokeWidth="2" strokeLinecap="round" />
+          <rect x="18" y="26" width="36" height="58" rx="6" fill="var(--theme-accent)" opacity="0.25" />
+          <rect x="18" y="26" width="36" height="58" rx="6" stroke="var(--theme-accent)" strokeWidth="1.5" opacity="0.6" />
+        </svg>
       </div>
 
       {/* Product info */}

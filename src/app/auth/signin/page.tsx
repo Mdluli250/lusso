@@ -10,13 +10,13 @@ function SignInContent() {
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-[var(--theme-bg)] px-4">
-      <div className="w-full max-w-sm rounded-2xl border border-white/10 bg-white/5 p-8 shadow-xl backdrop-blur-sm">
+      <div className="w-full max-w-sm rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-8 shadow-xl">
         {/* Brand heading */}
         <div className="mb-8 text-center">
           <h1 className="text-3xl font-bold tracking-tight text-[var(--theme-accent)]">
             Lusso
           </h1>
-          <p className="mt-2 text-sm text-white/60">
+          <p className="mt-2 text-sm text-[var(--muted)]">
             Sign in to access your account
           </p>
         </div>
@@ -26,7 +26,7 @@ function SignInContent() {
           onClick={() => signIn('google', { callbackUrl })}
           className={[
             'flex w-full items-center justify-center gap-3',
-            'rounded-xl border border-white/20 bg-white px-6 py-3',
+            'rounded-xl border border-[var(--border)] bg-white px-6 py-3',
             'text-base font-medium text-gray-800',
             'transition-colors duration-150',
             'hover:bg-gray-50',
@@ -60,7 +60,7 @@ function SignInContent() {
           Sign in with Google
         </button>
 
-        <p className="mt-6 text-center text-xs text-white/40">
+        <p className="mt-6 text-center text-xs text-[var(--muted)]">
           By signing in you agree to our terms of service.
         </p>
       </div>
@@ -73,7 +73,7 @@ export default function SignInPage() {
     <Suspense
       fallback={
         <div className="flex min-h-screen items-center justify-center bg-[var(--theme-bg)]">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-[var(--theme-accent)]" />
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--border)] border-t-[var(--theme-accent)]" />
         </div>
       }
     >

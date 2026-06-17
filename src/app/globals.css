@@ -3,21 +3,28 @@
 /* ─── Theme CSS Variables ─────────────────────────────────────── */
 /*
  * --theme-bg and --theme-accent are the two live CSS custom properties
- * animated by GSAP AnimationEngine (animateColorTheme). They default to
- * a dark palette and are overridden per-scent as the user scrolls.
+ * animated by GSAP AnimationEngine (animateColorTheme). They use the
+ * luxury warm palette — cream background with charcoal accents.
  */
 :root {
-  /* Animated color theme — mutated by GSAP on scroll / variant change */
-  --theme-bg: #1a1a1a;
-  --theme-accent: #ffffff;
+  /* Animated color theme — luxury warm palette */
+  --theme-bg: #faf7f2;
+  --theme-accent: #2c2825;
 
-  /* Static surface colors */
-  --background: #0d0d0d;
-  --foreground: #f5f5f5;
-  --surface: #1f1f1f;
-  --surface-muted: #2a2a2a;
-  --border: #333333;
-  --muted: #888888;
+  /* Static surface colors — warm neutrals */
+  --background: #faf7f2;
+  --foreground: #2c2825;
+  --surface: #ffffff;
+  --surface-muted: #f5f0ea;
+  --border: #e8dfd5;
+  --muted: #7a7068;
+
+  /* Brand color palette — warm neutrals (Req 15.1) */
+  --brand-cream: #faf7f2;
+  --brand-sand: #e8dfd5;
+  --brand-taupe: #b8a99a;
+  --brand-warm-grey: #7a7068;
+  --brand-charcoal: #2c2825;
 }
 
 /* ─── Tailwind v4 Theme Configuration ────────────────────────── */
@@ -41,8 +48,16 @@
   --color-border: var(--border);
   --color-muted: var(--muted);
 
+  /* ── Brand warm-neutral palette (Req 15.1) ── */
+  --color-cream: var(--brand-cream);
+  --color-sand: var(--brand-sand);
+  --color-taupe: var(--brand-taupe);
+  --color-warm-grey: var(--brand-warm-grey);
+  --color-charcoal: var(--brand-charcoal);
+
   /* ── Fonts ── */
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-playfair), "Playfair Display", "Georgia", serif;
   --font-mono: var(--font-geist-mono), ui-monospace, "Cascadia Code", monospace;
 
   /* ── Typographic scale (minimum body font 16px — Req 11.6) ── */
@@ -96,10 +111,10 @@
   --radius-full: 9999px;
 
   /* ── Shadows ── */
-  --shadow-sm:  0 1px 2px 0 rgb(0 0 0 / 0.3);
-  --shadow-md:  0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.3);
-  --shadow-lg:  0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.3);
-  --shadow-xl:  0 20px 25px -5px rgb(0 0 0 / 0.4), 0 8px 10px -6px rgb(0 0 0 / 0.3);
+  --shadow-sm:  0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md:  0 4px 6px -1px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+  --shadow-lg:  0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.05);
+  --shadow-xl:  0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.05);
 
   /* ── Transitions ── */
   --transition-fast:   150ms ease;
@@ -139,6 +154,8 @@ body {
   font-size: 1rem;       /* 16px minimum — Req 11.6 */
   line-height: 1.5;
   min-height: 100dvh;
+  /* Prevent horizontal overflow at any viewport width (Req 14.5) */
+  overflow-x: hidden;
   /* Smooth background transitions when GSAP animates --theme-bg */
   transition: background-color var(--transition-theme),
               color var(--transition-base);
@@ -164,7 +181,7 @@ body {
 
 /* ─── Typography Base ─────────────────────────────────────────── */
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-sans);
+  font-family: var(--font-serif);
   font-weight: 700;
   line-height: 1.25;
   color: var(--foreground);
@@ -221,7 +238,7 @@ a:hover {
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--surface);
+  background: var(--surface-muted);
 }
 
 ::-webkit-scrollbar-thumb {
@@ -237,4 +254,38 @@ a:hover {
 ::selection {
   background-color: var(--theme-accent);
   color: var(--theme-bg);
+}
+
+/* ─── Section Spacing Utilities (Req 15.3) ────────────────────── */
+/*
+ * Minimum vertical spacing between major page sections:
+ * - 40px on viewports below 1024px (mobile/tablet)
+ * - 64px on viewports 1024px and above (desktop)
+ */
+.section-spacing {
+  padding-top: 40px;
+  padding-bottom: 40px;
+}
+
+@media (min-width: 1024px) {
+  .section-spacing {
+    padding-top: 64px;
+    padding-bottom: 64px;
+  }
+}
+
+/* ─── Page Entrance Animation ─────────────────────────────────── */
+@keyframes page-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.page-enter {
+  animation: page-fade-in 0.4s ease-out;
 }

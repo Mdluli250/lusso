@@ -12,9 +12,10 @@
  */
 
 import { useState, useCallback, useEffect } from 'react';
-import { CandleViewer } from '@/components/three/CandleViewer';
+import Image from 'next/image';
 import { useColorTheme } from '@/components/animation/useColorTheme';
 import { useToast } from '@/components/ui/Toast';
+import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import { Button } from '@/components/ui/Button';
 import { WishlistButton } from '@/components/wishlist/WishlistButton';
 import { ReviewList } from '@/components/reviews/ReviewList';
@@ -22,6 +23,7 @@ import { ReviewForm } from '@/components/reviews/ReviewForm';
 import { RecentlyViewed } from '@/components/product/RecentlyViewed';
 import { SubscriptionSelector } from '@/components/subscription/SubscriptionSelector';
 import { formatZAR } from '@/lib/formatCurrency';
+import { getProductImages } from '@/lib/getProductImages';
 import { useCartStore } from '@/store/cartStore';
 import { useRecentlyViewedStore } from '@/store/recentlyViewedStore';
 import { VariantSelector } from './VariantSelector';
@@ -67,9 +69,15 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant>(
     product.variants[0]
   );
+  const [imgError, setImgError] = useState(false);
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
   const addItem = useCartStore((state) => state.addItem);
+  const removeItem = useCartStore((state) => state.removeItem);
   const { showToast } = useToast();
   const recordView = useRecentlyViewedStore((s) => s.record);
+
+  // Get gallery images for this product
+  const productImages = getProductImages(product.id);
 
   // Animate color theme when variant changes
   useColorTheme(selectedVariant?.scent ?? null);
@@ -98,29 +106,69 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
       imageUrl: '',
     });
 
-    showToast(`${product.name} added to cart`);
-  }, [product, selectedVariant, isOutOfStock, addItem, showToast]);
+    showToast(`${product.name} added to cart`, {
+      action: { label: 'Undo', onClick: () => removeItem(selectedVariant.id) },
+    });
+  }, [product, selectedVariant, isOutOfStock, addItem, removeItem, showToast]);
 
   const ingredients = getIngredients(product);
 
   return (
     <div className="min-h-screen bg-[var(--theme-bg)] transition-colors duration-700">
       <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-16 py-12 lg:py-20">
+        {/* Breadcrumb navigation */}
+        <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Shop', href: '/collection' }, { label: product.name }]} />
+
         {/* Main product section */}
         <div className="grid lg:grid-cols-2 gap-10 lg:gap-16">
-          {/* Left: 3D Viewer */}
-          <div className="aspect-square lg:sticky lg:top-24 lg:self-start rounded-2xl overflow-hidden bg-[var(--theme-accent)]/5 border border-[var(--theme-accent)]/15">
-            {selectedVariant ? (
-              <CandleViewer
-                modelPath={selectedVariant.modelPath}
-                autoRotate={true}
-                className="w-full h-full"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-[var(--theme-accent)]/40 text-sm">
-                No 3D model available
-              </div>
-            )}
+          {/* Left: Product Visual */}
+          <div className="lg:sticky lg:top-24 lg:self-start">
+            <div className="relative aspect-square rounded-2xl overflow-hidden bg-[var(--theme-accent)]/5 border border-[var(--theme-accent)]/15">
+              {imgError ? (
+                <div className="w-full h-full flex items-center justify-center">
+                  <svg
+                    width="120"
+                    height="160"
+                    viewBox="0 0 72 96"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    aria-hidden="true"
+                  >
+                    <ellipse cx="36" cy="10" rx="5" ry="8" fill={selectedVariant?.colorHex ?? 'var(--theme-accent)'} opacity="0.9" />
+                    <line x1="36" y1="18" x2="36" y2="26" stroke={selectedVariant?.colorHex ?? 'var(--theme-accent)'} strokeWidth="2" strokeLinecap="round" />
+                    <rect x="18" y="26" width="36" height="58" rx="6" fill={selectedVariant?.colorHex ?? 'var(--theme-accent)'} opacity="0.25" />
+                    <rect x="18" y="26" width="36" height="58" rx="6" stroke={selectedVariant?.colorHex ?? 'var(--theme-accent)'} strokeWidth="1.5" opacity="0.6" />
+                    <line x1="24" y1="52" x2="48" y2="52" stroke={selectedVariant?.colorHex ?? 'var(--theme-accent)'} strokeWidth="1" opacity="0.5" />
+                    <line x1="24" y1="58" x2="44" y2="58" stroke={selectedVariant?.colorHex ?? 'var(--theme-accent)'} strokeWidth="1" opacity="0.4" />
+                  </svg>
+                </div>
+              ) : (
+                <Image
+                  src={productImages[activeImageIndex]}
+                  alt={`${product.name} view ${activeImageIndex + 1}`}
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                  className="object-cover"
+                  priority
+                  onError={() => setImgError(true)}
+                />
+              )}
+            </div>
+
+            {/* Thumbnail strip */}
+            <div className="flex gap-2 mt-3">
+              {productImages.map((img, i) => (
+                <button
+                  key={i}
+                  onClick={() => setActiveImageIndex(i)}
+                  className={`relative w-16 h-16 rounded-lg overflow-hidden border-2 transition-all ${
+                    i === activeImageIndex ? 'border-[var(--theme-accent)]' : 'border-transparent opacity-60 hover:opacity-100'
+                  }`}
+                >
+                  <Image src={img} alt={`${product.name} view ${i + 1}`} fill className="object-cover" sizes="64px" />
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Right: Product info */}
@@ -229,6 +277,19 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
           <RecentlyViewed />
         </div>
       </div>
+
+      {/* Sticky mobile add-to-cart bar */}
+      <div className="fixed bottom-0 left-0 right-0 z-30 md:hidden bg-[var(--theme-bg)] border-t border-[var(--theme-accent)]/15 px-4 py-3 flex items-center justify-between gap-3 shadow-lg">
+        <div>
+          <p className="text-sm font-semibold text-[var(--theme-accent)]">{product.name}</p>
+          <p className="text-lg font-bold text-[var(--theme-accent)]">{formatZAR(product.price)}</p>
+        </div>
+        <Button variant="primary" size="md" onClick={handleAddToCart} disabled={!selectedVariant || selectedVariant.stock === 0}>
+          Add to Cart
+        </Button>
+      </div>
+      {/* Bottom padding to prevent content from being hidden behind sticky bar */}
+      <div className="h-20 md:hidden" />
     </div>
   );
 }

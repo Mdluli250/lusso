@@ -12,7 +12,17 @@ import { TopSellersTable } from '@/components/admin/analytics/TopSellersTable';
  * Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6
  */
 export default async function AdminPage() {
-  const data = await getAnalyticsData();
+  let data;
+  try {
+    data = await getAnalyticsData();
+  } catch {
+    return (
+      <div className="space-y-6">
+        <h1 className="text-2xl font-bold text-foreground">Overview</h1>
+        <p className="text-muted">Unable to load analytics data. Please check the database connection.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

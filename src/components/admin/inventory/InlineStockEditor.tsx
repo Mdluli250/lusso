@@ -56,7 +56,7 @@ export function InlineStockEditor({ variantId, initialStock }: InlineStockEditor
         <button
           onClick={handleSave}
           disabled={isPending}
-          className="px-2 py-1 text-xs font-medium rounded bg-theme-accent text-white hover:opacity-90 disabled:opacity-50 transition-colors"
+          className="px-2 py-1 text-xs font-medium rounded bg-theme-accent text-theme-bg hover:opacity-90 disabled:opacity-50 transition-colors"
         >
           {isPending ? (
             <span className="inline-flex items-center gap-1">

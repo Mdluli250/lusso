@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 
-export type ThemeMode = 'dark' | 'light';
+export type ThemeMode = 'light';
 
 interface ThemeStore {
   mode: ThemeMode;
@@ -10,48 +10,39 @@ interface ThemeStore {
   getSystemPreference: () => ThemeMode;
 }
 
-export const LIGHT_THEME: Record<string, string> = {
-  '--theme-bg': '#FAFAFA',
-  '--theme-accent': '#1A1A1A',
-  '--background': '#FFFFFF',
-  '--foreground': '#1A1A1A',
-  '--surface': '#F5F5F5',
-  '--surface-muted': '#EEEEEE',
-  '--border': '#E0E0E0',
-  '--muted': '#666666',
+/** Luxury warm palette — the only theme */
+export const LUXURY_THEME: Record<string, string> = {
+  '--theme-bg': '#faf7f2',
+  '--theme-accent': '#2c2825',
+  '--background': '#faf7f2',
+  '--foreground': '#2c2825',
+  '--surface': '#ffffff',
+  '--surface-muted': '#f5f0ea',
+  '--border': '#e8dfd5',
+  '--muted': '#7a7068',
 };
 
-export const DARK_THEME: Record<string, string> = {
-  '--theme-bg': '#1A1A1A',
-  '--theme-accent': '#FFFFFF',
-  '--background': '#0D0D0D',
-  '--foreground': '#F5F5F5',
-  '--surface': '#1F1F1F',
-  '--surface-muted': '#2A2A2A',
-  '--border': '#333333',
-  '--muted': '#888888',
-};
+/** @deprecated Kept for backward compatibility — resolves to LUXURY_THEME */
+export const LIGHT_THEME = LUXURY_THEME;
+/** @deprecated Kept for backward compatibility — resolves to LUXURY_THEME */
+export const DARK_THEME = LUXURY_THEME;
 
 export const useThemeStore = create<ThemeStore>()(
   persist(
-    (set, get) => ({
-      mode: 'dark' as ThemeMode,
+    (set) => ({
+      mode: 'light' as ThemeMode,
 
       toggle: () => {
-        set((state) => ({
-          mode: state.mode === 'dark' ? 'light' : 'dark',
-        }));
+        // No-op — single theme only
       },
 
-      setMode: (mode: ThemeMode) => {
-        set({ mode });
+      setMode: () => {
+        // Always light/luxury
+        set({ mode: 'light' });
       },
 
       getSystemPreference: (): ThemeMode => {
-        if (typeof window === 'undefined') return 'dark';
-        return window.matchMedia('(prefers-color-scheme: dark)').matches
-          ? 'dark'
-          : 'light';
+        return 'light';
       },
     }),
     {

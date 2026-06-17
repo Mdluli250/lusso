@@ -13,12 +13,14 @@
  * Requirements: 4.1, 6.5
  */
 
+import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Button } from '@/components/ui/Button';
-import { LazyCandleViewer } from '@/components/three/LazyCandleViewer';
 import { WishlistButton } from '@/components/wishlist/WishlistButton';
 import { CompareButton } from '@/components/comparison/CompareButton';
 import { formatZAR } from '@/lib/formatCurrency';
+import { getProductImage } from '@/lib/getProductImage';
 import type { ProductWithVariants } from './types';
 
 // ─── Types ────────────────────────────────────────────────────────
@@ -65,6 +67,7 @@ function CandlePlaceholder({ colorHex }: { colorHex?: string }) {
 
 export function ProductCard({ product, onQuickView }: ProductCardProps) {
   const defaultVariant = product.variants[0];
+  const [imgError, setImgError] = useState(false);
 
   return (
     <article
@@ -86,11 +89,18 @@ export function ProductCard({ product, onQuickView }: ProductCardProps) {
           tabIndex={0}
           aria-label={`View details for ${product.name}`}
         >
-          <LazyCandleViewer
-            modelPath={defaultVariant?.modelPath || '/models/candle-compressed.glb'}
-            autoRotate={true}
-            className="w-full h-full"
-          />
+          {imgError ? (
+            <CandlePlaceholder colorHex={defaultVariant?.colorHex} />
+          ) : (
+            <Image
+              src={getProductImage(product.id)}
+              alt={product.name}
+              fill
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+              onError={() => setImgError(true)}
+            />
+          )}
         </Link>
 
         {/* Wishlist button — top-right of thumbnail */}
@@ -119,6 +129,7 @@ export function ProductCard({ product, onQuickView }: ProductCardProps) {
         <div
           className={[
             'absolute inset-x-0 bottom-0 p-3',
+            'bg-gradient-to-t from-black/40 to-transparent',
             'translate-y-full group-hover:translate-y-0',
             'transition-transform duration-200 ease-out',
           ].join(' ')}
@@ -163,6 +174,14 @@ export function ProductCard({ product, onQuickView }: ProductCardProps) {
           <span className="text-xs text-[var(--theme-accent)]/60">
             {product.burnTimeHours}h burn
           </span>
+        </div>
+
+        {/* Rating */}
+        <div className="flex items-center gap-1.5">
+          <div className="flex text-amber-500 text-xs" aria-label="5 out of 5 stars">
+            {'★★★★★'}
+          </div>
+          <span className="text-xs text-[var(--theme-accent)]/50">(12)</span>
         </div>
 
         {/* Price row */}

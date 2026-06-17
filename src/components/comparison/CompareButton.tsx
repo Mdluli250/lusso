@@ -37,7 +37,7 @@ export function CompareButton({ product, className = '' }: CompareButtonProps) {
       className={[
         'px-2 py-1 rounded-md text-xs font-medium transition-all',
         isInComparison
-          ? 'bg-[var(--theme-accent)] text-white'
+          ? 'bg-[var(--theme-accent)] text-cream'
           : 'bg-[var(--theme-accent)]/10 text-[var(--theme-accent)]/70 hover:bg-[var(--theme-accent)]/20',
         className,
       ].join(' ')}

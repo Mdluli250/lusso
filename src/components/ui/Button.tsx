@@ -26,7 +26,7 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantClasses: Record<ButtonVariant, string> = {
   primary: [
-    'bg-theme-accent text-white',
+    'bg-theme-accent text-cream',
     'hover:opacity-90 active:opacity-80',
     'disabled:opacity-40 disabled:cursor-not-allowed',
     'border border-transparent',

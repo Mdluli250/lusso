@@ -124,7 +124,7 @@ function ChipGroup({ label, options, selected, onSelect }: ChipGroupProps) {
                 'border transition-all duration-150',
                 'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent)]',
                 isSelected
-                  ? 'bg-[var(--theme-accent)] text-white border-[var(--theme-accent)]'
+                  ? 'bg-[var(--theme-accent)] text-cream border-[var(--theme-accent)]'
                   : 'bg-transparent text-[var(--theme-accent)]/70 border-[var(--theme-accent)]/30 hover:border-[var(--theme-accent)]/60 hover:text-[var(--theme-accent)]',
               ].join(' ')}
             >
