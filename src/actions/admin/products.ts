@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -84,6 +85,12 @@ export async function createProduct(
       return created;
     });
 
+    // Revalidate affected pages
+    revalidatePath("/admin/products");
+    revalidatePath("/collections");
+    revalidatePath("/");
+    revalidatePath("/products/[slug]", "layout");
+     
     return { id: product.id };
   } catch (error) {
     console.error("createProduct failed:", error);
@@ -169,6 +176,12 @@ export async function updateProduct(
       }
     });
 
+    // Revalidate affected pages
+    revalidatePath("/admin/products");
+    revalidatePath("/collections");
+    revalidatePath("/");
+    revalidatePath(`/products/${data.slug}`);
+     
     return { success: true };
   } catch (error) {
     console.error("updateProduct failed:", error);
@@ -185,6 +198,11 @@ export async function deleteProduct(
 
     await prisma.product.delete({ where: { id } });
 
+    // Revalidate affected pages
+    revalidatePath("/admin/products");
+    revalidatePath("/collections");
+    revalidatePath("/");
+     
     return { success: true };
   } catch (error) {
     console.error("deleteProduct failed:", error);
