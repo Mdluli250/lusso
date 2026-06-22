@@ -20,6 +20,8 @@ interface GalleryImageData {
   id?: string;
   url: string;
   file?: File;
+  isUploading?: boolean;
+  error?: string;
   _delete?: boolean;
 }
 
@@ -176,13 +178,62 @@ export function ProductForm({ mode, initialData }: ProductFormProps) {
   function handleGalleryImagesChange(files: FileList | null) {
     if (!files?.length) return;
 
-    const nextImages = Array.from(files).map((file) => {
+    const filesArray = Array.from(files);
+
+    // Add preview placeholders with uploading state
+    const placeholderImages = filesArray.map((file) => {
       const url = URL.createObjectURL(file);
       galleryPreviewRefs.current.push(url);
-      return { url, file };
+      return { url, file, isUploading: true } as GalleryImageData;
     });
 
-    setGalleryImages((prev) => [...prev, ...nextImages]);
+    setGalleryImages((prev) => [...prev, ...placeholderImages]);
+
+    // Upload each file and replace the placeholder when done
+    filesArray.forEach(async (file, idx) => {
+      const placeholderIndex = galleryImages.length + idx;
+      const uploadResult = await uploadProductImage(file);
+      if (uploadResult && "imagePath" in uploadResult) {
+        setGalleryImages((prev) => {
+          const next = [...prev];
+          // Find the first placeholder matching the file object URL
+          const pIdx = next.findIndex((p) => p.file === file && p.isUploading);
+          const targetIdx = pIdx >= 0 ? pIdx : placeholderIndex;
+          const existing = next[targetIdx];
+          if (existing) {
+            // Revoke local preview URL if present
+            if (
+              existing.file &&
+              galleryPreviewRefs.current.includes(existing.url)
+            ) {
+              URL.revokeObjectURL(existing.url);
+              galleryPreviewRefs.current = galleryPreviewRefs.current.filter(
+                (u) => u !== existing.url,
+              );
+            }
+            next[targetIdx] = {
+              id: existing.id,
+              url: uploadResult.imagePath,
+            } as GalleryImageData;
+          }
+          return next;
+        });
+      } else {
+        const errorMsg = (uploadResult as any)?.error ?? "Upload failed";
+        setGalleryImages((prev) => {
+          const next = [...prev];
+          const pIdx = next.findIndex((p) => p.file === file && p.isUploading);
+          if (pIdx >= 0) {
+            next[pIdx] = {
+              ...next[pIdx],
+              isUploading: false,
+              error: errorMsg,
+            } as GalleryImageData;
+          }
+          return next;
+        });
+      }
+    });
   }
 
   function removeGalleryImage(index: number) {
@@ -448,7 +499,7 @@ export function ProductForm({ mode, initialData }: ProductFormProps) {
                     <button
                       type="button"
                       onClick={() => moveGalleryImage(visibleIndex, "left")}
-                      disabled={visibleIndex === 0}
+                      disabled={visibleIndex === 0 || image.isUploading}
                       className="rounded-full bg-white/10 px-2 py-1 text-[11px] text-white disabled:cursor-not-allowed disabled:opacity-40"
                     >
                       ←
@@ -460,7 +511,8 @@ export function ProductForm({ mode, initialData }: ProductFormProps) {
                       type="button"
                       onClick={() => moveGalleryImage(visibleIndex, "right")}
                       disabled={
-                        visibleIndex === visibleGalleryImages.length - 1
+                        visibleIndex === visibleGalleryImages.length - 1 ||
+                        image.isUploading
                       }
                       className="rounded-full bg-white/10 px-2 py-1 text-[11px] text-white disabled:cursor-not-allowed disabled:opacity-40"
                     >
@@ -470,10 +522,41 @@ export function ProductForm({ mode, initialData }: ProductFormProps) {
                   <button
                     type="button"
                     onClick={() => removeGalleryImage(visibleIndex)}
-                    className="absolute top-2 right-2 rounded-full bg-black/60 px-2 py-1 text-xs text-white"
+                    disabled={!!image.isUploading}
+                    className="absolute top-2 right-2 rounded-full bg-black/60 px-2 py-1 text-xs text-white disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Remove
+                    {image.isUploading ? "Uploading..." : "Remove"}
                   </button>
+                  {image.isUploading && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                      <svg
+                        className="h-8 w-8 animate-spin text-white"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                          fill="none"
+                        />
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                        />
+                      </svg>
+                    </div>
+                  )}
+                  {image.error && (
+                    <div className="absolute inset-0 flex items-end justify-center p-2">
+                      <div className="rounded bg-red-600/80 px-2 py-1 text-xs text-white">
+                        {image.error}
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
