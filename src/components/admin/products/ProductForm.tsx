@@ -107,6 +107,9 @@ export function ProductForm({ mode, initialData }: ProductFormProps) {
   );
   const galleryPreviewRefs = useRef<string[]>([]);
   const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
+  const deleteTimeoutsRef = useRef<
+    Record<string, ReturnType<typeof setTimeout> | null>
+  >({});
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const { showToast } = useToast();
 
@@ -249,11 +252,40 @@ export function ProductForm({ mode, initialData }: ProductFormProps) {
     // Mark image as deleted so user can undo; do not revoke preview immediately
     setGalleryImages((prev) => {
       const next = [...prev];
-      const target = next[index];
-      if (!target) return prev;
-      // stable key to identify for undo
+      const activeIndexes = next
+        .map((img, idx) => (img._delete ? -1 : idx))
+        .filter((i) => i >= 0);
+      const actualIndex = activeIndexes[index];
+      if (actualIndex === undefined) return prev;
+      const target = next[actualIndex];
       const key = target.id ?? target.url;
-      next[index] = { ...target, _delete: true } as GalleryImageData;
+      next[actualIndex] = { ...target, _delete: true } as GalleryImageData;
+
+      // schedule permanent removal for local-only images after timeout
+      const timeout = setTimeout(() => {
+        setGalleryImages((cur) => {
+          const curNext = [...cur];
+          const idx = curNext.findIndex((it) => (it.id ?? it.url) === key);
+          if (idx === -1) return cur;
+          const item = curNext[idx];
+          // revoke preview if present
+          if (item.file && galleryPreviewRefs.current.includes(item.url)) {
+            URL.revokeObjectURL(item.url);
+            galleryPreviewRefs.current = galleryPreviewRefs.current.filter(
+              (u) => u !== item.url,
+            );
+          }
+          // If item had an id (persisted), keep it but clear file; otherwise remove entirely
+          if (item.id) {
+            curNext[idx] = { ...item, file: undefined } as GalleryImageData;
+            return curNext;
+          }
+          curNext.splice(idx, 1);
+          return curNext;
+        });
+        delete deleteTimeoutsRef.current[key];
+      }, 8000);
+      deleteTimeoutsRef.current[key] = timeout;
 
       // Show toast with undo action
       try {
@@ -262,6 +294,12 @@ export function ProductForm({ mode, initialData }: ProductFormProps) {
           action: {
             label: "Undo",
             onClick: () => {
+              // clear timeout and restore
+              const t = deleteTimeoutsRef.current[key];
+              if (t) {
+                clearTimeout(t as ReturnType<typeof setTimeout>);
+                delete deleteTimeoutsRef.current[key];
+              }
               setGalleryImages((cur) =>
                 cur.map((it) =>
                   (it.id ?? it.url) === key ? { ...it, _delete: false } : it,
@@ -279,7 +317,13 @@ export function ProductForm({ mode, initialData }: ProductFormProps) {
   }
 
   async function retryUpload(index: number) {
-    const image = galleryImages[index];
+    // map visible index to actual index
+    const activeIndexes = galleryImages
+      .map((img, idx) => (img._delete ? -1 : idx))
+      .filter((i) => i >= 0);
+    const actualIndex = activeIndexes[index];
+    const idx = actualIndex ?? index;
+    const image = galleryImages[idx];
     if (!image) return;
     if (!image.file) {
       showToast("Cannot retry: original file not available", "error");
@@ -289,8 +333,8 @@ export function ProductForm({ mode, initialData }: ProductFormProps) {
     // mark uploading
     setGalleryImages((prev) => {
       const next = [...prev];
-      next[index] = {
-        ...next[index],
+      next[idx] = {
+        ...next[idx],
         isUploading: true,
         error: undefined,
       } as GalleryImageData;
@@ -301,8 +345,8 @@ export function ProductForm({ mode, initialData }: ProductFormProps) {
     if ("imagePath" in result) {
       setGalleryImages((prev) => {
         const next = [...prev];
-        next[index] = {
-          id: next[index].id,
+        next[idx] = {
+          id: next[idx].id,
           url: result.imagePath,
         } as GalleryImageData;
         return next;
@@ -312,8 +356,8 @@ export function ProductForm({ mode, initialData }: ProductFormProps) {
       const err = (result as any).error ?? "Upload failed";
       setGalleryImages((prev) => {
         const next = [...prev];
-        next[index] = {
-          ...next[index],
+        next[idx] = {
+          ...next[idx],
           isUploading: false,
           error: err,
         } as GalleryImageData;
@@ -374,6 +418,11 @@ export function ProductForm({ mode, initialData }: ProductFormProps) {
         URL.revokeObjectURL(imagePreviewRef.current);
       }
       galleryPreviewRefs.current.forEach((url) => URL.revokeObjectURL(url));
+      // clear any pending delete timeouts
+      Object.values(deleteTimeoutsRef.current).forEach((t) => {
+        if (t) clearTimeout(t as ReturnType<typeof setTimeout>);
+      });
+      deleteTimeoutsRef.current = {};
     };
   }, []);
 
@@ -477,6 +526,25 @@ export function ProductForm({ mode, initialData }: ProductFormProps) {
       if ("error" in result) {
         setSubmitError(result.error);
       } else {
+        // Revoke any remaining object URLs (local previews) now that we're navigating away
+        if (imagePreviewRef.current) {
+          URL.revokeObjectURL(imagePreviewRef.current);
+          imagePreviewRef.current = null;
+        }
+        galleryPreviewRefs.current.forEach((url) => {
+          try {
+            URL.revokeObjectURL(url);
+          } catch (e) {
+            // ignore
+          }
+        });
+        galleryPreviewRefs.current = [];
+        // clear delete timeouts
+        Object.values(deleteTimeoutsRef.current).forEach((t) => {
+          if (t) clearTimeout(t as ReturnType<typeof setTimeout>);
+        });
+        deleteTimeoutsRef.current = {};
+
         router.push("/admin/products");
       }
     });
@@ -714,9 +782,25 @@ export function ProductForm({ mode, initialData }: ProductFormProps) {
                       </div>
                     )}
                     {image.error && (
-                      <div className="absolute inset-0 flex items-end justify-center p-2">
+                      <div className="absolute inset-0 flex flex-col items-end justify-between p-2">
                         <div className="rounded bg-red-600/80 px-2 py-1 text-xs text-white">
                           {image.error}
+                        </div>
+                        <div className="mt-2 flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => retryUpload(visibleIndex)}
+                            className="rounded bg-white px-2 py-1 text-xs text-foreground"
+                          >
+                            Retry
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => removeGalleryImage(visibleIndex)}
+                            className="rounded bg-black/60 px-2 py-1 text-xs text-white"
+                          >
+                            Remove
+                          </button>
                         </div>
                       </div>
                     )}
