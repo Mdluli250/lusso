@@ -193,7 +193,6 @@ model RecentlyViewed {
   @@index([userId, viewedAt(sort: Desc)])
 }
 
-
 // ─── Subscriptions ────────────────────────────────────────────────
 
 model Subscription {

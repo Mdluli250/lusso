@@ -261,17 +261,24 @@ export function ProductForm({ mode, initialData }: ProductFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl">
       {/* Product Image */}
-      <div className="space-y-1">
-        <label
-          htmlFor="productImage"
-          className="block text-sm font-medium text-foreground"
-        >
-          Product Image
-        </label>
+      <div className="space-y-2">
+        <div className="flex flex-col gap-1">
+          <label
+            htmlFor="productImage"
+            className="block text-sm font-medium text-foreground"
+          >
+            Product Image
+          </label>
+          <p id="productImageDescription" className="text-xs text-muted">
+            Select or upload an image for this product. Supported formats: JPG,
+            PNG, GIF.
+          </p>
+        </div>
         <input
           id="productImage"
           type="file"
           accept="image/*"
+          aria-describedby="productImageDescription"
           onChange={(e) => handleImageChange(e.target.files?.[0] ?? null)}
           className="w-full text-sm rounded-md border border-border bg-surface text-foreground focus:border-theme-accent transition-colors"
         />
