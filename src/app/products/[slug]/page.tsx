@@ -8,13 +8,13 @@
  * Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7
  */
 
-import type { Metadata } from 'next';
-import { Suspense } from 'react';
-import { notFound } from 'next/navigation';
-import { prisma } from '@/lib/prisma';
-import { ProductDetailClient } from '@/components/product/ProductDetailClient';
-import { RecommendationsSection } from '@/components/product/RecommendationsSection';
-import { ProductJsonLd } from '@/components/seo/ProductJsonLd';
+import type { Metadata } from "next";
+import { Suspense } from "react";
+import { notFound } from "next/navigation";
+import { prisma } from "@/lib/prisma";
+import { ProductDetailClient } from "@/components/product/ProductDetailClient";
+import { RecommendationsSection } from "@/components/product/RecommendationsSection";
+import { ProductJsonLd } from "@/components/seo/ProductJsonLd";
 
 // ─── Types ────────────────────────────────────────────────────────
 
@@ -28,7 +28,16 @@ async function getProductBySlug(slug: string) {
   try {
     return await prisma.product.findUnique({
       where: { slug },
-      include: { variants: true },
+      include: {
+        variants: true,
+        images: {
+          select: {
+            id: true,
+            url: true,
+          },
+          orderBy: { sortOrder: "asc" },
+        },
+      },
     });
   } catch {
     return null;
@@ -44,7 +53,7 @@ export async function generateMetadata({
   const product = await getProductBySlug(slug);
 
   if (!product) {
-    return { title: 'Product Not Found' };
+    return { title: "Product Not Found" };
   }
 
   const priceFormatted = `R${(product.price / 100).toFixed(2)}`;
@@ -56,7 +65,7 @@ export async function generateMetadata({
     openGraph: {
       title: `${product.name} | Lusso`,
       description,
-      type: 'website',
+      type: "website",
     },
   };
 }

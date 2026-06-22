@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 /**
  * QuickViewModal — modal overlay for quick product preview.
@@ -12,15 +12,21 @@
  * Requirements: 4.6
  */
 
-import { useEffect, useRef, useState } from 'react';
-import Link from 'next/link';
-import Image from 'next/image';
-import { Button } from '@/components/ui/Button';
-import { useToast } from '@/components/ui/Toast';
-import { formatZAR } from '@/lib/formatCurrency';
-import { getProductImage } from '@/lib/getProductImage';
-import { useCartStore } from '@/store/cartStore';
-import type { ProductWithVariants } from './types';
+import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { Button } from "@/components/ui/Button";
+import { useToast } from "@/components/ui/Toast";
+import { formatZAR } from "@/lib/formatCurrency";
+import { getProductImage } from "@/lib/getProductImage";
+import { useCartStore } from "@/store/cartStore";
+import type { ProductWithVariants } from "./types";
+
+function getProductCardImage(product: ProductWithVariants) {
+  return (
+    product.image ?? product.images?.[0]?.url ?? getProductImage(product.id)
+  );
+}
 
 // ─── Types ────────────────────────────────────────────────────────
 
@@ -32,7 +38,11 @@ interface QuickViewModalProps {
 
 // ─── QuickViewModal ───────────────────────────────────────────────
 
-export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps) {
+export function QuickViewModal({
+  product,
+  isOpen,
+  onClose,
+}: QuickViewModalProps) {
   const overlayRef = useRef<HTMLDivElement>(null);
   const addItem = useCartStore((state) => state.addItem);
   const removeItem = useCartStore((state) => state.removeItem);
@@ -43,10 +53,10 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
   useEffect(() => {
     if (!isOpen) return;
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === "Escape") onClose();
     };
-    document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
   }, [isOpen, onClose]);
 
   // Focus trap inside modal
@@ -60,7 +70,7 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
     const last = focusable[focusable.length - 1];
 
     const handleTab = (e: KeyboardEvent) => {
-      if (e.key !== 'Tab') return;
+      if (e.key !== "Tab") return;
       if (e.shiftKey) {
         if (document.activeElement === first) {
           e.preventDefault();
@@ -74,16 +84,16 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
       }
     };
 
-    document.addEventListener('keydown', handleTab);
+    document.addEventListener("keydown", handleTab);
     first?.focus();
-    return () => document.removeEventListener('keydown', handleTab);
+    return () => document.removeEventListener("keydown", handleTab);
   }, [isOpen]);
 
   // Prevent body scroll while open
   useEffect(() => {
-    document.body.style.overflow = isOpen ? 'hidden' : '';
+    document.body.style.overflow = isOpen ? "hidden" : "";
     return () => {
-      document.body.style.overflow = '';
+      document.body.style.overflow = "";
     };
   }, [isOpen]);
 
@@ -102,11 +112,11 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
       scent: defaultVariant.scent,
       price: product.price,
       modelPath: defaultVariant.modelPath,
-      imageUrl: '',
+      imageUrl: "",
     });
 
     showToast(`${product.name} added to cart`, {
-      action: { label: 'Undo', onClick: () => removeItem(defaultVariant.id) },
+      action: { label: "Undo", onClick: () => removeItem(defaultVariant.id) },
     });
   };
 
@@ -124,10 +134,10 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
       {/* Modal panel */}
       <div
         className={[
-          'relative w-full max-w-4xl max-h-[90vh] overflow-y-auto',
-          'bg-[var(--theme-bg)] rounded-2xl shadow-2xl',
-          'border border-[var(--theme-accent)]/30',
-        ].join(' ')}
+          "relative w-full max-w-4xl max-h-[90vh] overflow-y-auto",
+          "bg-[var(--theme-bg)] rounded-2xl shadow-2xl",
+          "border border-[var(--theme-accent)]/30",
+        ].join(" ")}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close button */}
@@ -135,17 +145,23 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
           type="button"
           onClick={onClose}
           className={[
-            'absolute top-4 right-4 z-10',
-            'w-10 h-10 rounded-full',
-            'bg-[var(--theme-accent)]/10 hover:bg-[var(--theme-accent)]/20',
-            'text-[var(--theme-accent)]',
-            'flex items-center justify-center',
-            'transition-colors duration-150',
-            'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent)]',
-          ].join(' ')}
+            "absolute top-4 right-4 z-10",
+            "w-10 h-10 rounded-full",
+            "bg-[var(--theme-accent)]/10 hover:bg-[var(--theme-accent)]/20",
+            "text-[var(--theme-accent)]",
+            "flex items-center justify-center",
+            "transition-colors duration-150",
+            "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent)]",
+          ].join(" ")}
           aria-label="Close quick view"
         >
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 20 20"
+            fill="none"
+            aria-hidden="true"
+          >
             <path
               d="M5 5l10 10M15 5L5 15"
               stroke="currentColor"
@@ -169,15 +185,47 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
                   xmlns="http://www.w3.org/2000/svg"
                   aria-hidden="true"
                 >
-                  <ellipse cx="36" cy="10" rx="5" ry="8" fill={defaultVariant?.colorHex ?? 'var(--theme-accent)'} opacity="0.9" />
-                  <line x1="36" y1="18" x2="36" y2="26" stroke={defaultVariant?.colorHex ?? 'var(--theme-accent)'} strokeWidth="2" strokeLinecap="round" />
-                  <rect x="18" y="26" width="36" height="58" rx="6" fill={defaultVariant?.colorHex ?? 'var(--theme-accent)'} opacity="0.25" />
-                  <rect x="18" y="26" width="36" height="58" rx="6" stroke={defaultVariant?.colorHex ?? 'var(--theme-accent)'} strokeWidth="1.5" opacity="0.6" />
+                  <ellipse
+                    cx="36"
+                    cy="10"
+                    rx="5"
+                    ry="8"
+                    fill={defaultVariant?.colorHex ?? "var(--theme-accent)"}
+                    opacity="0.9"
+                  />
+                  <line
+                    x1="36"
+                    y1="18"
+                    x2="36"
+                    y2="26"
+                    stroke={defaultVariant?.colorHex ?? "var(--theme-accent)"}
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
+                  <rect
+                    x="18"
+                    y="26"
+                    width="36"
+                    height="58"
+                    rx="6"
+                    fill={defaultVariant?.colorHex ?? "var(--theme-accent)"}
+                    opacity="0.25"
+                  />
+                  <rect
+                    x="18"
+                    y="26"
+                    width="36"
+                    height="58"
+                    rx="6"
+                    stroke={defaultVariant?.colorHex ?? "var(--theme-accent)"}
+                    strokeWidth="1.5"
+                    opacity="0.6"
+                  />
                 </svg>
               </div>
             ) : (
               <Image
-                src={getProductImage(product.id)}
+                src={getProductCardImage(product)}
                 alt={product.name}
                 fill
                 sizes="(max-width: 768px) 100vw, 50vw"
@@ -203,7 +251,10 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
             </div>
 
             {/* Attribute badges */}
-            <div className="flex flex-wrap gap-2" aria-label="Product attributes">
+            <div
+              className="flex flex-wrap gap-2"
+              aria-label="Product attributes"
+            >
               <span className="px-3 py-1 rounded-full text-sm font-medium bg-[var(--theme-accent)]/15 text-[var(--theme-accent)]/80 capitalize">
                 {product.scentProfile}
               </span>
@@ -235,24 +286,24 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
                 disabled={isOutOfStock}
                 aria-label={
                   isOutOfStock
-                    ? 'Out of stock — cannot add to cart'
+                    ? "Out of stock — cannot add to cart"
                     : `Add ${product.name} to cart`
                 }
               >
-                {isOutOfStock ? 'Out of Stock' : 'Add to Cart'}
+                {isOutOfStock ? "Out of Stock" : "Add to Cart"}
               </Button>
 
               <Link
                 href={`/products/${product.slug}`}
                 className={[
-                  'inline-flex items-center justify-center gap-2',
-                  'px-5 py-2.5 rounded-lg text-base font-medium leading-none',
-                  'bg-transparent text-[var(--theme-accent)]',
-                  'border border-[var(--theme-accent)]',
-                  'hover:bg-[var(--theme-accent)]/10 active:bg-[var(--theme-accent)]/20',
-                  'transition-all duration-150',
-                  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent)]',
-                ].join(' ')}
+                  "inline-flex items-center justify-center gap-2",
+                  "px-5 py-2.5 rounded-lg text-base font-medium leading-none",
+                  "bg-transparent text-[var(--theme-accent)]",
+                  "border border-[var(--theme-accent)]",
+                  "hover:bg-[var(--theme-accent)]/10 active:bg-[var(--theme-accent)]/20",
+                  "transition-all duration-150",
+                  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent)]",
+                ].join(" ")}
                 onClick={onClose}
               >
                 View Full Details

@@ -12,6 +12,11 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'lh3.googleusercontent.com',
       },
+      {
+        protocol: 'https',
+        // Allow Vercel Blob Storage public buckets (e.g. <id>.public.blob.vercel-storage.com)
+        hostname: '*.vercel-storage.com',
+      },
     ],
   },
 };

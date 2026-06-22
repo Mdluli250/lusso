@@ -44,6 +44,10 @@ interface ProductWithVariants {
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
+  images: {
+    id: string;
+    url: string;
+  }[];
   variants: {
     id: string;
     scent: string;
@@ -259,6 +263,13 @@ export async function getProductById(
           stock: true,
         },
       },
+      images: {
+        select: {
+          id: true,
+          url: true,
+        },
+        orderBy: { sortOrder: "asc" },
+      },
     },
   });
 
@@ -274,6 +285,10 @@ export async function getProductById(
     waxType: product.waxType,
     scentProfile: product.scentProfile,
     image: product.image,
+    images: product.images.map((image) => ({
+      id: image.id,
+      url: image.url,
+    })),
     isActive: product.isActive,
     createdAt: product.createdAt,
     updatedAt: product.updatedAt,

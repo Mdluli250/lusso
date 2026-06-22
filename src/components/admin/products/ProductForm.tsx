@@ -16,6 +16,13 @@ interface VariantData {
   _delete?: boolean;
 }
 
+interface GalleryImageData {
+  id?: string;
+  url: string;
+  file?: File;
+  _delete?: boolean;
+}
+
 interface ProductData {
   id: string;
   name: string;
@@ -26,6 +33,10 @@ interface ProductData {
   waxType: string;
   scentProfile: string;
   image?: string | null;
+  images?: {
+    id: string;
+    url: string;
+  }[];
   isActive: boolean;
   variants: {
     id: string;
@@ -87,6 +98,11 @@ export function ProductForm({ mode, initialData }: ProductFormProps) {
     initialData?.image ?? null,
   );
   const imagePreviewRef = useRef<string | null>(null);
+  const [galleryImages, setGalleryImages] = useState<GalleryImageData[]>(
+    initialData?.images?.map((image) => ({ id: image.id, url: image.url })) ??
+      [],
+  );
+  const galleryPreviewRefs = useRef<string[]>([]);
 
   // Error state
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -157,11 +173,70 @@ export function ProductForm({ mode, initialData }: ProductFormProps) {
     setImagePreviewUrl(previewUrl);
   }
 
+  function handleGalleryImagesChange(files: FileList | null) {
+    if (!files?.length) return;
+
+    const nextImages = Array.from(files).map((file) => {
+      const url = URL.createObjectURL(file);
+      galleryPreviewRefs.current.push(url);
+      return { url, file };
+    });
+
+    setGalleryImages((prev) => [...prev, ...nextImages]);
+  }
+
+  function removeGalleryImage(index: number) {
+    setGalleryImages((prev) => {
+      const next = [...prev];
+      const removed = next[index];
+      if (removed?.file && galleryPreviewRefs.current.includes(removed.url)) {
+        URL.revokeObjectURL(removed.url);
+        galleryPreviewRefs.current = galleryPreviewRefs.current.filter(
+          (url) => url !== removed.url,
+        );
+      }
+
+      if (removed?.id) {
+        next[index] = { ...removed, _delete: true };
+        return next;
+      }
+
+      next.splice(index, 1);
+      return next;
+    });
+  }
+
+  function moveGalleryImage(index: number, direction: "left" | "right") {
+    setGalleryImages((prev) => {
+      const activeIndexes = prev
+        .map((image, idx) => (image._delete ? -1 : idx))
+        .filter((idx) => idx >= 0);
+      const currentIndex = activeIndexes[index];
+      if (currentIndex === undefined) return prev;
+
+      const targetIndex =
+        direction === "left"
+          ? activeIndexes[index - 1]
+          : activeIndexes[index + 1];
+      if (targetIndex === undefined) return prev;
+
+      const next = [...prev];
+      [next[currentIndex], next[targetIndex]] = [
+        next[targetIndex],
+        next[currentIndex],
+      ];
+      return next;
+    });
+  }
+
+  const visibleGalleryImages = galleryImages.filter((image) => !image._delete);
+
   useEffect(() => {
     return () => {
       if (imagePreviewRef.current) {
         URL.revokeObjectURL(imagePreviewRef.current);
       }
+      galleryPreviewRefs.current.forEach((url) => URL.revokeObjectURL(url));
     };
   }, []);
 
@@ -199,6 +274,11 @@ export function ProductForm({ mode, initialData }: ProductFormProps) {
       waxType,
       scentProfile,
       image: imagePath,
+      galleryImages: galleryImages.map((image) => ({
+        ...(image.id ? { id: image.id } : {}),
+        url: image.url,
+        ...(image._delete ? { _delete: true } : {}),
+      })),
       isActive,
       variants: variants.map((v) => ({
         ...(v.id ? { id: v.id } : {}),
@@ -218,8 +298,38 @@ export function ProductForm({ mode, initialData }: ProductFormProps) {
           setSubmitError(uploadResult.error);
           return;
         }
+        setImagePath(uploadResult.imagePath);
         formData.image = uploadResult.imagePath;
       }
+
+      if (galleryImages.some((image) => image.file && !image._delete)) {
+        const uploadedImages: GalleryImageData[] = [];
+        for (const image of galleryImages) {
+          if (image.file && !image._delete) {
+            const uploadResult = await uploadProductImage(image.file);
+            if ("error" in uploadResult) {
+              setSubmitError(uploadResult.error);
+              return;
+            }
+            uploadedImages.push({
+              id: image.id,
+              url: uploadResult.imagePath,
+            });
+          } else {
+            uploadedImages.push({
+              id: image.id,
+              url: image.url,
+              _delete: image._delete,
+            });
+          }
+        }
+        formData.galleryImages = uploadedImages.map((image) => ({
+          ...(image.id ? { id: image.id } : {}),
+          url: image.url,
+          ...(image._delete ? { _delete: true } : {}),
+        }));
+      }
+
       let result;
       if (mode === "create") {
         result = await createProduct(formData);
@@ -267,11 +377,11 @@ export function ProductForm({ mode, initialData }: ProductFormProps) {
             htmlFor="productImage"
             className="block text-sm font-medium text-foreground"
           >
-            Product Image
+            Product Hero Image
           </label>
           <p id="productImageDescription" className="text-xs text-muted">
-            Select or upload an image for this product. Supported formats: JPG,
-            PNG, GIF.
+            Select or upload the primary product image shown at the top of the
+            product page.
           </p>
         </div>
         <input
@@ -284,12 +394,89 @@ export function ProductForm({ mode, initialData }: ProductFormProps) {
         />
         {imagePreviewUrl && (
           <div className="mt-2">
-            <p className="text-xs text-muted">Preview</p>
+            <p className="text-xs text-muted">Hero image preview</p>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={imagePreviewUrl}
               alt="Product preview"
               className="mt-2 h-40 w-full max-w-md rounded-md object-cover border border-border"
             />
+          </div>
+        )}
+      </div>
+
+      <div className="space-y-2">
+        <div className="flex flex-col gap-1">
+          <label
+            htmlFor="galleryImages"
+            className="block text-sm font-medium text-foreground"
+          >
+            Gallery Images
+          </label>
+          <p id="galleryImagesDescription" className="text-xs text-muted">
+            Upload additional product photos for the gallery below the main
+            image. You can add multiple images and remove any before saving.
+          </p>
+        </div>
+        <input
+          id="galleryImages"
+          type="file"
+          accept="image/*"
+          multiple
+          aria-describedby="galleryImagesDescription"
+          onChange={(e) => handleGalleryImagesChange(e.target.files)}
+          className="w-full text-sm rounded-md border border-border bg-surface text-foreground focus:border-theme-accent transition-colors"
+        />
+        {visibleGalleryImages.length > 0 && (
+          <div className="space-y-3 mt-2">
+            <p className="text-xs text-muted">
+              Drag-free reorder the gallery images or remove any before saving.
+            </p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {visibleGalleryImages.map((image, visibleIndex) => (
+                <div
+                  key={image.id ?? image.url}
+                  className="relative overflow-hidden rounded-lg border border-border bg-surface"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={image.url}
+                    alt={`Gallery image ${visibleIndex + 1}`}
+                    className="h-28 w-full object-cover"
+                  />
+                  <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-1 bg-black/50 p-2">
+                    <button
+                      type="button"
+                      onClick={() => moveGalleryImage(visibleIndex, "left")}
+                      disabled={visibleIndex === 0}
+                      className="rounded-full bg-white/10 px-2 py-1 text-[11px] text-white disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      ←
+                    </button>
+                    <span className="text-[11px] text-white">
+                      {visibleIndex + 1} / {visibleGalleryImages.length}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => moveGalleryImage(visibleIndex, "right")}
+                      disabled={
+                        visibleIndex === visibleGalleryImages.length - 1
+                      }
+                      className="rounded-full bg-white/10 px-2 py-1 text-[11px] text-white disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      →
+                    </button>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removeGalleryImage(visibleIndex)}
+                    className="absolute top-2 right-2 rounded-full bg-black/60 px-2 py-1 text-xs text-white"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>

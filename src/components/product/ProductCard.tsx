@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 /**
  * ProductCard — displays a single product in the collection grid.
@@ -13,15 +13,21 @@
  * Requirements: 4.1, 6.5
  */
 
-import { useState } from 'react';
-import Link from 'next/link';
-import Image from 'next/image';
-import { Button } from '@/components/ui/Button';
-import { WishlistButton } from '@/components/wishlist/WishlistButton';
-import { CompareButton } from '@/components/comparison/CompareButton';
-import { formatZAR } from '@/lib/formatCurrency';
-import { getProductImage } from '@/lib/getProductImage';
-import type { ProductWithVariants } from './types';
+import { useState } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { Button } from "@/components/ui/Button";
+import { WishlistButton } from "@/components/wishlist/WishlistButton";
+import { CompareButton } from "@/components/comparison/CompareButton";
+import { formatZAR } from "@/lib/formatCurrency";
+import { getProductImage } from "@/lib/getProductImage";
+import type { ProductWithVariants } from "./types";
+
+function getProductCoverImage(product: ProductWithVariants) {
+  return (
+    product.image ?? product.images?.[0]?.url ?? getProductImage(product.id)
+  );
+}
 
 // ─── Types ────────────────────────────────────────────────────────
 
@@ -34,7 +40,7 @@ interface ProductCardProps {
 // Shown when no 3D model is available yet (placeholder .glb paths).
 
 function CandlePlaceholder({ colorHex }: { colorHex?: string }) {
-  const color = colorHex ?? 'var(--theme-accent)';
+  const color = colorHex ?? "var(--theme-accent)";
   return (
     <div
       className="w-full h-full flex items-center justify-center"
@@ -51,13 +57,54 @@ function CandlePlaceholder({ colorHex }: { colorHex?: string }) {
         {/* Flame */}
         <ellipse cx="36" cy="10" rx="5" ry="8" fill={color} opacity="0.9" />
         {/* Wick */}
-        <line x1="36" y1="18" x2="36" y2="26" stroke={color} strokeWidth="2" strokeLinecap="round" />
+        <line
+          x1="36"
+          y1="18"
+          x2="36"
+          y2="26"
+          stroke={color}
+          strokeWidth="2"
+          strokeLinecap="round"
+        />
         {/* Candle body */}
-        <rect x="18" y="26" width="36" height="58" rx="6" fill={color} opacity="0.25" />
-        <rect x="18" y="26" width="36" height="58" rx="6" stroke={color} strokeWidth="1.5" opacity="0.6" />
+        <rect
+          x="18"
+          y="26"
+          width="36"
+          height="58"
+          rx="6"
+          fill={color}
+          opacity="0.25"
+        />
+        <rect
+          x="18"
+          y="26"
+          width="36"
+          height="58"
+          rx="6"
+          stroke={color}
+          strokeWidth="1.5"
+          opacity="0.6"
+        />
         {/* Label line */}
-        <line x1="24" y1="52" x2="48" y2="52" stroke={color} strokeWidth="1" opacity="0.5" />
-        <line x1="24" y1="58" x2="44" y2="58" stroke={color} strokeWidth="1" opacity="0.4" />
+        <line
+          x1="24"
+          y1="52"
+          x2="48"
+          y2="52"
+          stroke={color}
+          strokeWidth="1"
+          opacity="0.5"
+        />
+        <line
+          x1="24"
+          y1="58"
+          x2="44"
+          y2="58"
+          stroke={color}
+          strokeWidth="1"
+          opacity="0.4"
+        />
       </svg>
     </div>
   );
@@ -72,20 +119,20 @@ export function ProductCard({ product, onQuickView }: ProductCardProps) {
   return (
     <article
       className={[
-        'group flex flex-col rounded-2xl overflow-hidden',
-        'border border-[var(--theme-accent)]/20',
-        'bg-[var(--theme-accent)]/5',
-        'hover:border-[var(--theme-accent)]/40',
-        'hover:bg-[var(--theme-accent)]/8',
-        'transition-all duration-200',
-      ].join(' ')}
+        "group flex flex-col rounded-2xl overflow-hidden",
+        "border border-[var(--theme-accent)]/20",
+        "bg-[var(--theme-accent)]/5",
+        "hover:border-[var(--theme-accent)]/40",
+        "hover:bg-[var(--theme-accent)]/8",
+        "transition-all duration-200",
+      ].join(" ")}
       aria-label={product.name}
     >
       {/* Thumbnail area */}
       <div className="relative aspect-square overflow-hidden bg-[var(--theme-accent)]/10">
         <Link
           href={`/products/${product.slug}`}
-          className="block w-full h-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent)]"
+          className="relative block w-full h-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent)]"
           tabIndex={0}
           aria-label={`View details for ${product.name}`}
         >
@@ -93,7 +140,7 @@ export function ProductCard({ product, onQuickView }: ProductCardProps) {
             <CandlePlaceholder colorHex={defaultVariant?.colorHex} />
           ) : (
             <Image
-              src={getProductImage(product.id)}
+              src={getProductCoverImage(product)}
               alt={product.name}
               fill
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
@@ -119,7 +166,8 @@ export function ProductCard({ product, onQuickView }: ProductCardProps) {
               scentProfile: product.scentProfile,
               waxType: product.waxType,
               burnTimeHours: product.burnTimeHours,
-              modelPath: defaultVariant?.modelPath || '/models/candle-compressed.glb',
+              modelPath:
+                defaultVariant?.modelPath || "/models/candle-compressed.glb",
               addedAt: 0,
             }}
           />
@@ -128,11 +176,11 @@ export function ProductCard({ product, onQuickView }: ProductCardProps) {
         {/* Quick View overlay button — appears on hover */}
         <div
           className={[
-            'absolute inset-x-0 bottom-0 p-3',
-            'bg-gradient-to-t from-black/40 to-transparent',
-            'translate-y-full group-hover:translate-y-0',
-            'transition-transform duration-200 ease-out',
-          ].join(' ')}
+            "absolute inset-x-0 bottom-0 p-3",
+            "bg-gradient-to-t from-black/40 to-transparent",
+            "translate-y-full group-hover:translate-y-0",
+            "transition-transform duration-200 ease-out",
+          ].join(" ")}
         >
           <Button
             variant="primary"
@@ -153,12 +201,12 @@ export function ProductCard({ product, onQuickView }: ProductCardProps) {
         <Link
           href={`/products/${product.slug}`}
           className={[
-            'font-semibold text-base leading-snug',
-            'text-[var(--theme-accent)]',
-            'hover:opacity-80 transition-opacity',
-            'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent)]',
-            'line-clamp-2',
-          ].join(' ')}
+            "font-semibold text-base leading-snug",
+            "text-[var(--theme-accent)]",
+            "hover:opacity-80 transition-opacity",
+            "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent)]",
+            "line-clamp-2",
+          ].join(" ")}
         >
           {product.name}
         </Link>
@@ -178,8 +226,11 @@ export function ProductCard({ product, onQuickView }: ProductCardProps) {
 
         {/* Rating */}
         <div className="flex items-center gap-1.5">
-          <div className="flex text-amber-500 text-xs" aria-label="5 out of 5 stars">
-            {'★★★★★'}
+          <div
+            className="flex text-amber-500 text-xs"
+            aria-label="5 out of 5 stars"
+          >
+            {"★★★★★"}
           </div>
           <span className="text-xs text-[var(--theme-accent)]/50">(12)</span>
         </div>

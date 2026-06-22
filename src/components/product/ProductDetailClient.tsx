@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 /**
  * ProductDetailClient — Client Component island for the Product Detail page.
@@ -11,24 +11,24 @@
  * Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7
  */
 
-import { useState, useCallback, useEffect } from 'react';
-import Image from 'next/image';
-import { useColorTheme } from '@/components/animation/useColorTheme';
-import { useToast } from '@/components/ui/Toast';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
-import { Button } from '@/components/ui/Button';
-import { WishlistButton } from '@/components/wishlist/WishlistButton';
-import { ReviewList } from '@/components/reviews/ReviewList';
-import { ReviewForm } from '@/components/reviews/ReviewForm';
-import { RecentlyViewed } from '@/components/product/RecentlyViewed';
-import { SubscriptionSelector } from '@/components/subscription/SubscriptionSelector';
-import { formatZAR } from '@/lib/formatCurrency';
-import { getProductImages } from '@/lib/getProductImages';
-import { useCartStore } from '@/store/cartStore';
-import { useRecentlyViewedStore } from '@/store/recentlyViewedStore';
-import { VariantSelector } from './VariantSelector';
-import { IngredientSection, type Ingredient } from './IngredientSection';
-import type { ProductWithVariants, ProductVariant } from './types';
+import { useState, useCallback, useEffect } from "react";
+import Image from "next/image";
+import { useColorTheme } from "@/components/animation/useColorTheme";
+import { useToast } from "@/components/ui/Toast";
+import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
+import { Button } from "@/components/ui/Button";
+import { WishlistButton } from "@/components/wishlist/WishlistButton";
+import { ReviewList } from "@/components/reviews/ReviewList";
+import { ReviewForm } from "@/components/reviews/ReviewForm";
+import { RecentlyViewed } from "@/components/product/RecentlyViewed";
+import { SubscriptionSelector } from "@/components/subscription/SubscriptionSelector";
+import { formatZAR } from "@/lib/formatCurrency";
+import { getProductImages } from "@/lib/getProductImages";
+import { useCartStore } from "@/store/cartStore";
+import { useRecentlyViewedStore } from "@/store/recentlyViewedStore";
+import { VariantSelector } from "./VariantSelector";
+import { IngredientSection, type Ingredient } from "./IngredientSection";
+import type { ProductWithVariants, ProductVariant } from "./types";
 
 // ─── Types ────────────────────────────────────────────────────────
 
@@ -41,24 +41,25 @@ interface ProductDetailClientProps {
 function getIngredients(product: ProductWithVariants): Ingredient[] {
   return [
     {
-      title: 'Wax Type',
+      title: "Wax Type",
       description: `Made with premium ${product.waxType} wax for a clean, even burn with minimal soot.`,
-      icon: '🕯️',
+      icon: "🕯️",
     },
     {
-      title: 'Scent Profile',
+      title: "Scent Profile",
       description: `Infused with natural ${product.scentProfile} fragrance oils for an authentic, long-lasting aroma.`,
-      icon: '🌸',
+      icon: "🌸",
     },
     {
-      title: 'Burn Time',
+      title: "Burn Time",
       description: `Enjoy up to ${product.burnTimeHours} hours of continuous burn time per candle.`,
-      icon: '⏱️',
+      icon: "⏱️",
     },
     {
-      title: 'Handcrafted',
-      description: 'Each candle is hand-poured in small batches to ensure quality and consistency.',
-      icon: '✋',
+      title: "Handcrafted",
+      description:
+        "Each candle is hand-poured in small batches to ensure quality and consistency.",
+      icon: "✋",
     },
   ];
 }
@@ -67,7 +68,7 @@ function getIngredients(product: ProductWithVariants): Ingredient[] {
 
 export function ProductDetailClient({ product }: ProductDetailClientProps) {
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant>(
-    product.variants[0]
+    product.variants[0],
   );
   const [imgError, setImgError] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
@@ -76,8 +77,16 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
   const { showToast } = useToast();
   const recordView = useRecentlyViewedStore((s) => s.record);
 
-  // Get gallery images for this product
-  const productImages = getProductImages(product.id);
+  // Get gallery images for this product, preferring uploaded `product.image`
+  const galleryImageUrls = product.images?.map((image) => image.url) ?? [];
+  const productImages = product.image
+    ? [
+        product.image,
+        ...galleryImageUrls.filter((url) => url !== product.image),
+      ]
+    : galleryImageUrls.length > 0
+      ? galleryImageUrls
+      : getProductImages(product.id);
 
   // Animate color theme when variant changes
   useColorTheme(selectedVariant?.scent ?? null);
@@ -103,11 +112,11 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
       scent: selectedVariant.scent,
       price: product.price,
       modelPath: selectedVariant.modelPath,
-      imageUrl: '',
+      imageUrl: "",
     });
 
     showToast(`${product.name} added to cart`, {
-      action: { label: 'Undo', onClick: () => removeItem(selectedVariant.id) },
+      action: { label: "Undo", onClick: () => removeItem(selectedVariant.id) },
     });
   }, [product, selectedVariant, isOutOfStock, addItem, removeItem, showToast]);
 
@@ -117,7 +126,13 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
     <div className="min-h-screen bg-[var(--theme-bg)] transition-colors duration-700">
       <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-16 py-12 lg:py-20">
         {/* Breadcrumb navigation */}
-        <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Shop', href: '/collection' }, { label: product.name }]} />
+        <Breadcrumbs
+          items={[
+            { label: "Home", href: "/" },
+            { label: "Shop", href: "/collection" },
+            { label: product.name },
+          ]}
+        />
 
         {/* Main product section */}
         <div className="grid lg:grid-cols-2 gap-10 lg:gap-16">
@@ -134,12 +149,68 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
                     xmlns="http://www.w3.org/2000/svg"
                     aria-hidden="true"
                   >
-                    <ellipse cx="36" cy="10" rx="5" ry="8" fill={selectedVariant?.colorHex ?? 'var(--theme-accent)'} opacity="0.9" />
-                    <line x1="36" y1="18" x2="36" y2="26" stroke={selectedVariant?.colorHex ?? 'var(--theme-accent)'} strokeWidth="2" strokeLinecap="round" />
-                    <rect x="18" y="26" width="36" height="58" rx="6" fill={selectedVariant?.colorHex ?? 'var(--theme-accent)'} opacity="0.25" />
-                    <rect x="18" y="26" width="36" height="58" rx="6" stroke={selectedVariant?.colorHex ?? 'var(--theme-accent)'} strokeWidth="1.5" opacity="0.6" />
-                    <line x1="24" y1="52" x2="48" y2="52" stroke={selectedVariant?.colorHex ?? 'var(--theme-accent)'} strokeWidth="1" opacity="0.5" />
-                    <line x1="24" y1="58" x2="44" y2="58" stroke={selectedVariant?.colorHex ?? 'var(--theme-accent)'} strokeWidth="1" opacity="0.4" />
+                    <ellipse
+                      cx="36"
+                      cy="10"
+                      rx="5"
+                      ry="8"
+                      fill={selectedVariant?.colorHex ?? "var(--theme-accent)"}
+                      opacity="0.9"
+                    />
+                    <line
+                      x1="36"
+                      y1="18"
+                      x2="36"
+                      y2="26"
+                      stroke={
+                        selectedVariant?.colorHex ?? "var(--theme-accent)"
+                      }
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                    />
+                    <rect
+                      x="18"
+                      y="26"
+                      width="36"
+                      height="58"
+                      rx="6"
+                      fill={selectedVariant?.colorHex ?? "var(--theme-accent)"}
+                      opacity="0.25"
+                    />
+                    <rect
+                      x="18"
+                      y="26"
+                      width="36"
+                      height="58"
+                      rx="6"
+                      stroke={
+                        selectedVariant?.colorHex ?? "var(--theme-accent)"
+                      }
+                      strokeWidth="1.5"
+                      opacity="0.6"
+                    />
+                    <line
+                      x1="24"
+                      y1="52"
+                      x2="48"
+                      y2="52"
+                      stroke={
+                        selectedVariant?.colorHex ?? "var(--theme-accent)"
+                      }
+                      strokeWidth="1"
+                      opacity="0.5"
+                    />
+                    <line
+                      x1="24"
+                      y1="58"
+                      x2="44"
+                      y2="58"
+                      stroke={
+                        selectedVariant?.colorHex ?? "var(--theme-accent)"
+                      }
+                      strokeWidth="1"
+                      opacity="0.4"
+                    />
                   </svg>
                 </div>
               ) : (
@@ -162,10 +233,18 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
                   key={i}
                   onClick={() => setActiveImageIndex(i)}
                   className={`relative w-16 h-16 rounded-lg overflow-hidden border-2 transition-all ${
-                    i === activeImageIndex ? 'border-[var(--theme-accent)]' : 'border-transparent opacity-60 hover:opacity-100'
+                    i === activeImageIndex
+                      ? "border-[var(--theme-accent)]"
+                      : "border-transparent opacity-60 hover:opacity-100"
                   }`}
                 >
-                  <Image src={img} alt={`${product.name} view ${i + 1}`} fill className="object-cover" sizes="64px" />
+                  <Image
+                    src={img}
+                    alt={`${product.name} view ${i + 1}`}
+                    fill
+                    className="object-cover"
+                    sizes="64px"
+                  />
                 </button>
               ))}
             </div>
@@ -178,7 +257,10 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
               <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[var(--theme-accent)] leading-tight">
                 {product.name}
               </h1>
-              <WishlistButton productId={product.id} className="shrink-0 mt-2" />
+              <WishlistButton
+                productId={product.id}
+                className="shrink-0 mt-2"
+              />
             </div>
 
             {/* Description */}
@@ -187,7 +269,10 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
             </p>
 
             {/* Attribute badges */}
-            <div className="flex flex-wrap gap-2" aria-label="Product attributes">
+            <div
+              className="flex flex-wrap gap-2"
+              aria-label="Product attributes"
+            >
               <span className="px-3 py-1.5 rounded-full text-sm font-medium bg-[var(--theme-accent)]/15 text-[var(--theme-accent)]/80 capitalize">
                 {product.scentProfile}
               </span>
@@ -213,7 +298,7 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
             {product.variants.length > 1 && (
               <VariantSelector
                 variants={product.variants}
-                selectedVariantId={selectedVariant?.id ?? ''}
+                selectedVariantId={selectedVariant?.id ?? ""}
                 onSelect={handleVariantSelect}
               />
             )}
@@ -228,11 +313,11 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
                 disabled={isOutOfStock}
                 aria-label={
                   isOutOfStock
-                    ? 'Out of stock — cannot add to cart'
+                    ? "Out of stock — cannot add to cart"
                     : `Add ${product.name} to cart`
                 }
               >
-                {isOutOfStock ? 'Out of Stock' : 'Add to Cart'}
+                {isOutOfStock ? "Out of Stock" : "Add to Cart"}
               </Button>
 
               {isOutOfStock && (
@@ -281,10 +366,19 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
       {/* Sticky mobile add-to-cart bar */}
       <div className="fixed bottom-0 left-0 right-0 z-30 md:hidden bg-[var(--theme-bg)] border-t border-[var(--theme-accent)]/15 px-4 py-3 flex items-center justify-between gap-3 shadow-lg">
         <div>
-          <p className="text-sm font-semibold text-[var(--theme-accent)]">{product.name}</p>
-          <p className="text-lg font-bold text-[var(--theme-accent)]">{formatZAR(product.price)}</p>
+          <p className="text-sm font-semibold text-[var(--theme-accent)]">
+            {product.name}
+          </p>
+          <p className="text-lg font-bold text-[var(--theme-accent)]">
+            {formatZAR(product.price)}
+          </p>
         </div>
-        <Button variant="primary" size="md" onClick={handleAddToCart} disabled={!selectedVariant || selectedVariant.stock === 0}>
+        <Button
+          variant="primary"
+          size="md"
+          onClick={handleAddToCart}
+          disabled={!selectedVariant || selectedVariant.stock === 0}
+        >
           Add to Cart
         </Button>
       </div>

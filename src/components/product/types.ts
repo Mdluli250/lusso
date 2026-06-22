@@ -23,6 +23,7 @@ export interface ProductWithVariants {
   waxType: string;
   scentProfile: string;
   image?: string | null;
+  images?: { id: string; url: string }[];
   isActive: boolean;
   variants: ProductVariant[];
   createdAt: Date;

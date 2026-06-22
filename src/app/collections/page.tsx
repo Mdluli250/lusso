@@ -29,6 +29,8 @@ interface ProductWithVariants {
   price: number;
   waxType: string;
   scentProfile: string;
+  image?: string | null;
+  images?: { id: string; url: string }[];
   isActive: boolean;
   variants: {
     id: string;
@@ -54,6 +56,13 @@ async function getActiveProducts(): Promise<ProductWithVariants[]> {
             scent: true,
             waxType: true,
           },
+        },
+        images: {
+          select: {
+            id: true,
+            url: true,
+          },
+          orderBy: { sortOrder: "asc" },
         },
       },
       orderBy: { name: "asc" },
@@ -92,10 +101,14 @@ function filterProducts(
 // ─── Helper: get a placeholder image for a product ────────────────
 
 function getProductImage(product: ProductWithVariants): string {
-  // Use the first variant's model path as a reference, or a placeholder
+  // Prefer an uploaded hero image if present
+  if (product.image) return product.image;
+  // Prefer a persisted gallery image if there is no hero image
+  if (product.images?.[0]?.url) return product.images[0].url;
+
+  // Fallback: use the first variant's model path as a reference, or a placeholder
   const variant = product.variants[0];
   if (variant?.modelPath) {
-    // If there's a model path, use a placeholder image based on the product
     return `/images/products/${product.slug}.jpg`;
   }
   return "/images/products/placeholder-candle.jpg";

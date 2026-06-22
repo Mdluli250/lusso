@@ -16,6 +16,12 @@ interface VariantFormData {
   _delete?: boolean;
 }
 
+interface GalleryImageFormData {
+  id?: string;
+  url: string;
+  _delete?: boolean;
+}
+
 interface ProductFormData {
   name: string;
   slug: string;
@@ -25,6 +31,7 @@ interface ProductFormData {
   waxType: string;
   scentProfile: string;
   image?: string | null;
+  galleryImages?: GalleryImageFormData[];
   isActive: boolean;
   variants: VariantFormData[];
 }
@@ -80,6 +87,16 @@ export async function createProduct(
                 stock: v.stock,
               })),
           },
+          images: data.galleryImages
+            ? {
+                create: data.galleryImages
+                  .filter((image) => !image._delete)
+                  .map((image, index) => ({
+                    url: image.url,
+                    sortOrder: index,
+                  })),
+              }
+            : undefined,
         },
       });
       return created;
@@ -90,7 +107,7 @@ export async function createProduct(
     revalidatePath("/collections");
     revalidatePath("/");
     revalidatePath("/products/[slug]", "layout");
-     
+
     return { id: product.id };
   } catch (error) {
     console.error("createProduct failed:", error);
@@ -137,6 +154,39 @@ export async function updateProduct(
         },
       });
 
+      // Handle gallery image deletes and order updates
+      if (data.galleryImages) {
+        const imagesToDelete = data.galleryImages
+          .filter((image) => image._delete && image.id)
+          .map((image) => image.id!);
+
+        if (imagesToDelete.length > 0) {
+          await tx.productImage.deleteMany({
+            where: { id: { in: imagesToDelete } },
+          });
+        }
+
+        const imagesToKeep = data.galleryImages.filter(
+          (image) => !image._delete,
+        );
+        for (const [index, image] of imagesToKeep.entries()) {
+          if (image.id) {
+            await tx.productImage.update({
+              where: { id: image.id },
+              data: { sortOrder: index },
+            });
+          } else {
+            await tx.productImage.create({
+              data: {
+                productId: id,
+                url: image.url,
+                sortOrder: index,
+              },
+            });
+          }
+        }
+      }
+
       // Handle variant deletes
       const variantsToDelete = data.variants.filter((v) => v._delete && v.id);
       if (variantsToDelete.length > 0) {
@@ -181,7 +231,7 @@ export async function updateProduct(
     revalidatePath("/collections");
     revalidatePath("/");
     revalidatePath(`/products/${data.slug}`);
-     
+
     return { success: true };
   } catch (error) {
     console.error("updateProduct failed:", error);
@@ -202,7 +252,7 @@ export async function deleteProduct(
     revalidatePath("/admin/products");
     revalidatePath("/collections");
     revalidatePath("/");
-     
+
     return { success: true };
   } catch (error) {
     console.error("deleteProduct failed:", error);
