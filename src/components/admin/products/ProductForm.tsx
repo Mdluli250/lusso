@@ -246,24 +246,81 @@ export function ProductForm({ mode, initialData }: ProductFormProps) {
   }
 
   function removeGalleryImage(index: number) {
+    // Mark image as deleted so user can undo; do not revoke preview immediately
     setGalleryImages((prev) => {
       const next = [...prev];
-      const removed = next[index];
-      if (removed?.file && galleryPreviewRefs.current.includes(removed.url)) {
-        URL.revokeObjectURL(removed.url);
-        galleryPreviewRefs.current = galleryPreviewRefs.current.filter(
-          (url) => url !== removed.url,
-        );
+      const target = next[index];
+      if (!target) return prev;
+      // stable key to identify for undo
+      const key = target.id ?? target.url;
+      next[index] = { ...target, _delete: true } as GalleryImageData;
+
+      // Show toast with undo action
+      try {
+        showToast("Image removed", {
+          type: "info",
+          action: {
+            label: "Undo",
+            onClick: () => {
+              setGalleryImages((cur) =>
+                cur.map((it) =>
+                  (it.id ?? it.url) === key ? { ...it, _delete: false } : it,
+                ),
+              );
+            },
+          },
+        });
+      } catch (e) {
+        // ignore toast failures
       }
 
-      if (removed?.id) {
-        next[index] = { ...removed, _delete: true };
-        return next;
-      }
-
-      next.splice(index, 1);
       return next;
     });
+  }
+
+  async function retryUpload(index: number) {
+    const image = galleryImages[index];
+    if (!image) return;
+    if (!image.file) {
+      showToast("Cannot retry: original file not available", "error");
+      return;
+    }
+
+    // mark uploading
+    setGalleryImages((prev) => {
+      const next = [...prev];
+      next[index] = {
+        ...next[index],
+        isUploading: true,
+        error: undefined,
+      } as GalleryImageData;
+      return next;
+    });
+
+    const result = await uploadProductImage(image.file);
+    if ("imagePath" in result) {
+      setGalleryImages((prev) => {
+        const next = [...prev];
+        next[index] = {
+          id: next[index].id,
+          url: result.imagePath,
+        } as GalleryImageData;
+        return next;
+      });
+      showToast("Upload succeeded", "success");
+    } else {
+      const err = (result as any).error ?? "Upload failed";
+      setGalleryImages((prev) => {
+        const next = [...prev];
+        next[index] = {
+          ...next[index],
+          isUploading: false,
+          error: err,
+        } as GalleryImageData;
+        return next;
+      });
+      showToast(`Retry failed: ${err}`, "error");
+    }
   }
 
   function moveGalleryImage(index: number, direction: "left" | "right") {
@@ -550,113 +607,127 @@ export function ProductForm({ mode, initialData }: ProductFormProps) {
             </p>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {visibleGalleryImages.map((image, visibleIndex) => (
-                <div
-                  key={image.id ?? image.url}
-                  draggable={!image.isUploading}
-                  onDragStart={(e) => {
-                    if (image.isUploading) return;
-                    e.dataTransfer.setData("text/plain", String(visibleIndex));
-                    e.dataTransfer.effectAllowed = "move";
-                    setDraggingIndex(visibleIndex);
-                  }}
-                  onDragOver={(e) => {
-                    e.preventDefault();
-                    setDragOverIndex(visibleIndex);
-                  }}
-                  onDragLeave={() => setDragOverIndex(null)}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    const src = e.dataTransfer.getData("text/plain");
-                    const srcIndex = parseInt(src, 10);
-                    if (!Number.isNaN(srcIndex)) {
-                      reorderGalleryImagesByVisibleIndexes(
-                        srcIndex,
-                        visibleIndex,
+                <div key={image.id ?? image.url}>
+                  {/* Placeholder slot when dragging over this index */}
+                  {dragOverIndex === visibleIndex &&
+                    draggingIndex !== visibleIndex && (
+                      <div className="h-28 rounded-lg border-2 border-dashed border-theme-accent/50 bg-theme-accent/5" />
+                    )}
+                  <div
+                    draggable={!image.isUploading}
+                    onDragStart={(e) => {
+                      if (image.isUploading) return;
+                      e.dataTransfer.setData(
+                        "text/plain",
+                        String(visibleIndex),
                       );
-                    }
-                    setDraggingIndex(null);
-                    setDragOverIndex(null);
-                  }}
-                  onDragEnd={() => setDraggingIndex(null)}
-                  className={[
-                    "relative overflow-hidden rounded-lg border border-border bg-surface transition-all",
-                    draggingIndex === visibleIndex ? "opacity-70" : "",
-                    dragOverIndex === visibleIndex &&
-                    draggingIndex !== visibleIndex
-                      ? "ring-2 ring-dashed ring-theme-accent/60"
-                      : "",
-                  ].join(" ")}
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={image.url}
-                    alt={`Gallery image ${visibleIndex + 1}`}
-                    className="h-28 w-full object-cover"
-                  />
-                  <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-1 bg-black/50 p-2">
-                    <button
-                      type="button"
-                      onClick={() => moveGalleryImage(visibleIndex, "left")}
-                      disabled={visibleIndex === 0 || image.isUploading}
-                      className="rounded-full bg-white/10 px-2 py-1 text-[11px] text-white disabled:cursor-not-allowed disabled:opacity-40"
-                    >
-                      ←
-                    </button>
-                    <span className="text-[11px] text-white">
-                      {visibleIndex + 1} / {visibleGalleryImages.length}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => moveGalleryImage(visibleIndex, "right")}
-                      disabled={
-                        visibleIndex === visibleGalleryImages.length - 1 ||
-                        image.isUploading
+                      e.dataTransfer.effectAllowed = "move";
+                      setDraggingIndex(visibleIndex);
+                    }}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      setDragOverIndex(visibleIndex);
+                    }}
+                    onDragLeave={() => setDragOverIndex(null)}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      const src = e.dataTransfer.getData("text/plain");
+                      const srcIndex = parseInt(src, 10);
+                      if (!Number.isNaN(srcIndex)) {
+                        reorderGalleryImagesByVisibleIndexes(
+                          srcIndex,
+                          visibleIndex,
+                        );
                       }
-                      className="rounded-full bg-white/10 px-2 py-1 text-[11px] text-white disabled:cursor-not-allowed disabled:opacity-40"
-                    >
-                      →
-                    </button>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => removeGalleryImage(visibleIndex)}
-                    disabled={!!image.isUploading}
-                    className="absolute top-2 right-2 rounded-full bg-black/60 px-2 py-1 text-xs text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                      setDraggingIndex(null);
+                      setDragOverIndex(null);
+                    }}
+                    onDragEnd={() => setDraggingIndex(null)}
+                    className={[
+                      "relative overflow-hidden rounded-lg border border-border bg-surface transition-all",
+                      draggingIndex === visibleIndex ? "opacity-70" : "",
+                      dragOverIndex === visibleIndex &&
+                      draggingIndex !== visibleIndex
+                        ? "ring-2 ring-dashed ring-theme-accent/60"
+                        : "",
+                    ].join(" ")}
                   >
-                    {image.isUploading ? "Uploading..." : "Remove"}
-                  </button>
-                  {image.isUploading && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                      <svg
-                        className="h-8 w-8 animate-spin text-white"
-                        viewBox="0 0 24 24"
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={image.url}
+                      alt={`Gallery image ${visibleIndex + 1}`}
+                      className="h-28 w-full object-cover"
+                    />
+                    <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-1 bg-black/50 p-2">
+                      <button
+                        type="button"
+                        onClick={() => moveGalleryImage(visibleIndex, "left")}
+                        disabled={visibleIndex === 0 || image.isUploading}
+                        className="rounded-full bg-white/10 px-2 py-1 text-[11px] text-white disabled:cursor-not-allowed disabled:opacity-40"
                       >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                          fill="none"
-                        />
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-                        />
-                      </svg>
+                        ←
+                      </button>
+                      <span className="text-[11px] text-white">
+                        {visibleIndex + 1} / {visibleGalleryImages.length}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => moveGalleryImage(visibleIndex, "right")}
+                        disabled={
+                          visibleIndex === visibleGalleryImages.length - 1 ||
+                          image.isUploading
+                        }
+                        className="rounded-full bg-white/10 px-2 py-1 text-[11px] text-white disabled:cursor-not-allowed disabled:opacity-40"
+                      >
+                        →
+                      </button>
                     </div>
-                  )}
-                  {image.error && (
-                    <div className="absolute inset-0 flex items-end justify-center p-2">
-                      <div className="rounded bg-red-600/80 px-2 py-1 text-xs text-white">
-                        {image.error}
+                    <button
+                      type="button"
+                      onClick={() => removeGalleryImage(visibleIndex)}
+                      disabled={!!image.isUploading}
+                      className="absolute top-2 right-2 rounded-full bg-black/60 px-2 py-1 text-xs text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {image.isUploading ? "Uploading..." : "Remove"}
+                    </button>
+                    {image.isUploading && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                        <svg
+                          className="h-8 w-8 animate-spin text-white"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                            fill="none"
+                          />
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                          />
+                        </svg>
                       </div>
-                    </div>
-                  )}
+                    )}
+                    {image.error && (
+                      <div className="absolute inset-0 flex items-end justify-center p-2">
+                        <div className="rounded bg-red-600/80 px-2 py-1 text-xs text-white">
+                          {image.error}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               ))}
+
+              {/* Placeholder at end if dragging past last index */}
+              {dragOverIndex === visibleGalleryImages.length && (
+                <div className="h-28 rounded-lg border-2 border-dashed border-theme-accent/50 bg-theme-accent/5" />
+              )}
             </div>
           </div>
         )}
