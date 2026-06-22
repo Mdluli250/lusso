@@ -1,11 +1,8 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import path from "path";
-import { mkdir, writeFile } from "fs/promises";
+import { put } from "@vercel/blob";
 import { randomUUID } from "crypto";
-
-const UPLOAD_DIR = "./public/uploads/products";
 
 async function requireAdmin() {
   const session = await getServerSession(authOptions);
@@ -35,15 +32,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid file type" }, { status: 400 });
   }
 
-  const ext = path.extname(file.name) || ".jpg";
-  const fileName = `${Date.now()}-${randomUUID()}${ext}`;
-  const uploadPath = path.join(UPLOAD_DIR, fileName);
-
   try {
-    await mkdir(UPLOAD_DIR, { recursive: true });
-    const buffer = Buffer.from(await file.arrayBuffer());
-    await writeFile(uploadPath, buffer);
-    return NextResponse.json({ imagePath: `/uploads/products/${fileName}` });
+    const ext = file.name.substring(file.name.lastIndexOf('.')) || ".jpg";
+    const fileName = `${Date.now()}-${randomUUID()}${ext}`;
+    const blobPath = `products/${fileName}`;
+
+    const blob = await put(blobPath, file, {
+      access: "public",
+      contentType: file.type,
+    });
+
+    return NextResponse.json({ imagePath: blob.url });
   } catch (error) {
     console.error("uploadImage failed:", error);
     return NextResponse.json(
