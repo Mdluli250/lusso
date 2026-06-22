@@ -1,9 +1,9 @@
-'use server';
+"use server";
 
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
-import { validateProductForm } from '@/lib/admin/validateProduct';
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { validateProductForm } from "@/lib/admin/validateProduct";
 
 interface VariantFormData {
   id?: string;
@@ -23,20 +23,21 @@ interface ProductFormData {
   burnTimeHours: number;
   waxType: string;
   scentProfile: string;
+  image?: string | null;
   isActive: boolean;
   variants: VariantFormData[];
 }
 
 async function requireAdmin(): Promise<{ error?: string }> {
   const session = await getServerSession(authOptions);
-  if (!session?.user || (session.user as any).role !== 'ADMIN') {
-    return { error: 'Unauthorized' };
+  if (!session?.user || (session.user as any).role !== "ADMIN") {
+    return { error: "Unauthorized" };
   }
   return {};
 }
 
 export async function createProduct(
-  data: ProductFormData
+  data: ProductFormData,
 ): Promise<{ id: string } | { error: string }> {
   try {
     const auth = await requireAdmin();
@@ -44,7 +45,7 @@ export async function createProduct(
 
     const errors = validateProductForm(data);
     if (Object.keys(errors).length > 0) {
-      return { error: Object.values(errors).join(', ') };
+      return { error: Object.values(errors).join(", ") };
     }
 
     // Check slug uniqueness
@@ -52,7 +53,7 @@ export async function createProduct(
       where: { slug: data.slug },
     });
     if (existing) {
-      return { error: 'A product with this slug already exists' };
+      return { error: "A product with this slug already exists" };
     }
 
     const product = await prisma.$transaction(async (tx) => {
@@ -62,9 +63,10 @@ export async function createProduct(
           slug: data.slug,
           description: data.description,
           price: data.price,
-          burnTimeHours: data.burnTimeHours,
+          burnTimeHours: Math.round(data.burnTimeHours as number),
           waxType: data.waxType,
           scentProfile: data.scentProfile,
+          image: data.image || null,
           isActive: data.isActive,
           variants: {
             create: data.variants
@@ -84,14 +86,15 @@ export async function createProduct(
 
     return { id: product.id };
   } catch (error) {
-    console.error('createProduct failed:', error);
-    return { error: 'Failed to create product' };
+    console.error("createProduct failed:", error);
+    const message = error instanceof Error ? error.message : String(error);
+    return { error: `Failed to create product: ${message}` };
   }
 }
 
 export async function updateProduct(
   id: string,
-  data: ProductFormData
+  data: ProductFormData,
 ): Promise<{ success: true } | { error: string }> {
   try {
     const auth = await requireAdmin();
@@ -99,7 +102,7 @@ export async function updateProduct(
 
     const errors = validateProductForm(data);
     if (Object.keys(errors).length > 0) {
-      return { error: Object.values(errors).join(', ') };
+      return { error: Object.values(errors).join(", ") };
     }
 
     // Check slug uniqueness excluding self
@@ -107,7 +110,7 @@ export async function updateProduct(
       where: { slug: data.slug, NOT: { id } },
     });
     if (existing) {
-      return { error: 'A product with this slug already exists' };
+      return { error: "A product with this slug already exists" };
     }
 
     await prisma.$transaction(async (tx) => {
@@ -119,9 +122,10 @@ export async function updateProduct(
           slug: data.slug,
           description: data.description,
           price: data.price,
-          burnTimeHours: data.burnTimeHours,
+          burnTimeHours: Math.round(data.burnTimeHours as number),
           waxType: data.waxType,
           scentProfile: data.scentProfile,
+          image: data.image || null,
           isActive: data.isActive,
         },
       });
@@ -167,13 +171,13 @@ export async function updateProduct(
 
     return { success: true };
   } catch (error) {
-    console.error('updateProduct failed:', error);
-    return { error: 'Failed to update product' };
+    console.error("updateProduct failed:", error);
+    return { error: "Failed to update product" };
   }
 }
 
 export async function deleteProduct(
-  id: string
+  id: string,
 ): Promise<{ success: true } | { error: string }> {
   try {
     const auth = await requireAdmin();
@@ -183,14 +187,14 @@ export async function deleteProduct(
 
     return { success: true };
   } catch (error) {
-    console.error('deleteProduct failed:', error);
-    return { error: 'Failed to delete product' };
+    console.error("deleteProduct failed:", error);
+    return { error: "Failed to delete product" };
   }
 }
 
 export async function toggleProductActive(
   id: string,
-  isActive: boolean
+  isActive: boolean,
 ): Promise<{ success: true } | { error: string }> {
   try {
     const auth = await requireAdmin();
@@ -203,7 +207,7 @@ export async function toggleProductActive(
 
     return { success: true };
   } catch (error) {
-    console.error('toggleProductActive failed:', error);
-    return { error: 'Failed to update product status' };
+    console.error("toggleProductActive failed:", error);
+    return { error: "Failed to update product status" };
   }
 }

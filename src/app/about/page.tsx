@@ -1,5 +1,5 @@
-import type { Metadata } from 'next';
-import Image from 'next/image';
+import type { Metadata } from "next";
+import Image from "next/image";
 
 /**
  * About Page — full brand story, philosophy, and lifestyle imagery.
@@ -13,9 +13,9 @@ import Image from 'next/image';
  */
 
 export const metadata: Metadata = {
-  title: 'About',
+  title: "About",
   description:
-    'Discover the story behind Lusso Candles — from our origins in Lusso Picnic to hand-poured luxury candles crafted with premium soy wax, beeswax, and phthalate-free fragrance oils in Centurion, South Africa.',
+    "Discover the story behind Lusso Candles — from our origins in Lusso Picnic to hand-poured luxury candles crafted with premium soy wax, beeswax, and phthalate-free fragrance oils in Centurion, South Africa.",
 };
 
 export default function AboutPage() {
@@ -48,33 +48,30 @@ export default function AboutPage() {
               id="brand-story-heading"
               className="font-serif text-3xl md:text-4xl text-charcoal mb-6"
             >
-              Born from Lusso Picnic
+              About Lusso Candles
             </h2>
 
             <p className="text-warm-grey text-base md:text-lg leading-relaxed mb-4">
-              Lusso Candles began as a quiet extension of Lusso Picnic, our
-              curated events company based in Centurion, South Africa. What
-              started as hand-poured candles to set the mood at intimate outdoor
-              gatherings quickly became something guests couldn&apos;t stop
-              asking about — the warm glow, the lingering scent, the feeling
-              that every detail had been considered.
+              Born from the experiences created through Lusso Picnics, Lusso
+              Candles extends our passion for beautiful spaces into the home.
             </p>
 
             <p className="text-warm-grey text-base md:text-lg leading-relaxed mb-4">
-              We realised that the atmosphere we created at our picnics
-              deserved to live beyond a single afternoon. So we poured that same
-              care into a dedicated candle line — one that brings the unhurried
-              beauty of a Lusso experience into everyday spaces. Each candle
-              carries the spirit of those early gatherings: intentional,
-              sensory, and deeply personal.
+              We believe luxury is not about excess—it is about creating
+              intentional moments that bring comfort, calm, and connection. Each
+              candle is hand-poured in small batches using premium soy and
+              beeswax blends and carefully curated fragrances that evoke warmth,
+              elegance, and lasting memories.
             </p>
 
-            <p className="text-warm-grey text-base md:text-lg leading-relaxed">
-              Today, Lusso Candles stands on its own as a quiet-luxury brand,
-              but our roots in Lusso Picnic remain at the heart of everything
-              we do. We still believe that the simplest moments — a lit wick, a
-              familiar scent, a softly glowing room — can transform the
-              ordinary into something worth savouring.
+            <p className="text-warm-grey text-base md:text-lg leading-relaxed mb-4">
+              Whether you're hosting guests, unwinding after a long day, or
+              celebrating life's special moments, Lusso Candles creates an
+              atmosphere that feels effortlessly luxurious.
+            </p>
+
+            <p className="text-warm-grey text-base md:text-lg leading-relaxed font-semibold">
+              Clean. Comfortable. Intentional.
             </p>
           </div>
 
@@ -92,10 +89,7 @@ export default function AboutPage() {
       </section>
 
       {/* Philosophy Section */}
-      <section
-        className="section-spacing"
-        aria-labelledby="philosophy-heading"
-      >
+      <section className="section-spacing" aria-labelledby="philosophy-heading">
         <div className="mx-auto max-w-4xl px-6 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div className="order-2 lg:order-1 relative aspect-[4/5] w-full overflow-hidden rounded-xl">
             <Image
@@ -135,8 +129,8 @@ export default function AboutPage() {
 
             <p className="text-warm-grey text-base md:text-lg leading-relaxed">
               Based in Centurion, we draw inspiration from the South African
-              landscape — the golden light of the highveld, the earthy warmth
-              of fynbos, the quiet stillness of a winter evening. These are the
+              landscape — the golden light of the highveld, the earthy warmth of
+              fynbos, the quiet stillness of a winter evening. These are the
               moments we bottle, one pour at a time.
             </p>
           </div>

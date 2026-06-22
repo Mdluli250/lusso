@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useState, useTransition } from 'react';
-import { useRouter } from 'next/navigation';
-import { slugify } from '@/lib/admin/slugify';
-import { validateProductForm } from '@/lib/admin/validateProduct';
-import { createProduct, updateProduct } from '@/actions/admin/products';
+import { useState, useTransition, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
+import { slugify } from "@/lib/admin/slugify";
+import { validateProductForm } from "@/lib/admin/validateProduct";
+import { createProduct, updateProduct } from "@/actions/admin/products";
 
 interface VariantData {
   id?: string;
@@ -25,6 +25,7 @@ interface ProductData {
   burnTimeHours: number;
   waxType: string;
   scentProfile: string;
+  image?: string | null;
   isActive: boolean;
   variants: {
     id: string;
@@ -37,12 +38,12 @@ interface ProductData {
 }
 
 interface ProductFormProps {
-  mode: 'create' | 'edit';
+  mode: "create" | "edit";
   initialData?: ProductData;
 }
 
-const WAX_TYPE_OPTIONS = ['soy', 'beeswax', 'coconut'];
-const SCENT_PROFILE_OPTIONS = ['lavender', 'cinnamon', 'vanilla', 'eucalyptus'];
+const WAX_TYPE_OPTIONS = ["soy", "beeswax", "coconut"];
+const SCENT_PROFILE_OPTIONS = ["lavender", "cinnamon", "vanilla", "eucalyptus"];
 
 /**
  * ProductForm — Client Component for creating and editing products.
@@ -56,28 +57,40 @@ export function ProductForm({ mode, initialData }: ProductFormProps) {
   const [isPending, startTransition] = useTransition();
 
   // Form state
-  const [name, setName] = useState(initialData?.name ?? '');
-  const [slug, setSlug] = useState(initialData?.slug ?? '');
+  const [name, setName] = useState(initialData?.name ?? "");
+  const [slug, setSlug] = useState(initialData?.slug ?? "");
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
-  const [description, setDescription] = useState(initialData?.description ?? '');
+  const [description, setDescription] = useState(
+    initialData?.description ?? "",
+  );
   const [price, setPrice] = useState(
-    initialData ? String(initialData.price / 100) : ''
+    initialData ? String(initialData.price / 100) : "",
   );
   const [burnTimeHours, setBurnTimeHours] = useState(
-    initialData ? String(initialData.burnTimeHours) : ''
+    initialData ? String(initialData.burnTimeHours) : "",
   );
-  const [waxType, setWaxType] = useState(initialData?.waxType ?? '');
-  const [scentProfile, setScentProfile] = useState(initialData?.scentProfile ?? '');
+  const [waxType, setWaxType] = useState(initialData?.waxType ?? "");
+  const [scentProfile, setScentProfile] = useState(
+    initialData?.scentProfile ?? "",
+  );
   const [isActive, setIsActive] = useState(initialData?.isActive ?? true);
 
   // Variants state
   const [variants, setVariants] = useState<VariantData[]>(
-    initialData?.variants.map((v) => ({ ...v })) ?? []
+    initialData?.variants.map((v) => ({ ...v })) ?? [],
   );
+  const [imagePath, setImagePath] = useState<string | null>(
+    initialData?.image ?? null,
+  );
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(
+    initialData?.image ?? null,
+  );
+  const imagePreviewRef = useRef<string | null>(null);
 
   // Error state
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [submitError, setSubmitError] = useState('');
+  const [submitError, setSubmitError] = useState("");
 
   function handleNameChange(value: string) {
     setName(value);
@@ -94,13 +107,23 @@ export function ProductForm({ mode, initialData }: ProductFormProps) {
   function addVariant() {
     setVariants([
       ...variants,
-      { scent: '', waxType: 'soy', colorHex: '#d4a574', modelPath: '', stock: 0 },
+      {
+        scent: "",
+        waxType: "soy",
+        colorHex: "#d4a574",
+        modelPath: "",
+        stock: 0,
+      },
     ]);
   }
 
-  function updateVariant(index: number, field: keyof VariantData, value: string | number) {
+  function updateVariant(
+    index: number,
+    field: keyof VariantData,
+    value: string | number,
+  ) {
     setVariants((prev) =>
-      prev.map((v, i) => (i === index ? { ...v, [field]: value } : v))
+      prev.map((v, i) => (i === index ? { ...v, [field]: value } : v)),
     );
   }
 
@@ -116,12 +139,38 @@ export function ProductForm({ mode, initialData }: ProductFormProps) {
     });
   }
 
+  function handleImageChange(file: File | null) {
+    if (imagePreviewRef.current) {
+      URL.revokeObjectURL(imagePreviewRef.current);
+      imagePreviewRef.current = null;
+    }
+
+    if (!file) {
+      setImageFile(null);
+      setImagePreviewUrl(initialData?.image ?? null);
+      return;
+    }
+
+    const previewUrl = URL.createObjectURL(file);
+    imagePreviewRef.current = previewUrl;
+    setImageFile(file);
+    setImagePreviewUrl(previewUrl);
+  }
+
+  useEffect(() => {
+    return () => {
+      if (imagePreviewRef.current) {
+        URL.revokeObjectURL(imagePreviewRef.current);
+      }
+    };
+  }, []);
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setSubmitError('');
+    setSubmitError("");
 
-    const priceInCents = Math.round(parseFloat(price || '0') * 100);
-    const burnTime = parseFloat(burnTimeHours || '0');
+    const priceInCents = Math.round(parseFloat(price || "0") * 100);
+    const burnTime = parseInt(burnTimeHours || "0", 10);
 
     // Validate
     const validationErrors = validateProductForm({
@@ -149,6 +198,7 @@ export function ProductForm({ mode, initialData }: ProductFormProps) {
       burnTimeHours: burnTime,
       waxType,
       scentProfile,
+      image: imagePath,
       isActive,
       variants: variants.map((v) => ({
         ...(v.id ? { id: v.id } : {}),
@@ -162,28 +212,86 @@ export function ProductForm({ mode, initialData }: ProductFormProps) {
     };
 
     startTransition(async () => {
+      if (imageFile) {
+        const uploadResult = await uploadProductImage(imageFile);
+        if ("error" in uploadResult) {
+          setSubmitError(uploadResult.error);
+          return;
+        }
+        formData.image = uploadResult.imagePath;
+      }
       let result;
-      if (mode === 'create') {
+      if (mode === "create") {
         result = await createProduct(formData);
       } else {
         result = await updateProduct(initialData!.id, formData);
       }
 
-      if ('error' in result) {
+      if ("error" in result) {
         setSubmitError(result.error);
       } else {
-        router.push('/admin/products');
+        router.push("/admin/products");
       }
     });
   }
 
   const visibleVariants = variants.filter((v) => !v._delete);
 
+  async function uploadProductImage(
+    file: File,
+  ): Promise<{ imagePath: string } | { error: string }> {
+    try {
+      const body = new FormData();
+      body.append("image", file);
+      const response = await fetch("/api/admin/products/upload-image", {
+        method: "POST",
+        body,
+      });
+      if (!response.ok) {
+        const error = await response.json().catch(() => null);
+        return { error: (error?.error as string) ?? "Failed to upload image" };
+      }
+      return await response.json();
+    } catch (error) {
+      console.error("Image upload failed:", error);
+      return { error: "Failed to upload product image" };
+    }
+  }
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl">
+      {/* Product Image */}
+      <div className="space-y-1">
+        <label
+          htmlFor="productImage"
+          className="block text-sm font-medium text-foreground"
+        >
+          Product Image
+        </label>
+        <input
+          id="productImage"
+          type="file"
+          accept="image/*"
+          onChange={(e) => handleImageChange(e.target.files?.[0] ?? null)}
+          className="w-full text-sm rounded-md border border-border bg-surface text-foreground focus:border-theme-accent transition-colors"
+        />
+        {imagePreviewUrl && (
+          <div className="mt-2">
+            <p className="text-xs text-muted">Preview</p>
+            <img
+              src={imagePreviewUrl}
+              alt="Product preview"
+              className="mt-2 h-40 w-full max-w-md rounded-md object-cover border border-border"
+            />
+          </div>
+        )}
+      </div>
       {/* Name */}
       <div className="space-y-1">
-        <label htmlFor="name" className="block text-sm font-medium text-foreground">
+        <label
+          htmlFor="name"
+          className="block text-sm font-medium text-foreground"
+        >
           Name
         </label>
         <input
@@ -198,7 +306,10 @@ export function ProductForm({ mode, initialData }: ProductFormProps) {
 
       {/* Slug */}
       <div className="space-y-1">
-        <label htmlFor="slug" className="block text-sm font-medium text-foreground">
+        <label
+          htmlFor="slug"
+          className="block text-sm font-medium text-foreground"
+        >
           Slug
         </label>
         <input
@@ -213,7 +324,10 @@ export function ProductForm({ mode, initialData }: ProductFormProps) {
 
       {/* Description */}
       <div className="space-y-1">
-        <label htmlFor="description" className="block text-sm font-medium text-foreground">
+        <label
+          htmlFor="description"
+          className="block text-sm font-medium text-foreground"
+        >
           Description
         </label>
         <textarea
@@ -223,13 +337,18 @@ export function ProductForm({ mode, initialData }: ProductFormProps) {
           rows={4}
           className="w-full px-3 py-2 text-sm rounded-md border border-border bg-surface text-foreground focus:border-theme-accent transition-colors resize-y"
         />
-        {errors.description && <p className="text-xs text-red-400">{errors.description}</p>}
+        {errors.description && (
+          <p className="text-xs text-red-400">{errors.description}</p>
+        )}
       </div>
 
       {/* Price and Burn Time */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-1">
-          <label htmlFor="price" className="block text-sm font-medium text-foreground">
+          <label
+            htmlFor="price"
+            className="block text-sm font-medium text-foreground"
+          >
             Price (Rands)
           </label>
           <input
@@ -241,11 +360,16 @@ export function ProductForm({ mode, initialData }: ProductFormProps) {
             onChange={(e) => setPrice(e.target.value)}
             className="w-full px-3 py-2 text-sm rounded-md border border-border bg-surface text-foreground focus:border-theme-accent transition-colors"
           />
-          {errors.price && <p className="text-xs text-red-400">{errors.price}</p>}
+          {errors.price && (
+            <p className="text-xs text-red-400">{errors.price}</p>
+          )}
         </div>
 
         <div className="space-y-1">
-          <label htmlFor="burnTimeHours" className="block text-sm font-medium text-foreground">
+          <label
+            htmlFor="burnTimeHours"
+            className="block text-sm font-medium text-foreground"
+          >
             Burn Time (hours)
           </label>
           <input
@@ -257,14 +381,19 @@ export function ProductForm({ mode, initialData }: ProductFormProps) {
             onChange={(e) => setBurnTimeHours(e.target.value)}
             className="w-full px-3 py-2 text-sm rounded-md border border-border bg-surface text-foreground focus:border-theme-accent transition-colors"
           />
-          {errors.burnTimeHours && <p className="text-xs text-red-400">{errors.burnTimeHours}</p>}
+          {errors.burnTimeHours && (
+            <p className="text-xs text-red-400">{errors.burnTimeHours}</p>
+          )}
         </div>
       </div>
 
       {/* Wax Type and Scent Profile */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-1">
-          <label htmlFor="waxType" className="block text-sm font-medium text-foreground">
+          <label
+            htmlFor="waxType"
+            className="block text-sm font-medium text-foreground"
+          >
             Wax Type
           </label>
           <select
@@ -280,11 +409,16 @@ export function ProductForm({ mode, initialData }: ProductFormProps) {
               </option>
             ))}
           </select>
-          {errors.waxType && <p className="text-xs text-red-400">{errors.waxType}</p>}
+          {errors.waxType && (
+            <p className="text-xs text-red-400">{errors.waxType}</p>
+          )}
         </div>
 
         <div className="space-y-1">
-          <label htmlFor="scentProfile" className="block text-sm font-medium text-foreground">
+          <label
+            htmlFor="scentProfile"
+            className="block text-sm font-medium text-foreground"
+          >
             Scent Profile
           </label>
           <select
@@ -300,13 +434,18 @@ export function ProductForm({ mode, initialData }: ProductFormProps) {
               </option>
             ))}
           </select>
-          {errors.scentProfile && <p className="text-xs text-red-400">{errors.scentProfile}</p>}
+          {errors.scentProfile && (
+            <p className="text-xs text-red-400">{errors.scentProfile}</p>
+          )}
         </div>
       </div>
 
       {/* Is Active Toggle */}
       <div className="flex items-center gap-3">
-        <label htmlFor="isActive" className="text-sm font-medium text-foreground">
+        <label
+          htmlFor="isActive"
+          className="text-sm font-medium text-foreground"
+        >
           Active
         </label>
         <button
@@ -316,15 +455,15 @@ export function ProductForm({ mode, initialData }: ProductFormProps) {
           aria-checked={isActive}
           onClick={() => setIsActive(!isActive)}
           className={[
-            'relative inline-flex h-6 w-11 items-center rounded-full transition-colors',
-            isActive ? 'bg-theme-accent' : 'bg-border',
-          ].join(' ')}
+            "relative inline-flex h-6 w-11 items-center rounded-full transition-colors",
+            isActive ? "bg-theme-accent" : "bg-border",
+          ].join(" ")}
         >
           <span
             className={[
-              'inline-block h-4 w-4 transform rounded-full bg-white transition-transform',
-              isActive ? 'translate-x-6' : 'translate-x-1',
-            ].join(' ')}
+              "inline-block h-4 w-4 transform rounded-full bg-white transition-transform",
+              isActive ? "translate-x-6" : "translate-x-1",
+            ].join(" ")}
           />
         </button>
       </div>
@@ -373,7 +512,9 @@ export function ProductForm({ mode, initialData }: ProductFormProps) {
                   <input
                     type="text"
                     value={variant.scent}
-                    onChange={(e) => updateVariant(index, 'scent', e.target.value)}
+                    onChange={(e) =>
+                      updateVariant(index, "scent", e.target.value)
+                    }
                     className="w-full px-3 py-1.5 text-sm rounded-md border border-border bg-surface text-foreground focus:border-theme-accent transition-colors"
                   />
                 </div>
@@ -382,7 +523,9 @@ export function ProductForm({ mode, initialData }: ProductFormProps) {
                   <label className="block text-xs text-muted">Wax Type</label>
                   <select
                     value={variant.waxType}
-                    onChange={(e) => updateVariant(index, 'waxType', e.target.value)}
+                    onChange={(e) =>
+                      updateVariant(index, "waxType", e.target.value)
+                    }
                     className="w-full px-3 py-1.5 text-sm rounded-md border border-border bg-surface text-foreground focus:border-theme-accent transition-colors"
                   >
                     {WAX_TYPE_OPTIONS.map((opt) => (
@@ -398,7 +541,9 @@ export function ProductForm({ mode, initialData }: ProductFormProps) {
                   <input
                     type="color"
                     value={variant.colorHex}
-                    onChange={(e) => updateVariant(index, 'colorHex', e.target.value)}
+                    onChange={(e) =>
+                      updateVariant(index, "colorHex", e.target.value)
+                    }
                     className="w-full h-9 rounded-md border border-border bg-surface cursor-pointer"
                   />
                 </div>
@@ -408,7 +553,9 @@ export function ProductForm({ mode, initialData }: ProductFormProps) {
                   <input
                     type="text"
                     value={variant.modelPath}
-                    onChange={(e) => updateVariant(index, 'modelPath', e.target.value)}
+                    onChange={(e) =>
+                      updateVariant(index, "modelPath", e.target.value)
+                    }
                     className="w-full px-3 py-1.5 text-sm rounded-md border border-border bg-surface text-foreground focus:border-theme-accent transition-colors"
                   />
                 </div>
@@ -419,7 +566,13 @@ export function ProductForm({ mode, initialData }: ProductFormProps) {
                     type="number"
                     min="0"
                     value={variant.stock}
-                    onChange={(e) => updateVariant(index, 'stock', parseInt(e.target.value, 10) || 0)}
+                    onChange={(e) =>
+                      updateVariant(
+                        index,
+                        "stock",
+                        parseInt(e.target.value, 10) || 0,
+                      )
+                    }
                     className="w-full px-3 py-1.5 text-sm rounded-md border border-border bg-surface text-foreground focus:border-theme-accent transition-colors"
                   />
                 </div>
@@ -444,16 +597,16 @@ export function ProductForm({ mode, initialData }: ProductFormProps) {
           className="px-6 py-2 text-sm font-medium rounded-md bg-theme-accent text-theme-bg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isPending
-            ? mode === 'create'
-              ? 'Creating…'
-              : 'Saving…'
-            : mode === 'create'
-              ? 'Create Product'
-              : 'Save Changes'}
+            ? mode === "create"
+              ? "Creating…"
+              : "Saving…"
+            : mode === "create"
+              ? "Create Product"
+              : "Save Changes"}
         </button>
         <button
           type="button"
-          onClick={() => router.push('/admin/products')}
+          onClick={() => router.push("/admin/products")}
           className="px-6 py-2 text-sm rounded-md border border-border text-foreground hover:bg-surface-muted transition-colors"
         >
           Cancel

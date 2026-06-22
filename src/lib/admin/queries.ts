@@ -1,7 +1,11 @@
-import { OrderStatus } from '@prisma/client';
-import { prisma } from '@/lib/prisma';
-import { computeTopSellers } from '@/lib/admin/analytics';
-import { classifyStock, countStockStatuses, StockStatus } from '@/lib/admin/stockStatus';
+import { OrderStatus } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
+import { computeTopSellers } from "@/lib/admin/analytics";
+import {
+  classifyStock,
+  countStockStatuses,
+  StockStatus,
+} from "@/lib/admin/stockStatus";
 
 // ─── Types ────────────────────────────────────────────────────────
 
@@ -36,6 +40,7 @@ interface ProductWithVariants {
   burnTimeHours: number;
   waxType: string;
   scentProfile: string;
+  image: string | null;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -91,11 +96,11 @@ export async function getAnalyticsData(): Promise<AnalyticsData> {
     // Total revenue from PAID orders
     prisma.order.aggregate({
       _sum: { totalAmountZAR: true },
-      where: { status: 'PAID' },
+      where: { status: "PAID" },
     }),
     // Orders grouped by status
     prisma.order.groupBy({
-      by: ['status'],
+      by: ["status"],
       _count: { status: true },
     }),
     // Current month order count
@@ -109,8 +114,16 @@ export async function getAnalyticsData(): Promise<AnalyticsData> {
     // Previous month order count
     (() => {
       const now = new Date();
-      const startOfPrevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-      const startOfCurrentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const startOfPrevMonth = new Date(
+        now.getFullYear(),
+        now.getMonth() - 1,
+        1,
+      );
+      const startOfCurrentMonth = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        1,
+      );
       return prisma.order.count({
         where: {
           createdAt: { gte: startOfPrevMonth, lt: startOfCurrentMonth },
@@ -119,7 +132,7 @@ export async function getAnalyticsData(): Promise<AnalyticsData> {
     })(),
     // All orders for top sellers computation
     prisma.order.findMany({
-      where: { status: 'PAID' },
+      where: { status: "PAID" },
       select: {
         status: true,
         totalAmountZAR: true,
@@ -143,10 +156,12 @@ export async function getAnalyticsData(): Promise<AnalyticsData> {
   for (const group of orderStatusCounts) {
     statusCountMap[group.status] = group._count.status;
   }
-  const ordersByStatus = Object.entries(statusCountMap).map(([status, count]) => ({
-    status: status as OrderStatus,
-    count,
-  }));
+  const ordersByStatus = Object.entries(statusCountMap).map(
+    ([status, count]) => ({
+      status: status as OrderStatus,
+      count,
+    }),
+  );
 
   // Compute top sellers using the analytics utility
   const topSellers = computeTopSellers(
@@ -156,7 +171,7 @@ export async function getAnalyticsData(): Promise<AnalyticsData> {
       createdAt: o.createdAt,
       items: o.items,
     })),
-    5
+    5,
   );
 
   return {
@@ -177,15 +192,21 @@ export async function getProducts(params: {
   pageSize: number;
   search?: string;
   sortBy?: string;
-  sortDir?: 'asc' | 'desc';
+  sortDir?: "asc" | "desc";
 }): Promise<{ products: ProductWithVariantCount[]; totalCount: number }> {
-  const { page, pageSize, search, sortBy = 'createdAt', sortDir = 'desc' } = params;
+  const {
+    page,
+    pageSize,
+    search,
+    sortBy = "createdAt",
+    sortDir = "desc",
+  } = params;
 
   const where = search
     ? {
         OR: [
-          { name: { contains: search, mode: 'insensitive' as const } },
-          { scentProfile: { contains: search, mode: 'insensitive' as const } },
+          { name: { contains: search, mode: "insensitive" as const } },
+          { scentProfile: { contains: search, mode: "insensitive" as const } },
         ],
       }
     : {};
@@ -222,7 +243,9 @@ export async function getProducts(params: {
 
 // ─── Product By ID ────────────────────────────────────────────────
 
-export async function getProductById(id: string): Promise<ProductWithVariants | null> {
+export async function getProductById(
+  id: string,
+): Promise<ProductWithVariants | null> {
   const product = await prisma.product.findUnique({
     where: { id },
     include: {
@@ -250,6 +273,7 @@ export async function getProductById(id: string): Promise<ProductWithVariants | 
     burnTimeHours: product.burnTimeHours,
     waxType: product.waxType,
     scentProfile: product.scentProfile,
+    image: product.image,
     isActive: product.isActive,
     createdAt: product.createdAt,
     updatedAt: product.updatedAt,
@@ -275,8 +299,8 @@ export async function getOrders(params: {
 
   if (search) {
     where.OR = [
-      { merchantTransactionId: { contains: search, mode: 'insensitive' } },
-      { user: { email: { contains: search, mode: 'insensitive' } } },
+      { merchantTransactionId: { contains: search, mode: "insensitive" } },
+      { user: { email: { contains: search, mode: "insensitive" } } },
     ];
   }
 
@@ -288,7 +312,7 @@ export async function getOrders(params: {
           select: { name: true, email: true },
         },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
       skip: (page - 1) * pageSize,
       take: pageSize,
     }),
@@ -346,9 +370,13 @@ export async function getOrderById(id: string): Promise<OrderFull | null> {
 // ─── Inventory ────────────────────────────────────────────────────
 
 export async function getInventory(params: {
-  filter?: 'all' | 'out-of-stock' | 'low-stock';
-}): Promise<{ variants: InventoryVariant[]; outOfStockCount: number; lowStockCount: number }> {
-  const { filter = 'all' } = params;
+  filter?: "all" | "out-of-stock" | "low-stock";
+}): Promise<{
+  variants: InventoryVariant[];
+  outOfStockCount: number;
+  lowStockCount: number;
+}> {
+  const { filter = "all" } = params;
 
   const allVariants = await prisma.productVariant.findMany({
     include: {
@@ -356,15 +384,15 @@ export async function getInventory(params: {
         select: { name: true },
       },
     },
-    orderBy: { stock: 'asc' },
+    orderBy: { stock: "asc" },
   });
 
   const { outOfStock, lowStock } = countStockStatuses(allVariants);
 
   let filtered = allVariants;
-  if (filter === 'out-of-stock') {
+  if (filter === "out-of-stock") {
     filtered = allVariants.filter((v) => v.stock === 0);
-  } else if (filter === 'low-stock') {
+  } else if (filter === "low-stock") {
     filtered = allVariants.filter((v) => v.stock > 0 && v.stock <= 4);
   }
 

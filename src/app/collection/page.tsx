@@ -10,17 +10,17 @@
  * Requirements: 4.1
  */
 
-import type { Metadata } from 'next';
-import { prisma } from '@/lib/prisma';
-import { CollectionClient } from '@/components/product/CollectionClient';
-import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
+import type { Metadata } from "next";
+import { prisma } from "@/lib/prisma";
+import { CollectionClient } from "@/components/product/CollectionClient";
+import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 
 // ─── Metadata ─────────────────────────────────────────────────────
 
 export const metadata: Metadata = {
-  title: 'Collection',
+  title: "Shop",
   description:
-    'Browse our full range of hand-poured Lusso candles. Filter by scent, wax type, and burn time to find your perfect match.',
+    "Clean | Comfortable | Luxurious. Hand-poured luxury candles crafted to transform everyday spaces into moments of comfort, warmth, and elegance.",
 };
 
 // ─── Data fetching ────────────────────────────────────────────────
@@ -30,7 +30,7 @@ async function getAllProducts() {
     return await prisma.product.findMany({
       where: { isActive: true },
       include: { variants: true },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
   } catch {
     // Gracefully handle DB errors during build or when DB is unavailable
@@ -47,16 +47,25 @@ export default async function CollectionPage() {
     <div className="min-h-screen bg-[var(--theme-bg)] transition-colors duration-700">
       <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-16 py-16">
         {/* Breadcrumb navigation */}
-        <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Shop' }]} />
+        <Breadcrumbs
+          items={[{ label: "Home", href: "/" }, { label: "Shop" }]}
+        />
 
         {/* Page header */}
         <header className="mb-12">
           <h1 className="text-4xl sm:text-5xl font-bold text-[var(--theme-accent)] leading-tight">
-            Our Collection
+            Clean | Comfortable | Luxurious.
           </h1>
-          <p className="mt-3 text-lg text-[var(--theme-accent)]/70 max-w-xl">
-            Handcrafted candles made with natural ingredients. Each one a unique
-            sensory experience.
+          <p className="mt-3 text-lg text-[var(--theme-accent)]/70 max-w-xl space-y-4">
+            <span>
+              Hand-poured luxury candles crafted to transform everyday spaces
+              into moments of comfort, warmth, and elegance.
+            </span>
+            <span>
+              Made with premium soy and beeswax blends, Lusso Candles are
+              designed to bring beautiful fragrance, timeless style, and
+              intentional living into every room.
+            </span>
           </p>
         </header>
 

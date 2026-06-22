@@ -1,7 +1,7 @@
-import type { Metadata } from 'next';
-import Image from 'next/image';
-import Link from 'next/link';
-import { prisma } from '@/lib/prisma';
+import type { Metadata } from "next";
+import Image from "next/image";
+import Link from "next/link";
+import { prisma } from "@/lib/prisma";
 
 /**
  * Collections Page — Server Component.
@@ -14,9 +14,9 @@ import { prisma } from '@/lib/prisma';
  */
 
 export const metadata: Metadata = {
-  title: 'Collections',
+  title: "Collections",
   description:
-    'Browse all Lusso Candles collections. Discover hand-poured luxury candles grouped by scent profile and wax type.',
+    "Browse all Lusso Candles collections. Discover hand-poured luxury candles grouped by scent profile and wax type.",
 };
 
 // ─── Types ────────────────────────────────────────────────────────
@@ -56,7 +56,7 @@ async function getActiveProducts(): Promise<ProductWithVariants[]> {
           },
         },
       },
-      orderBy: { name: 'asc' },
+      orderBy: { name: "asc" },
     });
   } catch {
     // Gracefully handle DB errors — display empty state
@@ -64,11 +64,13 @@ async function getActiveProducts(): Promise<ProductWithVariants[]> {
   }
 }
 
-function parseFilter(filterParam: string | undefined): { key: string; value: string } | null {
+function parseFilter(
+  filterParam: string | undefined,
+): { key: string; value: string } | null {
   if (!filterParam) return null;
   const decoded = decodeURIComponent(filterParam);
-  const [key, value] = decoded.split('=');
-  if (key && value && (key === 'waxType' || key === 'scentProfile')) {
+  const [key, value] = decoded.split("=");
+  if (key && value && (key === "waxType" || key === "scentProfile")) {
     return { key, value };
   }
   return null;
@@ -76,12 +78,13 @@ function parseFilter(filterParam: string | undefined): { key: string; value: str
 
 function filterProducts(
   products: ProductWithVariants[],
-  filter: { key: string; value: string } | null
+  filter: { key: string; value: string } | null,
 ): ProductWithVariants[] {
   if (!filter) return products;
   return products.filter((product) => {
-    if (filter.key === 'waxType') return product.waxType === filter.value;
-    if (filter.key === 'scentProfile') return product.scentProfile === filter.value;
+    if (filter.key === "waxType") return product.waxType === filter.value;
+    if (filter.key === "scentProfile")
+      return product.scentProfile === filter.value;
     return true;
   });
 }
@@ -95,7 +98,7 @@ function getProductImage(product: ProductWithVariants): string {
     // If there's a model path, use a placeholder image based on the product
     return `/images/products/${product.slug}.jpg`;
   }
-  return '/images/products/placeholder-candle.jpg';
+  return "/images/products/placeholder-candle.jpg";
 }
 
 // ─── Page ─────────────────────────────────────────────────────────
@@ -104,7 +107,9 @@ interface CollectionsPageProps {
   searchParams: Promise<{ filter?: string }>;
 }
 
-export default async function CollectionsPage({ searchParams }: CollectionsPageProps) {
+export default async function CollectionsPage({
+  searchParams,
+}: CollectionsPageProps) {
   const params = await searchParams;
   const products = await getActiveProducts();
   const filter = parseFilter(params.filter);
@@ -113,13 +118,16 @@ export default async function CollectionsPage({ searchParams }: CollectionsPageP
   return (
     <div className="bg-cream min-h-screen">
       {/* Page Header */}
-      <section className="section-spacing" aria-labelledby="collections-heading">
+      <section
+        className="section-spacing"
+        aria-labelledby="collections-heading"
+      >
         <div className="mx-auto max-w-6xl px-6 text-center">
           <h1
             id="collections-heading"
             className="font-serif text-4xl md:text-5xl text-charcoal mb-4"
           >
-            Our Collections
+            This is our collection
           </h1>
           <p className="text-warm-grey text-lg md:text-xl leading-relaxed max-w-2xl mx-auto">
             Explore our full range of hand-poured luxury candles, crafted with
@@ -128,7 +136,10 @@ export default async function CollectionsPage({ searchParams }: CollectionsPageP
           {filter && (
             <div className="mt-6 flex items-center justify-center gap-3">
               <span className="text-sm text-warm-grey">
-                Filtered by: <span className="font-medium text-charcoal">{filter.value}</span>
+                Filtered by:{" "}
+                <span className="font-medium text-charcoal">
+                  {filter.value}
+                </span>
               </span>
               <Link
                 href="/collections"
@@ -141,8 +152,68 @@ export default async function CollectionsPage({ searchParams }: CollectionsPageP
         </div>
       </section>
 
+      <section
+        className="section-spacing bg-sand"
+        aria-labelledby="collection-groups-heading"
+      >
+        <div className="mx-auto max-w-6xl px-6">
+          <h2
+            id="collection-groups-heading"
+            className="font-serif text-3xl md:text-4xl text-charcoal text-center mb-10"
+          >
+            Our Collection
+          </h2>
+
+          <div className="grid gap-10 md:grid-cols-2 xl:grid-cols-4">
+            <article>
+              <h3 className="font-serif text-xl text-charcoal mb-3">
+                Kitchen Collection
+              </h3>
+              <ul className="space-y-2 text-warm-grey text-sm leading-relaxed">
+                <li>Citrus Spice Infusion</li>
+                <li>Citrus Élan</li>
+              </ul>
+            </article>
+
+            <article>
+              <h3 className="font-serif text-xl text-charcoal mb-3">
+                Living Room Collection
+              </h3>
+              <ul className="space-y-2 text-warm-grey text-sm leading-relaxed">
+                <li>Vanilla Soleil</li>
+                <li>Cinnamon Vanilla</li>
+              </ul>
+            </article>
+
+            <article>
+              <h3 className="font-serif text-xl text-charcoal mb-3">
+                Bedroom Collection
+              </h3>
+              <ul className="space-y-2 text-warm-grey text-sm leading-relaxed">
+                <li>Cashmere Rose Ember</li>
+                <li>Peony Rose</li>
+              </ul>
+            </article>
+
+            <article>
+              <h3 className="font-serif text-xl text-charcoal mb-3">
+                Gift Collection
+              </h3>
+              <ul className="space-y-2 text-warm-grey text-sm leading-relaxed">
+                <li>Discovery Trio</li>
+                <li>Duo Gift Set</li>
+                <li>Signature Collection</li>
+              </ul>
+            </article>
+          </div>
+        </div>
+      </section>
+
       {/* Product Grid */}
-      <section className="section-spacing bg-white" aria-labelledby="products-grid-heading">
+      <section
+        className="section-spacing bg-white"
+        aria-labelledby="products-grid-heading"
+      >
         <h2 id="products-grid-heading" className="sr-only">
           Candle products
         </h2>

@@ -1,6 +1,6 @@
-import type { Metadata } from 'next';
-import Image from 'next/image';
-import { InquiryForm } from '@/components/experiences/InquiryForm';
+import type { Metadata } from "next";
+import Image from "next/image";
+import { InquiryForm } from "@/components/experiences/InquiryForm";
 
 /**
  * Experiences Page — Lusso Picnics and scent-styling services.
@@ -12,16 +12,19 @@ import { InquiryForm } from '@/components/experiences/InquiryForm';
  */
 
 export const metadata: Metadata = {
-  title: 'Experiences',
+  title: "Experiences",
   description:
-    'Explore Lusso Picnics — curated outdoor gatherings with candle ambiance — and our bespoke scent-styling services for weddings, events, and corporate occasions.',
+    "Explore Lusso Picnics — curated outdoor gatherings with candle ambiance — and our bespoke scent-styling services for weddings, events, and corporate occasions.",
 };
 
 export default function ExperiencesPage() {
   return (
     <div className="bg-cream">
       {/* Page Header */}
-      <section className="section-spacing" aria-labelledby="experiences-heading">
+      <section
+        className="section-spacing"
+        aria-labelledby="experiences-heading"
+      >
         <div className="mx-auto max-w-4xl px-6 text-center">
           <h1
             id="experiences-heading"
@@ -29,10 +32,25 @@ export default function ExperiencesPage() {
           >
             Experiences
           </h1>
-          <p className="text-warm-grey text-lg md:text-xl leading-relaxed max-w-2xl mx-auto">
-            Beyond candles — immersive moments designed to engage the senses
-            and elevate every gathering.
-          </p>
+          <div className="space-y-4 text-warm-grey text-lg md:text-xl leading-relaxed max-w-2xl mx-auto">
+            <p>
+              Born from the experiences created through Lusso Picnics, Lusso
+              Candles extends our passion for beautiful spaces into the home.
+            </p>
+            <p>
+              We believe luxury is not about excess—it is about creating
+              intentional moments that bring comfort, calm, and connection. Each
+              candle is hand-poured in small batches using premium soy and
+              beeswax blends and carefully curated fragrances that evoke warmth,
+              elegance, and lasting memories.
+            </p>
+            <p>
+              Whether you're hosting guests, unwinding after a long day, or
+              celebrating life's special moments, Lusso Candles creates an
+              atmosphere that feels effortlessly luxurious.
+            </p>
+            <p className="font-semibold">Clean. Comfortable. Intentional.</p>
+          </div>
         </div>
       </section>
 
@@ -51,26 +69,28 @@ export default function ExperiencesPage() {
             </h2>
 
             <p className="text-warm-grey text-base md:text-lg leading-relaxed mb-4">
-              Our curated outdoor experiences bring together intimate gatherings,
-              thoughtful styling, and the warm glow of hand-poured candles. Each
-              Lusso Picnic is designed as a sensory escape — from the soft flicker
-              of candlelight to carefully chosen scents that complement the setting
-              and season. Whether it&apos;s a birthday celebration, an anniversary,
-              or simply an afternoon with friends, we create the atmosphere so you
-              can be fully present in the moment.
+              Our curated outdoor experiences bring together intimate
+              gatherings, thoughtful styling, and the warm glow of hand-poured
+              candles. Each Lusso Picnic is designed as a sensory escape — from
+              the soft flicker of candlelight to carefully chosen scents that
+              complement the setting and season. Whether it&apos;s a birthday
+              celebration, an anniversary, or simply an afternoon with friends,
+              we create the atmosphere so you can be fully present in the
+              moment.
             </p>
 
             <p className="text-warm-grey text-base md:text-lg leading-relaxed mb-6">
               Every detail is considered: linen draping, botanical arrangements,
-              curated playlists, and of course, our signature candle installations
-              that transform any outdoor space into something extraordinary. Based
-              in Centurion, we bring the quiet luxury of a Lusso experience to
-              parks, gardens, and private estates across Gauteng.
+              curated playlists, and of course, our signature candle
+              installations that transform any outdoor space into something
+              extraordinary. Based in Centurion, we bring the quiet luxury of a
+              Lusso experience to parks, gardens, and private estates across
+              Gauteng.
             </p>
 
             <a
               href="#inquiry-form"
-              className="inline-block min-h-[44px] min-w-[120px] rounded-md bg-charcoal px-6 py-3 text-base font-medium text-cream text-center transition-colors duration-150 hover:bg-warm-grey focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-charcoal"
+              className="inline-block min-h-[44px] min-w-[120px] rounded-md bg-warm-grey px-6 py-3 text-base font-medium text-white text-center transition-colors duration-150 hover:bg-charcoal hover:text-cream focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-charcoal"
             >
               Inquire About a Picnic
             </a>
@@ -122,9 +142,9 @@ export default function ExperiencesPage() {
             </p>
 
             <p className="text-warm-grey text-base md:text-lg leading-relaxed mb-6">
-              The result is a cohesive olfactory experience woven throughout your
-              venue: welcome candles at the entrance, signature blends at each
-              table, and take-home favours your guests will treasure. Every
+              The result is a cohesive olfactory experience woven throughout
+              your venue: welcome candles at the entrance, signature blends at
+              each table, and take-home favours your guests will treasure. Every
               element is hand-poured in our Centurion studio using premium soy
               wax and phthalate-free oils, ensuring a clean burn and lasting
               impression.
@@ -132,7 +152,7 @@ export default function ExperiencesPage() {
 
             <a
               href="#inquiry-form"
-              className="inline-block min-h-[44px] min-w-[120px] rounded-md bg-charcoal px-6 py-3 text-base font-medium text-cream text-center transition-colors duration-150 hover:bg-warm-grey focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-charcoal"
+              className="inline-block min-h-[44px] min-w-[120px] rounded-md bg-warm-grey px-6 py-3 text-base font-medium text-white text-center transition-colors duration-150 hover:bg-charcoal hover:text-cream focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-charcoal"
             >
               Book a Consultation
             </a>

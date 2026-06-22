@@ -22,6 +22,7 @@ export interface ProductWithVariants {
   burnTimeHours: number;
   waxType: string;
   scentProfile: string;
+  image?: string | null;
   isActive: boolean;
   variants: ProductVariant[];
   createdAt: Date;

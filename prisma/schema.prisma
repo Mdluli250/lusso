@@ -80,6 +80,7 @@ model Product {
   burnTimeHours  Int
   waxType        String // e.g. "soy", "beeswax", "coconut"
   scentProfile   String // e.g. "lavender", "cinnamon"
+  image          String?
   isActive       Boolean          @default(true)
   variants       ProductVariant[]
   wishlistItems  WishlistItem[]
