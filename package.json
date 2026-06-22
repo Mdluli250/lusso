@@ -15,7 +15,9 @@
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "vitest run"
+    "test": "vitest run",
+    "seed:db": "prisma db seed",
+    "seed:blob": "tsx scripts/seed-blob.ts"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.2",
