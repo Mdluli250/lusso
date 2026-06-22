@@ -105,6 +105,7 @@ export function ProductForm({ mode, initialData }: ProductFormProps) {
       [],
   );
   const galleryPreviewRefs = useRef<string[]>([]);
+  const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
 
   // Error state
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -276,6 +277,26 @@ export function ProductForm({ mode, initialData }: ProductFormProps) {
         next[targetIndex],
         next[currentIndex],
       ];
+      return next;
+    });
+  }
+
+  function reorderGalleryImagesByVisibleIndexes(
+    sourceVisibleIndex: number,
+    targetVisibleIndex: number,
+  ) {
+    setGalleryImages((prev) => {
+      const activeIndexes = prev
+        .map((image, idx) => (image._delete ? -1 : idx))
+        .filter((idx) => idx >= 0);
+
+      const sourceIdx = activeIndexes[sourceVisibleIndex];
+      const targetIdx = activeIndexes[targetVisibleIndex];
+      if (sourceIdx === undefined || targetIdx === undefined) return prev;
+
+      const next = [...prev];
+      const [moved] = next.splice(sourceIdx, 1);
+      next.splice(targetIdx, 0, moved);
       return next;
     });
   }
@@ -487,7 +508,31 @@ export function ProductForm({ mode, initialData }: ProductFormProps) {
               {visibleGalleryImages.map((image, visibleIndex) => (
                 <div
                   key={image.id ?? image.url}
-                  className="relative overflow-hidden rounded-lg border border-border bg-surface"
+                  draggable={!image.isUploading}
+                  onDragStart={(e) => {
+                    if (image.isUploading) return;
+                    e.dataTransfer.setData("text/plain", String(visibleIndex));
+                    e.dataTransfer.effectAllowed = "move";
+                    setDraggingIndex(visibleIndex);
+                  }}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    const src = e.dataTransfer.getData("text/plain");
+                    const srcIndex = parseInt(src, 10);
+                    if (!Number.isNaN(srcIndex)) {
+                      reorderGalleryImagesByVisibleIndexes(
+                        srcIndex,
+                        visibleIndex,
+                      );
+                    }
+                    setDraggingIndex(null);
+                  }}
+                  onDragEnd={() => setDraggingIndex(null)}
+                  className={[
+                    "relative overflow-hidden rounded-lg border border-border bg-surface",
+                    draggingIndex === visibleIndex ? "opacity-70" : "",
+                  ].join(" ")}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
