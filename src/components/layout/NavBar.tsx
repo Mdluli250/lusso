@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import Image from 'next/image';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { signIn, signOut, useSession } from 'next-auth/react';
-import { useCallback, useEffect, useRef, useState } from 'react';
-import CartIcon from './CartIcon';
+import Image from "next/image";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { signIn, signOut, useSession } from "next-auth/react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import CartIcon from "./CartIcon";
 
 interface NavLink {
   href: string;
@@ -13,11 +13,11 @@ interface NavLink {
 }
 
 const NAV_LINKS: NavLink[] = [
-  { href: '/', label: 'Home' },
-  { href: '/about', label: 'About' },
-  { href: '/collections', label: 'Shop' },
-  { href: '/experiences', label: 'Experiences' },
-  { href: '/contact', label: 'Contact' },
+  { href: "/", label: "Home" },
+  { href: "/about", label: "About" },
+  { href: "/collections", label: "Shop" },
+  { href: "/experiences", label: "Experiences" },
+  { href: "/contact", label: "Contact" },
 ];
 
 /**
@@ -33,18 +33,18 @@ const NAV_LINKS: NavLink[] = [
  */
 export default function NavBar() {
   const { data: session, status } = useSession();
-  const isLoading = status === 'loading';
+  const isLoading = status === "loading";
   const pathname = usePathname();
 
   return (
     <header
       className={[
-        'sticky top-0 z-50',
-        'bg-[var(--theme-bg)] text-[var(--theme-accent)]',
-        'border-b border-[var(--border)]',
-        'backdrop-blur-sm',
-        'transition-colors duration-[600ms] ease-[power2.inOut]',
-      ].join(' ')}
+        "sticky top-0 z-50",
+        "bg-[var(--theme-bg)] text-[var(--theme-accent)]",
+        "border-b border-[var(--border)]",
+        "backdrop-blur-sm",
+        "transition-colors duration-[600ms] ease-[power2.inOut]",
+      ].join(" ")}
     >
       <nav
         aria-label="Main navigation"
@@ -54,10 +54,10 @@ export default function NavBar() {
         <Link
           href="/"
           className={[
-            'flex items-center gap-2 text-xl font-bold tracking-tight',
-            'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2',
-            'focus-visible:outline-[var(--theme-accent)] rounded',
-          ].join(' ')}
+            "flex items-center gap-2 text-xl font-bold tracking-tight",
+            "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2",
+            "focus-visible:outline-[var(--theme-accent)] rounded",
+          ].join(" ")}
         >
           {/* Flame icon */}
           <svg
@@ -84,17 +84,17 @@ export default function NavBar() {
               <li key={href}>
                 <Link
                   href={href}
-                  aria-current={isActive ? 'page' : undefined}
+                  aria-current={isActive ? "page" : undefined}
                   className={[
-                    'rounded-lg px-3 py-3 text-sm font-medium min-h-[44px] inline-flex items-center',
-                    'text-[var(--theme-accent)]',
-                    'transition-opacity duration-150',
-                    'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2',
-                    'focus-visible:outline-[var(--theme-accent)]',
+                    "rounded-lg px-3 py-3 text-sm font-medium min-h-[44px] inline-flex items-center",
+                    "text-[var(--theme-accent)]",
+                    "transition-opacity duration-150",
+                    "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2",
+                    "focus-visible:outline-[var(--theme-accent)]",
                     isActive
-                      ? 'opacity-100 border-b-2 border-[var(--theme-accent)]'
-                      : 'opacity-70 hover:opacity-100',
-                  ].join(' ')}
+                      ? "opacity-100 border-b-2 border-[var(--theme-accent)]"
+                      : "opacity-70 hover:opacity-100",
+                  ].join(" ")}
                 >
                   {label}
                 </Link>
@@ -105,37 +105,39 @@ export default function NavBar() {
             <li>
               <Link
                 href="/dashboard"
-                aria-current={pathname.startsWith('/dashboard') ? 'page' : undefined}
+                aria-current={
+                  pathname.startsWith("/dashboard") ? "page" : undefined
+                }
                 className={[
-                  'rounded-lg px-3 py-3 text-sm font-medium min-h-[44px] inline-flex items-center',
-                  'text-[var(--theme-accent)]',
-                  'transition-opacity duration-150',
-                  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2',
-                  'focus-visible:outline-[var(--theme-accent)]',
-                  pathname.startsWith('/dashboard')
-                    ? 'opacity-100 border-b-2 border-[var(--theme-accent)]'
-                    : 'opacity-70 hover:opacity-100',
-                ].join(' ')}
+                  "rounded-lg px-3 py-3 text-sm font-medium min-h-[44px] inline-flex items-center",
+                  "text-[var(--theme-accent)]",
+                  "transition-opacity duration-150",
+                  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2",
+                  "focus-visible:outline-[var(--theme-accent)]",
+                  pathname.startsWith("/dashboard")
+                    ? "opacity-100 border-b-2 border-[var(--theme-accent)]"
+                    : "opacity-70 hover:opacity-100",
+                ].join(" ")}
               >
                 Dashboard
               </Link>
             </li>
           )}
-          {session?.user.role === 'ADMIN' && (
+          {session?.user.role === "ADMIN" && (
             <li>
               <Link
                 href="/admin"
-                aria-current={pathname === '/admin' ? 'page' : undefined}
+                aria-current={pathname === "/admin" ? "page" : undefined}
                 className={[
-                  'rounded-lg px-3 py-3 text-sm font-medium min-h-[44px] inline-flex items-center',
-                  'text-[var(--theme-accent)]',
-                  'transition-opacity duration-150',
-                  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2',
-                  'focus-visible:outline-[var(--theme-accent)]',
-                  pathname === '/admin'
-                    ? 'opacity-100 border-b-2 border-[var(--theme-accent)]'
-                    : 'opacity-70 hover:opacity-100',
-                ].join(' ')}
+                  "rounded-lg px-3 py-3 text-sm font-medium min-h-[44px] inline-flex items-center",
+                  "text-[var(--theme-accent)]",
+                  "transition-opacity duration-150",
+                  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2",
+                  "focus-visible:outline-[var(--theme-accent)]",
+                  pathname === "/admin"
+                    ? "opacity-100 border-b-2 border-[var(--theme-accent)]"
+                    : "opacity-70 hover:opacity-100",
+                ].join(" ")}
               >
                 Admin
               </Link>
@@ -151,8 +153,19 @@ export default function NavBar() {
             className="p-2 rounded-lg text-[var(--theme-accent)] hover:bg-[var(--theme-accent)]/5 transition-colors"
             aria-label="Search products"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-              <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+              className="w-5 h-5"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+              />
             </svg>
           </Link>
 
@@ -162,8 +175,19 @@ export default function NavBar() {
             className="relative p-2 rounded-lg text-[var(--theme-accent)] hover:bg-[var(--theme-accent)]/5 transition-colors"
             aria-label="Wishlist"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+              className="w-5 h-5"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z"
+              />
             </svg>
           </Link>
 
@@ -183,7 +207,7 @@ export default function NavBar() {
               {session.user.image ? (
                 <Image
                   src={session.user.image}
-                  alt={session.user.name ?? 'User avatar'}
+                  alt={session.user.name ?? "User avatar"}
                   width={32}
                   height={32}
                   className="h-8 w-8 rounded-full object-cover ring-1 ring-[var(--border)]"
@@ -193,26 +217,26 @@ export default function NavBar() {
                 <span
                   aria-hidden="true"
                   className={[
-                    'flex h-8 w-8 items-center justify-center rounded-full',
-                    'bg-[var(--theme-accent)] text-cream',
-                    'text-xs font-bold',
-                  ].join(' ')}
+                    "flex h-8 w-8 items-center justify-center rounded-full",
+                    "bg-[var(--theme-accent)] text-cream",
+                    "text-xs font-bold",
+                  ].join(" ")}
                 >
-                  {session.user.name?.charAt(0).toUpperCase() ?? '?'}
+                  {session.user.name?.charAt(0).toUpperCase() ?? "?"}
                 </span>
               )}
 
               {/* Sign out button */}
               <button
-                onClick={() => signOut({ callbackUrl: '/' })}
+                onClick={() => signOut({ callbackUrl: "/" })}
                 className={[
-                  'hidden rounded-lg px-3 py-2.5 text-sm font-medium sm:block min-h-[44px]',
-                  'border border-[var(--border)]',
-                  'text-[var(--theme-accent)] opacity-80',
-                  'transition-opacity duration-150 hover:opacity-100',
-                  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2',
-                  'focus-visible:outline-[var(--theme-accent)]',
-                ].join(' ')}
+                  "hidden rounded-lg px-3 py-2.5 text-sm font-medium sm:block min-h-[44px]",
+                  "border border-[var(--border)]",
+                  "text-[var(--theme-accent)] opacity-80",
+                  "transition-opacity duration-150 hover:opacity-100",
+                  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2",
+                  "focus-visible:outline-[var(--theme-accent)]",
+                ].join(" ")}
               >
                 Sign out
               </button>
@@ -220,14 +244,14 @@ export default function NavBar() {
           ) : (
             /* Sign in button */
             <button
-              onClick={() => signIn('google')}
+              onClick={() => signIn("google")}
               className={[
-                'rounded-lg px-3 py-2.5 text-sm font-medium min-h-[44px]',
-                'bg-[var(--theme-accent)] text-cream',
-                'transition-opacity duration-150 hover:opacity-90',
-                'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2',
-                'focus-visible:outline-[var(--theme-accent)]',
-              ].join(' ')}
+                "rounded-lg px-3 py-2.5 text-sm font-medium min-h-[44px]",
+                "bg-[var(--theme-accent)] text-cream",
+                "transition-opacity duration-150 hover:opacity-90",
+                "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2",
+                "focus-visible:outline-[var(--theme-accent)]",
+              ].join(" ")}
             >
               Sign in
             </button>
@@ -235,7 +259,7 @@ export default function NavBar() {
 
           {/* Mobile nav toggle — hamburger menu (md and below) */}
           <MobileMenu
-            isAdmin={session?.user.role === 'ADMIN'}
+            isAdmin={session?.user.role === "ADMIN"}
             isSignedIn={!!session}
             pathname={pathname}
           />
@@ -244,7 +268,6 @@ export default function NavBar() {
     </header>
   );
 }
-
 
 /**
  * Mobile navigation with overlay, focus trap, and outside-click dismissal.
@@ -274,8 +297,8 @@ function MobileMenu({
 
   const allLinks = [
     ...NAV_LINKS,
-    ...(isSignedIn ? [{ href: '/dashboard', label: 'Dashboard' }] : []),
-    ...(isAdmin ? [{ href: '/admin', label: 'Admin' }] : []),
+    ...(isSignedIn ? [{ href: "/dashboard", label: "Dashboard" }] : []),
+    ...(isAdmin ? [{ href: "/admin", label: "Admin" }] : []),
   ];
 
   const closeMenu = useCallback(() => {
@@ -289,14 +312,14 @@ function MobileMenu({
     if (!isOpen) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
+      if (e.key === "Escape") {
         e.preventDefault();
         closeMenu();
       }
     };
 
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, closeMenu]);
 
   // Focus trap: constrain Tab within the menu while open
@@ -308,9 +331,10 @@ function MobileMenu({
       'a[href], button, [tabindex]:not([tabindex="-1"])';
 
     const handleTabTrap = (e: KeyboardEvent) => {
-      if (e.key !== 'Tab') return;
+      if (e.key !== "Tab") return;
 
-      const focusableElements = menu.querySelectorAll<HTMLElement>(focusableSelector);
+      const focusableElements =
+        menu.querySelectorAll<HTMLElement>(focusableSelector);
       if (focusableElements.length === 0) return;
 
       const firstFocusable = focusableElements[0];
@@ -331,8 +355,8 @@ function MobileMenu({
       }
     };
 
-    document.addEventListener('keydown', handleTabTrap);
-    return () => document.removeEventListener('keydown', handleTabTrap);
+    document.addEventListener("keydown", handleTabTrap);
+    return () => document.removeEventListener("keydown", handleTabTrap);
   }, [isOpen]);
 
   // Move focus to first focusable element when menu opens
@@ -362,15 +386,15 @@ function MobileMenu({
         onClick={() => setIsOpen(!isOpen)}
         aria-expanded={isOpen}
         aria-controls="mobile-nav-menu"
-        aria-label={isOpen ? 'Close navigation menu' : 'Open navigation menu'}
+        aria-label={isOpen ? "Close navigation menu" : "Open navigation menu"}
         className={[
-          'flex cursor-pointer items-center justify-center',
-          'rounded-lg p-2',
-          'text-[var(--theme-accent)] transition-colors duration-150',
-          'hover:bg-[var(--theme-accent)]/5',
-          'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2',
-          'focus-visible:outline-[var(--theme-accent)]',
-        ].join(' ')}
+          "flex cursor-pointer items-center justify-center",
+          "rounded-lg p-2",
+          "text-[var(--theme-accent)] transition-colors duration-150",
+          "hover:bg-[var(--theme-accent)]/5",
+          "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2",
+          "focus-visible:outline-[var(--theme-accent)]",
+        ].join(" ")}
       >
         {isOpen ? (
           /* Close icon */
@@ -424,11 +448,11 @@ function MobileMenu({
             aria-modal="true"
             aria-label="Navigation menu"
             className={[
-              'absolute right-0 top-0 h-full w-64 max-w-[80vw]',
-              'bg-[var(--theme-bg)] shadow-xl',
-              'flex flex-col',
-              'pt-16 px-4',
-            ].join(' ')}
+              "absolute right-0 top-0 h-full w-64 max-w-[80vw]",
+              "bg-[var(--theme-bg)] shadow-xl",
+              "flex flex-col",
+              "pt-16 px-4",
+            ].join(" ")}
           >
             {/* Close button inside the menu panel */}
             <button
@@ -436,13 +460,13 @@ function MobileMenu({
               onClick={closeMenu}
               aria-label="Close navigation menu"
               className={[
-                'absolute top-4 right-4',
-                'flex items-center justify-center rounded-lg p-2',
-                'text-[var(--theme-accent)] transition-colors duration-150',
-                'hover:bg-[var(--theme-accent)]/5',
-                'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2',
-                'focus-visible:outline-[var(--theme-accent)]',
-              ].join(' ')}
+                "absolute top-4 right-4",
+                "flex items-center justify-center rounded-lg p-2",
+                "text-[var(--theme-accent)] transition-colors duration-150",
+                "hover:bg-[var(--theme-accent)]/5",
+                "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2",
+                "focus-visible:outline-[var(--theme-accent)]",
+              ].join(" ")}
             >
               <svg
                 aria-hidden="true"
@@ -470,17 +494,17 @@ function MobileMenu({
                     <Link
                       href={href}
                       onClick={closeMenu}
-                      aria-current={isActive ? 'page' : undefined}
+                      aria-current={isActive ? "page" : undefined}
                       className={[
-                        'block rounded-lg px-4 py-3 text-base font-medium min-h-[44px]',
-                        'text-[var(--theme-accent)]',
-                        'transition-opacity duration-150',
-                        'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2',
-                        'focus-visible:outline-[var(--theme-accent)]',
+                        "block rounded-lg px-4 py-3 text-base font-medium min-h-[44px]",
+                        "text-[var(--theme-accent)]",
+                        "transition-opacity duration-150",
+                        "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2",
+                        "focus-visible:outline-[var(--theme-accent)]",
                         isActive
-                          ? 'opacity-100 bg-[var(--theme-accent)]/10 border-l-2 border-[var(--theme-accent)]'
-                          : 'opacity-70 hover:opacity-100 hover:bg-[var(--theme-accent)]/5',
-                      ].join(' ')}
+                          ? "opacity-100 bg-[var(--theme-accent)]/10 border-l-2 border-[var(--theme-accent)]"
+                          : "opacity-70 hover:opacity-100 hover:bg-[var(--theme-accent)]/5",
+                      ].join(" ")}
                     >
                       {label}
                     </Link>
@@ -497,13 +521,13 @@ function MobileMenu({
         <details className="group relative">
           <summary
             className={[
-              'flex cursor-pointer list-none items-center justify-center',
-              'rounded-lg p-2',
-              'text-[var(--theme-accent)] transition-colors duration-150',
-              'hover:bg-[var(--theme-accent)]/5',
-              'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2',
-              'focus-visible:outline-[var(--theme-accent)]',
-            ].join(' ')}
+              "flex cursor-pointer list-none items-center justify-center",
+              "rounded-lg p-2",
+              "text-[var(--theme-accent)] transition-colors duration-150",
+              "hover:bg-[var(--theme-accent)]/5",
+              "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2",
+              "focus-visible:outline-[var(--theme-accent)]",
+            ].join(" ")}
             aria-label="Open navigation menu"
           >
             {/* Hamburger icon */}
@@ -544,23 +568,23 @@ function MobileMenu({
           <ul
             role="list"
             className={[
-              'absolute right-0 top-full mt-2 w-48',
-              'rounded-xl border border-[var(--border)]',
-              'bg-[var(--theme-bg)] shadow-xl',
-              'py-1',
-            ].join(' ')}
+              "absolute right-0 top-full mt-2 w-48",
+              "rounded-xl border border-[var(--border)]",
+              "bg-[var(--theme-bg)] shadow-xl",
+              "py-1",
+            ].join(" ")}
           >
             {allLinks.map(({ href, label }) => (
               <li key={href}>
                 <Link
                   href={href}
                   className={[
-                    'block px-4 py-2 text-sm font-medium',
-                    'text-[var(--theme-accent)] opacity-80',
-                    'transition-opacity duration-150 hover:opacity-100',
-                    'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2',
-                    'focus-visible:outline-[var(--theme-accent)]',
-                  ].join(' ')}
+                    "block px-4 py-2 text-sm font-medium",
+                    "text-[var(--theme-accent)] opacity-80",
+                    "transition-opacity duration-150 hover:opacity-100",
+                    "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2",
+                    "focus-visible:outline-[var(--theme-accent)]",
+                  ].join(" ")}
                 >
                   {label}
                 </Link>
