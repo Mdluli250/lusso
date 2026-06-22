@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition, useEffect, useRef } from "react";
+import { useToast } from "@/components/ui/Toast";
 import { useRouter } from "next/navigation";
 import { slugify } from "@/lib/admin/slugify";
 import { validateProductForm } from "@/lib/admin/validateProduct";
@@ -106,6 +107,8 @@ export function ProductForm({ mode, initialData }: ProductFormProps) {
   );
   const galleryPreviewRefs = useRef<string[]>([]);
   const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const { showToast } = useToast();
 
   // Error state
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -233,6 +236,11 @@ export function ProductForm({ mode, initialData }: ProductFormProps) {
           }
           return next;
         });
+        try {
+          showToast(`Image upload failed: ${file.name}`, "error");
+        } catch (e) {
+          // ignore if toast cannot be shown
+        }
       }
     });
   }
@@ -422,22 +430,58 @@ export function ProductForm({ mode, initialData }: ProductFormProps) {
   async function uploadProductImage(
     file: File,
   ): Promise<{ imagePath: string } | { error: string }> {
-    try {
-      const body = new FormData();
-      body.append("image", file);
-      const response = await fetch("/api/admin/products/upload-image", {
-        method: "POST",
-        body,
-      });
-      if (!response.ok) {
-        const error = await response.json().catch(() => null);
-        return { error: (error?.error as string) ?? "Failed to upload image" };
+    const maxAttempts = 3;
+    let attempt = 0;
+    while (attempt < maxAttempts) {
+      try {
+        const body = new FormData();
+        body.append("image", file);
+        const response = await fetch("/api/admin/products/upload-image", {
+          method: "POST",
+          body,
+        });
+        if (response.ok) {
+          return await response.json();
+        }
+        const errorJson = await response.json().catch(() => null);
+        const errMsg =
+          (errorJson?.error as string) ?? `Upload failed (${response.status})`;
+        attempt += 1;
+        if (attempt >= maxAttempts) {
+          // report to server for logging
+          try {
+            await fetch("/api/admin/products/upload-error", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ fileName: file.name, error: errMsg }),
+            });
+          } catch (e) {
+            console.error("Failed to report upload error to server:", e);
+          }
+          return { error: errMsg };
+        }
+        // backoff before retry
+        await new Promise((r) => setTimeout(r, 500 * Math.pow(2, attempt - 1)));
+      } catch (err) {
+        attempt += 1;
+        const msg = err instanceof Error ? err.message : String(err);
+        if (attempt >= maxAttempts) {
+          try {
+            await fetch("/api/admin/products/upload-error", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ fileName: file.name, error: msg }),
+            });
+          } catch (e) {
+            console.error("Failed to report upload error to server:", e);
+          }
+          console.error("Image upload failed:", err);
+          return { error: msg };
+        }
+        await new Promise((r) => setTimeout(r, 500 * Math.pow(2, attempt - 1)));
       }
-      return await response.json();
-    } catch (error) {
-      console.error("Image upload failed:", error);
-      return { error: "Failed to upload product image" };
     }
+    return { error: "Failed to upload product image" };
   }
 
   return (
@@ -515,7 +559,11 @@ export function ProductForm({ mode, initialData }: ProductFormProps) {
                     e.dataTransfer.effectAllowed = "move";
                     setDraggingIndex(visibleIndex);
                   }}
-                  onDragOver={(e) => e.preventDefault()}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setDragOverIndex(visibleIndex);
+                  }}
+                  onDragLeave={() => setDragOverIndex(null)}
                   onDrop={(e) => {
                     e.preventDefault();
                     const src = e.dataTransfer.getData("text/plain");
@@ -527,11 +575,16 @@ export function ProductForm({ mode, initialData }: ProductFormProps) {
                       );
                     }
                     setDraggingIndex(null);
+                    setDragOverIndex(null);
                   }}
                   onDragEnd={() => setDraggingIndex(null)}
                   className={[
-                    "relative overflow-hidden rounded-lg border border-border bg-surface",
+                    "relative overflow-hidden rounded-lg border border-border bg-surface transition-all",
                     draggingIndex === visibleIndex ? "opacity-70" : "",
+                    dragOverIndex === visibleIndex &&
+                    draggingIndex !== visibleIndex
+                      ? "ring-2 ring-dashed ring-theme-accent/60"
+                      : "",
                   ].join(" ")}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
