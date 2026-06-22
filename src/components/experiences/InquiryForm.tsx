@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import type { InquiryFormData } from '@/lib/constants/brand';
-import { submitInquiry } from '@/actions/experiences';
+import { useState } from "react";
+import type { InquiryFormData } from "@/lib/constants/brand";
+import { submitInquiry } from "@/actions/experiences";
 
 /**
  * InquiryForm — client component for experience/event inquiries.
@@ -21,35 +21,35 @@ interface FormErrors {
   message?: string;
 }
 
-type SubmissionStatus = 'idle' | 'success' | 'error';
+type SubmissionStatus = "idle" | "success" | "error";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MESSAGE_MAX_LENGTH = 1000;
 
 export function InquiryForm() {
   const [formData, setFormData] = useState<InquiryFormData>({
-    name: '',
-    email: '',
-    message: '',
+    name: "",
+    email: "",
+    message: "",
   });
   const [errors, setErrors] = useState<FormErrors>({});
-  const [status, setStatus] = useState<SubmissionStatus>('idle');
+  const [status, setStatus] = useState<SubmissionStatus>("idle");
 
   function validate(): FormErrors {
     const newErrors: FormErrors = {};
 
     if (!formData.name.trim()) {
-      newErrors.name = 'Name is required.';
+      newErrors.name = "Name is required.";
     }
 
     if (!formData.email.trim()) {
-      newErrors.email = 'Email is required.';
+      newErrors.email = "Email is required.";
     } else if (!EMAIL_REGEX.test(formData.email.trim())) {
-      newErrors.email = 'Please enter a valid email address.';
+      newErrors.email = "Please enter a valid email address.";
     }
 
     if (!formData.message.trim()) {
-      newErrors.message = 'Message is required.';
+      newErrors.message = "Message is required.";
     } else if (formData.message.length > MESSAGE_MAX_LENGTH) {
       newErrors.message = `Message must be ${MESSAGE_MAX_LENGTH} characters or fewer.`;
     }
@@ -59,7 +59,7 @@ export function InquiryForm() {
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setStatus('idle');
+    setStatus("idle");
 
     const validationErrors = validate();
     setErrors(validationErrors);
@@ -71,19 +71,19 @@ export function InquiryForm() {
     try {
       const result = await submitInquiry(formData);
       if (result.success) {
-        setStatus('success');
-        setFormData({ name: '', email: '', message: '' });
+        setStatus("success");
+        setFormData({ name: "", email: "", message: "" });
         setErrors({});
       } else {
-        setStatus('error');
+        setStatus("error");
       }
     } catch {
-      setStatus('error');
+      setStatus("error");
     }
   }
 
   function handleChange(
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -100,7 +100,7 @@ export function InquiryForm() {
       className="mx-auto max-w-xl space-y-6"
     >
       {/* Success message */}
-      {status === 'success' && (
+      {status === "success" && (
         <div
           role="status"
           aria-live="polite"
@@ -111,7 +111,7 @@ export function InquiryForm() {
       )}
 
       {/* Error message */}
-      {status === 'error' && (
+      {status === "error" && (
         <div
           role="alert"
           aria-live="assertive"
@@ -136,7 +136,7 @@ export function InquiryForm() {
           required
           aria-required="true"
           aria-invalid={!!errors.name}
-          aria-describedby={errors.name ? 'inquiry-name-error' : undefined}
+          aria-describedby={errors.name ? "inquiry-name-error" : undefined}
           value={formData.name}
           onChange={handleChange}
           className="w-full rounded-md border border-taupe bg-cream px-4 py-3 text-charcoal text-base placeholder:text-warm-grey focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-charcoal transition-colors duration-150"
@@ -168,7 +168,7 @@ export function InquiryForm() {
           required
           aria-required="true"
           aria-invalid={!!errors.email}
-          aria-describedby={errors.email ? 'inquiry-email-error' : undefined}
+          aria-describedby={errors.email ? "inquiry-email-error" : undefined}
           value={formData.email}
           onChange={handleChange}
           className="w-full rounded-md border border-taupe bg-cream px-4 py-3 text-charcoal text-base placeholder:text-warm-grey focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-charcoal transition-colors duration-150"
@@ -199,7 +199,9 @@ export function InquiryForm() {
           required
           aria-required="true"
           aria-invalid={!!errors.message}
-          aria-describedby={errors.message ? 'inquiry-message-error' : undefined}
+          aria-describedby={
+            errors.message ? "inquiry-message-error" : undefined
+          }
           value={formData.message}
           onChange={handleChange}
           maxLength={MESSAGE_MAX_LENGTH}
@@ -233,7 +235,7 @@ export function InquiryForm() {
       <div>
         <button
           type="submit"
-          className="min-h-[44px] min-w-[120px] rounded-md bg-charcoal px-6 py-3 text-base font-medium text-cream transition-colors duration-150 hover:bg-warm-grey focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-charcoal"
+          className="min-h-[44px] min-w-[120px] rounded-md bg-charcoal px-6 py-3 text-base font-medium text-white transition-colors duration-150 hover:bg-warm-grey focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-charcoal"
         >
           Send Inquiry
         </button>

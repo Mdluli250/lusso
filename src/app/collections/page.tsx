@@ -239,7 +239,7 @@ export default async function CollectionsPage({
               {filter && (
                 <Link
                   href="/collections"
-                  className="mt-4 inline-flex items-center justify-center px-6 py-3 min-h-[44px] min-w-[120px] rounded-lg bg-charcoal text-cream font-semibold text-sm transition-opacity duration-150 hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-charcoal"
+                  className="mt-4 inline-flex items-center justify-center px-6 py-3 min-h-[44px] min-w-[120px] rounded-lg bg-charcoal text-white font-semibold text-sm transition-opacity duration-150 hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-charcoal"
                 >
                   View all collections
                 </Link>
