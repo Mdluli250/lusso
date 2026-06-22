@@ -731,7 +731,7 @@ export function ProductForm({ mode, initialData }: ProductFormProps) {
                         type="button"
                         onClick={() => moveGalleryImage(visibleIndex, "left")}
                         disabled={visibleIndex === 0 || image.isUploading}
-                        className="rounded-full bg-white/10 px-2 py-1 text-[11px] text-white disabled:cursor-not-allowed disabled:opacity-40"
+                        className="rounded-full bg-white/10 px-2 py-1 text-[11px] text-foreground disabled:cursor-not-allowed disabled:opacity-40"
                       >
                         ←
                       </button>
@@ -745,7 +745,7 @@ export function ProductForm({ mode, initialData }: ProductFormProps) {
                           visibleIndex === visibleGalleryImages.length - 1 ||
                           image.isUploading
                         }
-                        className="rounded-full bg-white/10 px-2 py-1 text-[11px] text-white disabled:cursor-not-allowed disabled:opacity-40"
+                        className="rounded-full bg-white/10 px-2 py-1 text-[11px] text-foreground disabled:cursor-not-allowed disabled:opacity-40"
                       >
                         →
                       </button>
