@@ -159,6 +159,13 @@ export function ProductTable({
       label: 'Actions',
       render: (row: Record<string, unknown>) => (
         <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+          <Link
+            href={`/admin/products/${row.id}`}
+            className="px-2 py-1 text-xs rounded border border-border text-foreground hover:bg-surface-muted transition-colors"
+            aria-label={`View ${row.name}`}
+          >
+            View
+          </Link>
           <button
             onClick={() => handleToggleActive(row as unknown as Product)}
             disabled={isPending}

@@ -56,8 +56,12 @@ interface ProductFormProps {
   initialData?: ProductData;
 }
 
-const WAX_TYPE_OPTIONS = ["soy", "beeswax", "coconut"];
-const SCENT_PROFILE_OPTIONS = ["lavender", "cinnamon", "vanilla", "eucalyptus"];
+const WAX_TYPE_OPTIONS = ["soy", "beeswax", "coconut", "paraffin", "soy-beeswax blend"];
+const SCENT_PROFILE_OPTIONS = [
+  "lavender", "cinnamon", "vanilla", "eucalyptus",
+  "citrus", "floral", "woody", "fresh", "spicy",
+  "rose", "sandalwood", "bergamot", "jasmine", "cedarwood",
+];
 
 /**
  * ProductForm — Client Component for creating and editing products.
@@ -187,38 +191,34 @@ export function ProductForm({ mode, initialData }: ProductFormProps) {
 
     const filesArray = Array.from(files);
 
-    // Add preview placeholders with uploading state
-    const placeholderImages = filesArray.map((file) => {
-      const url = URL.createObjectURL(file);
-      galleryPreviewRefs.current.push(url);
-      return { url, file, isUploading: true } as GalleryImageData;
+    // Add preview placeholders immediately (use functional update to get current length)
+    setGalleryImages((prev) => {
+      const placeholders = filesArray.map((file) => {
+        const url = URL.createObjectURL(file);
+        galleryPreviewRefs.current.push(url);
+        return { url, file, isUploading: true } as GalleryImageData;
+      });
+      return [...prev, ...placeholders];
     });
 
-    setGalleryImages((prev) => [...prev, ...placeholderImages]);
-
-    // Upload each file and replace the placeholder when done
-    filesArray.forEach(async (file, idx) => {
-      const placeholderIndex = galleryImages.length + idx;
+    // Upload each file and replace its placeholder with the blob URL
+    filesArray.forEach(async (file) => {
       const uploadResult = await uploadProductImage(file);
       if (uploadResult && "imagePath" in uploadResult) {
         setGalleryImages((prev) => {
           const next = [...prev];
-          // Find the first placeholder matching the file object URL
+          // Find the placeholder for this specific file object
           const pIdx = next.findIndex((p) => p.file === file && p.isUploading);
-          const targetIdx = pIdx >= 0 ? pIdx : placeholderIndex;
-          const existing = next[targetIdx];
-          if (existing) {
-            // Revoke local preview URL if present
-            if (
-              existing.file &&
-              galleryPreviewRefs.current.includes(existing.url)
-            ) {
+          if (pIdx >= 0) {
+            const existing = next[pIdx];
+            // Revoke the local blob preview URL
+            if (existing.file && galleryPreviewRefs.current.includes(existing.url)) {
               URL.revokeObjectURL(existing.url);
               galleryPreviewRefs.current = galleryPreviewRefs.current.filter(
                 (u) => u !== existing.url,
               );
             }
-            next[targetIdx] = {
+            next[pIdx] = {
               id: existing.id,
               url: uploadResult.imagePath,
             } as GalleryImageData;
@@ -226,7 +226,7 @@ export function ProductForm({ mode, initialData }: ProductFormProps) {
           return next;
         });
       } else {
-        const errorMsg = (uploadResult as any)?.error ?? "Upload failed";
+        const errorMsg = (uploadResult as { error: string })?.error ?? "Upload failed";
         setGalleryImages((prev) => {
           const next = [...prev];
           const pIdx = next.findIndex((p) => p.file === file && p.isUploading);
@@ -241,9 +241,7 @@ export function ProductForm({ mode, initialData }: ProductFormProps) {
         });
         try {
           showToast(`Image upload failed: ${file.name}`, "error");
-        } catch (e) {
-          // ignore if toast cannot be shown
-        }
+        } catch { /* ignore */ }
       }
     });
   }
@@ -478,6 +476,7 @@ export function ProductForm({ mode, initialData }: ProductFormProps) {
     };
 
     startTransition(async () => {
+      // Upload hero image only if a new file was selected (not yet uploaded)
       if (imageFile) {
         const uploadResult = await uploadProductImage(imageFile);
         if ("error" in uploadResult) {
@@ -488,25 +487,25 @@ export function ProductForm({ mode, initialData }: ProductFormProps) {
         formData.image = uploadResult.imagePath;
       }
 
-      if (galleryImages.some((image) => image.file && !image._delete)) {
+      // Only re-upload gallery images that still have a local file (i.e. upload failed
+      // or is still pending — successfully uploaded images already have a blob URL and
+      // no .file property after replacement in handleGalleryImagesChange).
+      const hasRemainingLocalFiles = galleryImages.some(
+        (image) => image.file && !image._delete && !image.isUploading && image.error
+      );
+      if (hasRemainingLocalFiles) {
         const uploadedImages: GalleryImageData[] = [];
         for (const image of galleryImages) {
-          if (image.file && !image._delete) {
+          if (image.file && !image._delete && image.error) {
+            // Retry failed upload
             const uploadResult = await uploadProductImage(image.file);
             if ("error" in uploadResult) {
-              setSubmitError(uploadResult.error);
+              setSubmitError(`Failed to upload image: ${uploadResult.error}`);
               return;
             }
-            uploadedImages.push({
-              id: image.id,
-              url: uploadResult.imagePath,
-            });
+            uploadedImages.push({ id: image.id, url: uploadResult.imagePath });
           } else {
-            uploadedImages.push({
-              id: image.id,
-              url: image.url,
-              _delete: image._delete,
-            });
+            uploadedImages.push({ id: image.id, url: image.url, _delete: image._delete });
           }
         }
         formData.galleryImages = uploadedImages.map((image) => ({
@@ -514,6 +513,12 @@ export function ProductForm({ mode, initialData }: ProductFormProps) {
           url: image.url,
           ...(image._delete ? { _delete: true } : {}),
         }));
+      }
+
+      // Block submit if any gallery image is still uploading
+      if (galleryImages.some((image) => image.isUploading && !image._delete)) {
+        setSubmitError("Please wait for all images to finish uploading.");
+        return;
       }
 
       let result;
@@ -526,25 +531,19 @@ export function ProductForm({ mode, initialData }: ProductFormProps) {
       if ("error" in result) {
         setSubmitError(result.error);
       } else {
-        // Revoke any remaining object URLs (local previews) now that we're navigating away
+        // Cleanup object URLs before navigating away
         if (imagePreviewRef.current) {
           URL.revokeObjectURL(imagePreviewRef.current);
           imagePreviewRef.current = null;
         }
         galleryPreviewRefs.current.forEach((url) => {
-          try {
-            URL.revokeObjectURL(url);
-          } catch (e) {
-            // ignore
-          }
+          try { URL.revokeObjectURL(url); } catch { /* ignore */ }
         });
         galleryPreviewRefs.current = [];
-        // clear delete timeouts
         Object.values(deleteTimeoutsRef.current).forEach((t) => {
           if (t) clearTimeout(t as ReturnType<typeof setTimeout>);
         });
         deleteTimeoutsRef.current = {};
-
         router.push("/admin/products");
       }
     });
