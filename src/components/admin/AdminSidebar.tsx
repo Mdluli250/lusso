@@ -14,11 +14,12 @@ interface AdminSidebarProps {
 }
 
 const navItems = [
-  { label: 'Overview', href: '/admin' },
-  { label: 'Products', href: '/admin/products' },
-  { label: 'Orders', href: '/admin/orders' },
-  { label: 'Inventory', href: '/admin/inventory' },
-  { label: 'Reviews', href: '/admin/reviews' },
+  { label: 'Overview', href: '/admin', icon: '📊' },
+  { label: 'Products', href: '/admin/products', icon: '🕯️' },
+  { label: 'Orders', href: '/admin/orders', icon: '📦' },
+  { label: 'Inventory', href: '/admin/inventory', icon: '🏷️' },
+  { label: 'Reviews', href: '/admin/reviews', icon: '⭐' },
+  { label: 'Customers', href: '/admin/customers', icon: '👥' },
 ];
 
 /**
@@ -91,24 +92,38 @@ export function AdminSidebar({ user, isOpen, onClose }: AdminSidebarProps) {
         </div>
 
         {/* Navigation links */}
-        <nav className="flex-1 p-3 space-y-1" aria-label="Admin navigation">
+        <nav className="flex-1 overflow-y-auto p-3 space-y-1" aria-label="Admin navigation">
           {navItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
               onClick={onClose}
               className={[
-                'block px-3 py-2 rounded-md text-sm font-medium transition-colors',
+                'flex items-center gap-2.5 px-3 py-2 rounded-md text-sm font-medium transition-colors',
                 isActive(item.href)
                   ? 'bg-theme-accent/15 text-theme-accent'
                   : 'text-foreground hover:bg-surface-muted',
               ].join(' ')}
               aria-current={isActive(item.href) ? 'page' : undefined}
             >
+              <span className="text-base" aria-hidden="true">{item.icon}</span>
               {item.label}
             </Link>
           ))}
         </nav>
+
+        {/* Bottom: back to site */}
+        <div className="p-3 border-t border-border">
+          <Link
+            href="/"
+            className="flex items-center gap-2 px-3 py-2 rounded-md text-sm text-muted hover:text-foreground hover:bg-surface-muted transition-colors"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
+            </svg>
+            Back to site
+          </Link>
+        </div>
       </aside>
     </>
   );
