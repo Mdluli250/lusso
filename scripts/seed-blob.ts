@@ -53,6 +53,7 @@ async function seedBlob() {
       const blob = await put(blobPath, fileBuffer, {
         access: "public",
         contentType: `image/${fileExtension.substring(1).toLowerCase()}`,
+        allowOverwrite: true,
       });
 
       console.log(`  ✓ Uploaded ${slug} → ${blob.url}`);
