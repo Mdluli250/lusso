@@ -315,6 +315,23 @@ export function FilterPanel({ allProducts, onFilteredProducts, onReset, onScentC
           </Button>
         </div>
       )}
+
+      {/* Quiz CTA */}
+      <div className="pt-3 border-t border-[var(--theme-accent)]/15">
+        <p className="text-xs text-[var(--theme-accent)]/50 mb-2">Not sure what you like?</p>
+        <a
+          href="/quiz"
+          className={[
+            'inline-flex w-full items-center justify-center gap-1.5',
+            'px-4 py-2 rounded-lg text-sm font-medium',
+            'border border-[var(--theme-accent)]/30 text-[var(--theme-accent)]/70',
+            'hover:border-[var(--theme-accent)]/60 hover:text-[var(--theme-accent)]',
+            'hover:bg-[var(--theme-accent)]/5 transition-all',
+          ].join(' ')}
+        >
+          🕯️ Find your scent →
+        </a>
+      </div>
     </aside>
   );
 }

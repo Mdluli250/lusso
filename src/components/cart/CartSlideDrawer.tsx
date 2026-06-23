@@ -13,6 +13,7 @@ import gsap from 'gsap';
 import { useCartStore } from '@/store/cartStore';
 import { CartItem } from './CartItem';
 import { CartSummary } from './CartSummary';
+import { CartUpsell } from './CartUpsell';
 import { EmptyState } from '@/components/ui/EmptyState';
 
 interface CartSlideDrawerProps {
@@ -85,6 +86,7 @@ export function CartSlideDrawer({ isOpen, onClose }: CartSlideDrawerProps) {
           ) : (
             <div className="space-y-4">
               {items.map((item) => <CartItem key={item.variantId} item={item} />)}
+              <CartUpsell />
             </div>
           )}
         </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import Link from 'next/link';
 import { formatZAR } from '@/lib/formatCurrency';
 
 /**
@@ -19,16 +20,16 @@ interface OrderHistoryProps {
 }
 
 const STATUS_STYLES: Record<OrderData['status'], string> = {
-  PENDING: 'bg-yellow-500/20 text-yellow-300',
-  PAID: 'bg-green-500/20 text-green-300',
-  FAILED: 'bg-red-500/20 text-red-300',
-  REFUNDED: 'bg-blue-500/20 text-blue-300',
+  PENDING: 'bg-yellow-500/20 text-yellow-600',
+  PAID:    'bg-green-500/20 text-green-600',
+  FAILED:  'bg-red-500/20 text-red-600',
+  REFUNDED:'bg-blue-500/20 text-blue-600',
 };
 
 /**
  * OrderHistory — Client Component that displays the user's order list
- * and polls for status updates every 15 seconds to reflect webhook-driven
- * changes within 30 seconds.
+ * with clickable rows linking to the order detail page, and polls for
+ * status updates every 15 seconds.
  *
  * Requirements: 9.1, 9.2, 9.3
  */
@@ -43,11 +44,10 @@ export default function OrderHistory({ orders: initialOrders }: OrderHistoryProp
         setOrders(data);
       }
     } catch {
-      // Silently fail on poll errors — keep showing last known data
+      // Silently fail — keep showing last known data
     }
   }, []);
 
-  // Poll every 15 seconds for status updates (Requirement 9.3)
   useEffect(() => {
     const interval = setInterval(fetchOrders, 15_000);
     return () => clearInterval(interval);
@@ -67,60 +67,54 @@ export default function OrderHistory({ orders: initialOrders }: OrderHistoryProp
   return (
     <div className="space-y-4">
       <h2 className="text-xl font-semibold text-foreground">Order History</h2>
-
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto rounded-xl border border-[var(--theme-accent)]/15">
         <table className="w-full text-left text-sm">
           <thead>
-            <tr className="border-b border-surface-muted text-muted">
-              <th className="py-3 pr-4 font-medium">Order ID</th>
-              <th className="py-3 pr-4 font-medium">Date</th>
-              <th className="py-3 pr-4 font-medium">Total</th>
-              <th className="py-3 pr-4 font-medium">Status</th>
-              <th className="py-3 font-medium">Documents</th>
+            <tr className="border-b border-[var(--theme-accent)]/10 bg-[var(--theme-accent)]/5">
+              <th className="px-4 py-3 font-medium text-muted">Order</th>
+              <th className="px-4 py-3 font-medium text-muted">Date</th>
+              <th className="px-4 py-3 font-medium text-muted">Total</th>
+              <th className="px-4 py-3 font-medium text-muted">Status</th>
+              <th className="px-4 py-3 font-medium text-muted">Documents</th>
             </tr>
           </thead>
           <tbody>
             {orders.map((order) => (
               <tr
                 key={order.id}
-                className="border-b border-surface-muted/50 hover:bg-surface-muted/30 transition-colors"
+                className="border-b border-[var(--theme-accent)]/10 last:border-0 hover:bg-[var(--theme-accent)]/5 transition-colors"
               >
-                <td className="py-3 pr-4 font-mono text-xs text-foreground/80">
-                  {order.id.slice(0, 8)}…
+                <td className="px-4 py-3">
+                  <Link
+                    href={`/dashboard/orders/${order.id}`}
+                    className="font-mono text-xs text-[var(--theme-accent)] hover:underline"
+                  >
+                    {order.id.slice(0, 8)}…
+                  </Link>
                 </td>
-                <td className="py-3 pr-4 text-foreground/80">
+                <td className="px-4 py-3 text-foreground/80">
                   {new Date(order.createdAt).toLocaleDateString('en-ZA', {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric',
+                    year: 'numeric', month: 'short', day: 'numeric',
                   })}
                 </td>
-                <td className="py-3 pr-4 text-foreground">
+                <td className="px-4 py-3 font-medium text-foreground">
                   {formatZAR(order.totalAmountZAR)}
                 </td>
-                <td className="py-3">
-                  <span
-                    className={`inline-block px-2.5 py-1 rounded-full text-xs font-medium ${STATUS_STYLES[order.status]}`}
-                  >
+                <td className="px-4 py-3">
+                  <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-medium ${STATUS_STYLES[order.status]}`}>
                     {order.status}
                   </span>
                 </td>
-                <td className="py-3">
+                <td className="px-4 py-3">
                   {order.status === 'PAID' && (
                     <div className="flex gap-2">
-                      <a
-                        href={`/api/documents/invoices/${order.id}`}
-                        download
-                        className="text-xs text-blue-400 hover:text-blue-300 underline focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-1 rounded"
-                      >
-                        Download Invoice
+                      <a href={`/api/documents/invoices/${order.id}`} download
+                        className="text-xs text-[var(--theme-accent)] hover:underline">
+                        Invoice
                       </a>
-                      <a
-                        href={`/api/documents/receipts/${order.id}`}
-                        download
-                        className="text-xs text-blue-400 hover:text-blue-300 underline focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-1 rounded"
-                      >
-                        Download Receipt
+                      <a href={`/api/documents/receipts/${order.id}`} download
+                        className="text-xs text-[var(--theme-accent)] hover:underline">
+                        Receipt
                       </a>
                     </div>
                   )}

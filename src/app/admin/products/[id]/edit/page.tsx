@@ -23,7 +23,17 @@ export default async function EditProductPage({ params }: EditProductPageProps) 
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-foreground">Edit Product</h1>
+      <div className="flex items-center justify-between gap-4">
+        <h1 className="text-2xl font-bold text-foreground">Edit Product</h1>
+        <a
+          href={`/products/${product.slug}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium border border-border text-muted hover:text-foreground hover:border-foreground/30 transition-colors"
+        >
+          Preview on site ↗
+        </a>
+      </div>
       <ProductForm mode="edit" initialData={product} />
     </div>
   );

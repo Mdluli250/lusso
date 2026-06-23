@@ -83,6 +83,17 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
               <dt className="text-muted">Email</dt>
               <dd className="text-foreground">{order.customerEmail}</dd>
             </div>
+            <div className="flex justify-between">
+              <dt className="text-muted">All orders</dt>
+              <dd>
+                <a
+                  href={`/admin/orders?search=${encodeURIComponent(order.customerEmail)}`}
+                  className="text-sm text-theme-accent hover:underline"
+                >
+                  View all orders →
+                </a>
+              </dd>
+            </div>
           </dl>
         </div>
       </div>

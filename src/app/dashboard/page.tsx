@@ -2,6 +2,7 @@ import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { formatZAR } from '@/lib/formatCurrency';
 import OrderHistory from '@/components/dashboard/OrderHistory';
 import type { OrderData } from '@/components/dashboard/OrderHistory';
 
@@ -19,6 +20,8 @@ export default async function DashboardPage() {
   }
 
   let serializedOrders: OrderData[] = [];
+  let totalSpent = 0;
+  let paidOrderCount = 0;
 
   try {
     const orders = await prisma.order.findMany({
@@ -32,13 +35,17 @@ export default async function DashboardPage() {
       },
     });
 
-    // Serialize dates for the client component
     serializedOrders = orders.map((order) => ({
       id: order.id,
       createdAt: order.createdAt.toISOString(),
       totalAmountZAR: order.totalAmountZAR,
       status: order.status,
     }));
+
+    paidOrderCount = orders.filter((o) => o.status === 'PAID').length;
+    totalSpent = orders
+      .filter((o) => o.status === 'PAID')
+      .reduce((sum, o) => sum + o.totalAmountZAR, 0);
   } catch {
     // Database unavailable — show empty state
   }
@@ -55,6 +62,20 @@ export default async function DashboardPage() {
             <p className="text-muted text-sm mt-1">{session.user.email}</p>
           </div>
         </div>
+
+        {/* Spending summary cards */}
+        {paidOrderCount > 0 && (
+          <div className="grid grid-cols-2 gap-4">
+            <div className="rounded-xl border border-[var(--theme-accent)]/15 bg-[var(--theme-accent)]/5 px-5 py-4">
+              <p className="text-xs text-muted font-medium uppercase tracking-wide mb-1">Total Spent</p>
+              <p className="text-2xl font-bold text-foreground">{formatZAR(totalSpent)}</p>
+            </div>
+            <div className="rounded-xl border border-[var(--theme-accent)]/15 bg-[var(--theme-accent)]/5 px-5 py-4">
+              <p className="text-xs text-muted font-medium uppercase tracking-wide mb-1">Orders Placed</p>
+              <p className="text-2xl font-bold text-foreground">{paidOrderCount}</p>
+            </div>
+          </div>
+        )}
 
         {/* Order history */}
         <OrderHistory orders={serializedOrders} />
