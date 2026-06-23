@@ -19,6 +19,9 @@ const navItems = [
   { label: 'Orders', href: '/admin/orders', icon: '📦' },
   { label: 'Inventory', href: '/admin/inventory', icon: '🏷️' },
   { label: 'Reviews', href: '/admin/reviews', icon: '⭐' },
+  { label: 'Bundles', href: '/admin/bundles', icon: '🎁' },
+  { label: 'Gallery', href: '/admin/gallery', icon: '🖼️' },
+  { label: 'Content', href: '/admin/content', icon: '📝' },
   { label: 'Customers', href: '/admin/customers', icon: '👥' },
 ];
 

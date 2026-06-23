@@ -15,10 +15,6 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-
-gsap.registerPlugin(ScrollTrigger);
 
 const HERO_BG_IMAGE = '/images/gallery/styled-trio-1.png';
 
@@ -35,57 +31,38 @@ export function HeroSection() {
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (prefersReducedMotion) return;
 
-    // ─── Entrance animations (staggered fade-up) ───────────────────
-    const tl = gsap.timeline({ delay: 0.3 });
+    let tl: { kill: () => void } | null = null;
 
-    if (headingRef.current) {
-      gsap.set(headingRef.current, { opacity: 0, y: 40, scale: 0.97 });
-      tl.to(headingRef.current, { opacity: 1, y: 0, scale: 1, duration: 1, ease: 'power3.out' });
-    }
+    Promise.all([import('gsap'), import('gsap/ScrollTrigger')]).then(
+      ([{ default: gsap }, { ScrollTrigger }]) => {
+        gsap.registerPlugin(ScrollTrigger);
+        tl = gsap.timeline({ delay: 0.3 });
 
-    if (subtextRef.current) {
-      gsap.set(subtextRef.current, { opacity: 0, y: 30 });
-      tl.to(subtextRef.current, { opacity: 1, y: 0, duration: 0.8, ease: 'power2.out' }, '-=0.6');
-    }
-
-    if (ctaRef.current) {
-      gsap.set(ctaRef.current, { opacity: 0, y: 20, scale: 0.95 });
-      tl.to(ctaRef.current, { opacity: 1, y: 0, scale: 1, duration: 0.7, ease: 'power2.out' }, '-=0.5');
-    }
-
-    // ─── Parallax: background image moves slower than content ──────
-    if (imageRef.current && sectionRef.current) {
-      gsap.to(imageRef.current, {
-        yPercent: 20,
-        ease: 'none',
-        scrollTrigger: {
-          trigger: sectionRef.current,
-          start: 'top top',
-          end: 'bottom top',
-          scrub: true,
-        },
-      });
-    }
-
-    // ─── Parallax: content fades out and moves up as user scrolls ──
-    if (contentRef.current && sectionRef.current) {
-      gsap.to(contentRef.current, {
-        yPercent: -30,
-        opacity: 0,
-        ease: 'none',
-        scrollTrigger: {
-          trigger: sectionRef.current,
-          start: 'top top',
-          end: 'bottom top',
-          scrub: true,
-        },
-      });
-    }
+        if (headingRef.current) {
+          gsap.set(headingRef.current, { opacity: 0, y: 40, scale: 0.97 });
+          (tl as ReturnType<typeof gsap.timeline>).to(headingRef.current, { opacity: 1, y: 0, scale: 1, duration: 1, ease: 'power3.out' });
+        }
+        if (subtextRef.current) {
+          gsap.set(subtextRef.current, { opacity: 0, y: 30 });
+          (tl as ReturnType<typeof gsap.timeline>).to(subtextRef.current, { opacity: 1, y: 0, duration: 0.8, ease: 'power2.out' }, '-=0.6');
+        }
+        if (ctaRef.current) {
+          gsap.set(ctaRef.current, { opacity: 0, y: 20, scale: 0.95 });
+          (tl as ReturnType<typeof gsap.timeline>).to(ctaRef.current, { opacity: 1, y: 0, scale: 1, duration: 0.7, ease: 'power2.out' }, '-=0.5');
+        }
+        if (imageRef.current && sectionRef.current) {
+          gsap.to(imageRef.current, { yPercent: 20, ease: 'none', scrollTrigger: { trigger: sectionRef.current, start: 'top top', end: 'bottom top', scrub: true } });
+        }
+        if (contentRef.current && sectionRef.current) {
+          gsap.to(contentRef.current, { yPercent: -30, opacity: 0, ease: 'none', scrollTrigger: { trigger: sectionRef.current, start: 'top top', end: 'bottom top', scrub: true } });
+        }
+      }
+    );
 
     return () => {
-      tl.kill();
-      ScrollTrigger.getAll().forEach((t) => {
-        if (t.trigger === sectionRef.current) t.kill();
+      tl?.kill();
+      import('gsap/ScrollTrigger').then(({ ScrollTrigger }) => {
+        ScrollTrigger.getAll().forEach((t) => { if (t.trigger === sectionRef.current) t.kill(); });
       });
     };
   }, []);
