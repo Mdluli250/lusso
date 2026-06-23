@@ -4,6 +4,7 @@
  * contact information, and attribution.
  * Requirements: 9.1, 9.2, 9.3, 9.4, 9.5, 9.6, 16.3, 16.4
  */
+import Link from 'next/link';
 import { BUSINESS_INFO, SOCIAL_LINKS } from '@/lib/constants/brand';
 
 export default function Footer() {
@@ -39,7 +40,7 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-5">
           {/* Brand & Sustainability */}
           <div>
             <div className="mb-3 flex items-center gap-2 text-sm font-semibold tracking-tight">
@@ -58,16 +59,46 @@ export default function Footer() {
               </svg>
               <span>Lusso</span>
             </div>
-            <p className="text-sm opacity-70">
+            <p className="text-sm opacity-70 mb-3">
               Crafted with sustainably sourced materials. We are committed to
               eco-conscious practices in every pour.
             </p>
+            <div className="flex flex-col gap-1 text-xs opacity-60">
+              <span>🕯️ Hand-poured in Centurion, SA</span>
+              <span>🔒 Secure checkout</span>
+              <span>🌿 Sustainably sourced</span>
+            </div>
           </div>
 
           {/* Business Hours */}
           <div>
             <h2 className="mb-3 text-sm font-semibold">Hours</h2>
             <p className="text-sm opacity-70">{BUSINESS_INFO.hours}</p>
+          </div>
+
+          {/* Quick Nav Links */}
+          <div>
+            <h2 className="mb-3 text-sm font-semibold">Explore</h2>
+            <ul className="space-y-2 text-sm opacity-70">
+              {[
+                { href: '/collection', label: 'Shop Candles' },
+                { href: '/bundle', label: 'Build a Bundle' },
+                { href: '/quiz', label: 'Find Your Scent' },
+                { href: '/compare', label: 'Compare Scents' },
+                { href: '/about', label: 'Our Story' },
+                { href: '/experiences', label: 'Experiences' },
+                { href: '/contact', label: 'Contact' },
+              ].map(({ href, label }) => (
+                <li key={href}>
+                  <Link
+                    href={href}
+                    className="hover:opacity-100 transition-opacity focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent)] rounded-sm"
+                  >
+                    {label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </div>
 
           {/* Contact Info */}

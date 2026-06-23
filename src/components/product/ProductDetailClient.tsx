@@ -112,7 +112,7 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
       scent: selectedVariant.scent,
       price: product.price,
       modelPath: selectedVariant.modelPath,
-      imageUrl: "",
+      imageUrl: productImages[0] ?? "",
     });
 
     showToast(`${product.name} added to cart`, {

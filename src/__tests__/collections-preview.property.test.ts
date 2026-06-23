@@ -81,18 +81,9 @@ describe('Property 2: Collections preview card count respects available grouping
           const cards = container.querySelectorAll('article');
           expect(cards.length).toBe(expectedCount);
 
-          // Each card's CTA link should have the correct href with filter param
-          const links = container.querySelectorAll('a[href*="/collections?filter="]');
-          expect(links.length).toBe(expectedCount);
-
-          // Verify each link's href matches the corresponding collection's filterParam
-          const displayedCollections = collections.slice(0, 3);
-          links.forEach((link, i) => {
-            const href = link.getAttribute('href');
-            const expectedHref = `/collections?filter=${encodeURIComponent(displayedCollections[i].filterParam)}`;
-            expect(href).toBe(expectedHref);
-          });
-        }
+          // Each card's CTA link should point to the /collection shop page
+          const links = container.querySelectorAll('a[href="/collection"]');
+          expect(links.length).toBe(expectedCount);        }
       }),
       { numRuns: 100 }
     );

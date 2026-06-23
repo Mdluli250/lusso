@@ -8,15 +8,30 @@ import { ReviewModerationActions } from './ReviewModerationActions';
  *
  * Requirements: 5.1, 5.2, 5.3
  */
+type PendingReview = {
+  id: string;
+  rating: number;
+  text: string | null;
+  createdAt: Date;
+  product: { name: string; slug: string };
+  user: { name: string | null; email: string };
+};
+
 export default async function AdminReviewsPage() {
-  const pendingReviews = await prisma.review.findMany({
-    where: { status: 'PENDING' },
-    include: {
-      product: { select: { name: true, slug: true } },
-      user: { select: { name: true, email: true } },
-    },
-    orderBy: { createdAt: 'desc' },
-  });
+  let pendingReviews: PendingReview[] = [];
+
+  try {
+    pendingReviews = await prisma.review.findMany({
+      where: { status: 'PENDING' },
+      include: {
+        product: { select: { name: true, slug: true } },
+        user: { select: { name: true, email: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  } catch {
+    // DB unavailable — render empty state
+  }
 
   return (
     <div className="space-y-6">

@@ -15,7 +15,9 @@ interface NavLink {
 const NAV_LINKS: NavLink[] = [
   { href: "/", label: "Home" },
   { href: "/about", label: "About" },
-  { href: "/collections", label: "Shop" },
+  { href: "/collection", label: "Shop" },
+  { href: "/bundle", label: "Bundle" },
+  { href: "/quiz", label: "Find Your Scent" },
   { href: "/experiences", label: "Experiences" },
   { href: "/contact", label: "Contact" },
 ];
@@ -147,11 +149,11 @@ export default function NavBar() {
 
         {/* Right-side actions */}
         <div className="flex items-center gap-2">
-          {/* Search icon */}
+          {/* Search icon — links to the same /collection shop page */}
           <Link
             href="/collection"
             className="p-2 rounded-lg text-[var(--theme-accent)] hover:bg-[var(--theme-accent)]/5 transition-colors"
-            aria-label="Search products"
+            aria-label="Browse products"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"

@@ -17,6 +17,7 @@ interface PickerProduct {
   scentProfile: string;
   modelPath: string;
   variantId: string;
+  imageUrl?: string;
 }
 
 interface BundleProductPickerProps {
@@ -36,6 +37,7 @@ export function BundleProductPicker({ products }: BundleProductPickerProps) {
       scent: product.scentProfile,
       price: product.price,
       modelPath: product.modelPath,
+      imageUrl: product.imageUrl ?? '',
     });
 
     if (!result.success) {

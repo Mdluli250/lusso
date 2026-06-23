@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 };
 
 export default async function BundlePage() {
-  let productData: { id: string; name: string; slug: string; price: number; scentProfile: string; modelPath: string; variantId: string }[] = [];
+  let productData: { id: string; name: string; slug: string; price: number; scentProfile: string; modelPath: string; variantId: string; imageUrl: string }[] = [];
 
   try {
     const products = await prisma.product.findMany({
@@ -25,6 +25,7 @@ export default async function BundlePage() {
         variants: {
           take: 1,
         },
+        images: { take: 1, select: { url: true } },
       },
       orderBy: { name: 'asc' },
     });
@@ -37,6 +38,7 @@ export default async function BundlePage() {
       scentProfile: p.scentProfile,
       modelPath: p.variants[0]?.modelPath ?? '',
       variantId: p.variants[0]?.id ?? '',
+      imageUrl: p.image ?? p.images?.[0]?.url ?? '',
     }));
   } catch {
     // Database unavailable — show empty state

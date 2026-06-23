@@ -45,7 +45,7 @@ vi.mock('@/components/layout/ThemeToggle', () => ({
   ThemeToggle: () => null,
 }));
 
-const VALID_ROUTES = ['/', '/about', '/collections', '/experiences', '/contact'] as const;
+const VALID_ROUTES = ['/', '/about', '/collection', '/bundle', '/quiz', '/experiences', '/contact'] as const;
 
 describe('Property 1: Active navigation link matches current route', () => {
   beforeEach(() => {
@@ -73,12 +73,12 @@ describe('Property 1: Active navigation link matches current route', () => {
 
           const navLinks = desktopNav!.querySelectorAll('a');
 
-          // Filter to only the 5 main nav links (exclude admin link)
+          // Filter to only the 7 main nav links (exclude admin link)
           const mainNavLinks = Array.from(navLinks).filter((link) =>
             VALID_ROUTES.includes(link.getAttribute('href') as typeof VALID_ROUTES[number])
           );
 
-          expect(mainNavLinks.length).toBe(5);
+          expect(mainNavLinks.length).toBe(7);
 
           // Exactly one link should have aria-current="page"
           const activeLinks = mainNavLinks.filter(

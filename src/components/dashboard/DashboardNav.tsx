@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 const DASHBOARD_LINKS = [
-  { href: '/dashboard', label: 'Orders' },
+  { href: '/dashboard', label: 'Overview' },
   { href: '/dashboard/wishlist', label: 'Wishlist' },
   { href: '/dashboard/subscriptions', label: 'Subscriptions' },
   { href: '/dashboard/settings', label: 'Settings' },

@@ -44,7 +44,7 @@ export default async function DashboardPage() {
   }
 
   return (
-    <main className="px-4 py-12 sm:px-6 lg:px-8">
+    <div className="px-4 py-12 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto space-y-8">
         {/* User greeting */}
         <div className="flex items-center justify-between">
@@ -59,6 +59,6 @@ export default async function DashboardPage() {
         {/* Order history */}
         <OrderHistory orders={serializedOrders} />
       </div>
-    </main>
+    </div>
   );
 }

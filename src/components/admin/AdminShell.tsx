@@ -91,6 +91,7 @@ function buildBreadcrumbs(pathname: string) {
       products: 'Products',
       orders: 'Orders',
       inventory: 'Inventory',
+      reviews: 'Reviews',
     };
 
     if (parts.length > 1 && sectionMap[parts[1]]) {

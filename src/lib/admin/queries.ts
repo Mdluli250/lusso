@@ -17,6 +17,8 @@ interface AnalyticsData {
   topSellers: { name: string; totalSold: number; revenue: number }[];
   activeProductCount: number;
   outOfStockVariantCount: number;
+  aov: number;
+  dailyRevenue: { date: string; revenue: number }[];
 }
 
 interface ProductWithVariantCount {
@@ -96,6 +98,7 @@ export async function getAnalyticsData(): Promise<AnalyticsData> {
     orders,
     activeProductCount,
     outOfStockVariantCount,
+    totalPaidOrders,
   ] = await Promise.all([
     // Total revenue from PAID orders
     prisma.order.aggregate({
@@ -148,6 +151,8 @@ export async function getAnalyticsData(): Promise<AnalyticsData> {
     prisma.product.count({ where: { isActive: true } }),
     // Out of stock variant count
     prisma.productVariant.count({ where: { stock: 0 } }),
+    // Total paid order count (for AOV)
+    prisma.order.count({ where: { status: "PAID" } }),
   ]);
 
   // Build ordersByStatus ensuring all 4 statuses are present
@@ -178,6 +183,31 @@ export async function getAnalyticsData(): Promise<AnalyticsData> {
     5,
   );
 
+  // Compute daily revenue for the last 30 days from paid orders
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 29);
+  thirtyDaysAgo.setHours(0, 0, 0, 0);
+
+  const recentOrders = orders.filter(
+    (o) => o.createdAt >= thirtyDaysAgo
+  );
+
+  const dailyMap = new Map<string, number>();
+  // Pre-fill all 30 days with 0
+  for (let i = 0; i < 30; i++) {
+    const d = new Date(thirtyDaysAgo);
+    d.setDate(d.getDate() + i);
+    const key = d.toISOString().slice(0, 10);
+    dailyMap.set(key, 0);
+  }
+  for (const order of recentOrders) {
+    const key = order.createdAt.toISOString().slice(0, 10);
+    dailyMap.set(key, (dailyMap.get(key) ?? 0) + order.totalAmountZAR);
+  }
+  const dailyRevenue = Array.from(dailyMap.entries())
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([date, revenue]) => ({ date, revenue }));
+
   return {
     totalRevenue: revenueResult._sum.totalAmountZAR ?? 0,
     ordersByStatus,
@@ -186,6 +216,13 @@ export async function getAnalyticsData(): Promise<AnalyticsData> {
     topSellers,
     activeProductCount,
     outOfStockVariantCount,
+    aov:
+      totalPaidOrders > 0
+        ? Math.round(
+            (revenueResult._sum.totalAmountZAR ?? 0) / totalPaidOrders,
+          )
+        : 0,
+    dailyRevenue,
   };
 }
 

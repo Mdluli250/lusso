@@ -10,6 +10,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRecentlyViewedStore } from '@/store/recentlyViewedStore';
 
 interface ProductInfo {
@@ -18,6 +19,7 @@ interface ProductInfo {
   slug: string;
   scentProfile: string;
   price: number;
+  image?: string | null;
 }
 
 export function RecentlyViewed() {
@@ -28,16 +30,23 @@ export function RecentlyViewed() {
   const displayItems = getDisplayItems();
 
   useEffect(() => {
+    const displayItems = getDisplayItems();
     if (displayItems.length === 0) return;
 
-    // Fetch product details for display items
     async function fetchProducts() {
       try {
-        const ids = displayItems.map((i) => i.productId);
-        const res = await fetch(`/api/recently-viewed?ids=${ids.join(',')}`);
+        const res = await fetch('/api/recently-viewed', { cache: 'no-store' });
         if (res.ok) {
           const data = await res.json();
-          setProducts(data.products ?? []);
+          const rawItems = data.items ?? data.products ?? [];
+          setProducts(rawItems.map((item: { productId: string; name: string; slug: string; price: number; scentProfile: string; image?: string | null }) => ({
+            id: item.productId,
+            name: item.name,
+            slug: item.slug,
+            price: item.price,
+            scentProfile: item.scentProfile,
+            image: item.image ?? null,
+          })));
         }
       } catch {
         // Non-critical, silently fail
@@ -45,8 +54,7 @@ export function RecentlyViewed() {
     }
 
     fetchProducts();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [items.length]);
+  }, [items, getDisplayItems]);
 
   if (displayItems.length === 0 || products.length === 0) {
     return null;

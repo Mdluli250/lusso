@@ -104,7 +104,7 @@ export async function createProduct(
 
     // Revalidate affected pages
     revalidatePath("/admin/products");
-    revalidatePath("/collections");
+    revalidatePath("/collection");
     revalidatePath("/");
     revalidatePath("/products/[slug]", "layout");
 
@@ -228,7 +228,7 @@ export async function updateProduct(
 
     // Revalidate affected pages
     revalidatePath("/admin/products");
-    revalidatePath("/collections");
+    revalidatePath("/collection");
     revalidatePath("/");
     revalidatePath(`/products/${data.slug}`);
 
@@ -250,7 +250,7 @@ export async function deleteProduct(
 
     // Revalidate affected pages
     revalidatePath("/admin/products");
-    revalidatePath("/collections");
+    revalidatePath("/collection");
     revalidatePath("/");
 
     return { success: true };

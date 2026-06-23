@@ -26,6 +26,11 @@ export async function GET() {
           slug: true,
           price: true,
           scentProfile: true,
+          image: true,
+          images: {
+            select: { url: true },
+            take: 1,
+          },
           variants: {
             select: { modelPath: true },
             take: 1,
@@ -42,6 +47,7 @@ export async function GET() {
     slug: entry.product.slug,
     price: entry.product.price,
     scentProfile: entry.product.scentProfile,
+    image: entry.product.image ?? entry.product.images[0]?.url ?? null,
     modelPath: entry.product.variants[0]?.modelPath ?? null,
   }));
 

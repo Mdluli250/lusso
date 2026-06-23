@@ -9,6 +9,8 @@ export interface BundleItem {
   scent: string;
   price: number; // ZAR cents
   modelPath: string;
+  image?: string | null;
+  imageUrl?: string;
 }
 
 interface BundleStore {

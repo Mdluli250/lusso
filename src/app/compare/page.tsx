@@ -1,14 +1,49 @@
 'use client';
 
+import { useState } from 'react';
 import { useComparisonStore } from '@/store/comparisonStore';
 import { formatZAR } from '@/lib/formatCurrency';
 import { Button } from '@/components/ui/Button';
 import Link from 'next/link';
+import Image from 'next/image';
 
 /**
  * Compare page — Side-by-side comparison with 3D viewers.
  * Shows prompt when fewer than 2 products are selected.
  */
+
+// ─── Product image with fallback ─────────────────────────────────
+
+function CompareProductImage({ src, alt }: { src: string | null; alt: string }) {
+  const [imgError, setImgError] = useState(false);
+
+  return (
+    <div className="relative aspect-square bg-[var(--theme-accent)]/5">
+      {src && !imgError ? (
+        <Image
+          src={src}
+          alt={alt}
+          fill
+          className="object-cover"
+          sizes="(max-width: 768px) 100vw, 50vw"
+          onError={() => setImgError(true)}
+        />
+      ) : (
+        <div className="w-full h-full flex items-center justify-center" aria-hidden="true">
+          <svg width="96" height="128" viewBox="0 0 72 96" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <ellipse cx="36" cy="10" rx="5" ry="8" fill="var(--theme-accent)" opacity="0.9" />
+            <line x1="36" y1="18" x2="36" y2="26" stroke="var(--theme-accent)" strokeWidth="2" strokeLinecap="round" />
+            <rect x="18" y="26" width="36" height="58" rx="6" fill="var(--theme-accent)" opacity="0.25" />
+            <rect x="18" y="26" width="36" height="58" rx="6" stroke="var(--theme-accent)" strokeWidth="1.5" opacity="0.6" />
+          </svg>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── ComparePage ──────────────────────────────────────────────────
+
 export default function ComparePage() {
   const slots = useComparisonStore((s) => s.slots);
   const removeProduct = useComparisonStore((s) => s.removeProduct);
@@ -61,21 +96,10 @@ export default function ComparePage() {
                 className="border border-[var(--theme-accent)]/20 rounded-2xl overflow-hidden"
               >
                 {/* Product Visual */}
-                <div className="aspect-square bg-[var(--theme-accent)]/5 flex items-center justify-center">
-                  <svg
-                    width="96"
-                    height="128"
-                    viewBox="0 0 72 96"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                    aria-hidden="true"
-                  >
-                    <ellipse cx="36" cy="10" rx="5" ry="8" fill="var(--theme-accent)" opacity="0.9" />
-                    <line x1="36" y1="18" x2="36" y2="26" stroke="var(--theme-accent)" strokeWidth="2" strokeLinecap="round" />
-                    <rect x="18" y="26" width="36" height="58" rx="6" fill="var(--theme-accent)" opacity="0.25" />
-                    <rect x="18" y="26" width="36" height="58" rx="6" stroke="var(--theme-accent)" strokeWidth="1.5" opacity="0.6" />
-                  </svg>
-                </div>
+                <CompareProductImage
+                  src={product.image ?? product.imageUrl ?? null}
+                  alt={product.name}
+                />
 
                 {/* Product details */}
                 <div className="p-5 space-y-3">

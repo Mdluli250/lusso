@@ -10,6 +10,8 @@ export interface ComparisonProduct {
   waxType: string;
   burnTimeHours: number;
   modelPath: string;
+  image?: string | null;
+  imageUrl?: string;
   addedAt: number; // timestamp for ordering
 }
 

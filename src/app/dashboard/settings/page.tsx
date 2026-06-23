@@ -17,7 +17,7 @@ export default async function DashboardSettingsPage() {
   }
 
   return (
-    <main className="px-4 py-12 sm:px-6 lg:px-8">
+    <div className="px-4 py-12 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto space-y-8">
         <AccountSettingsForm
           user={{
@@ -27,6 +27,6 @@ export default async function DashboardSettingsPage() {
           }}
         />
       </div>
-    </main>
+    </div>
   );
 }

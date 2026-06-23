@@ -168,6 +168,8 @@ export function ProductCard({ product, onQuickView }: ProductCardProps) {
               burnTimeHours: product.burnTimeHours,
               modelPath:
                 defaultVariant?.modelPath || "/models/candle-compressed.glb",
+              image: product.image ?? product.images?.[0]?.url ?? null,
+              imageUrl: getProductCoverImage(product),
               addedAt: 0,
             }}
           />

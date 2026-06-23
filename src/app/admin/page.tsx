@@ -3,6 +3,7 @@ import { formatZAR } from '@/lib/formatCurrency';
 import { MetricCard } from '@/components/admin/analytics/MetricCard';
 import { OrdersByStatusChart } from '@/components/admin/analytics/OrdersByStatusChart';
 import { TopSellersTable } from '@/components/admin/analytics/TopSellersTable';
+import { RevenueTrendChart } from '@/components/admin/analytics/RevenueTrendChart';
 
 /**
  * Admin Analytics Overview page — Server Component.
@@ -29,7 +30,7 @@ export default async function AdminPage() {
       <h1 className="text-2xl font-bold text-foreground">Overview</h1>
 
       {/* Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         <MetricCard
           title="Total Revenue"
           value={formatZAR(data.totalRevenue)}
@@ -70,11 +71,24 @@ export default async function AdminPage() {
             </svg>
           }
         />
+        <MetricCard
+          title="Avg. Order Value"
+          value={formatZAR(data.aov)}
+          subtitle="Per paid order"
+          icon={
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 0l-2 2a1 1 0 101.414 1.414L8 10.414l1.293 1.293a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+            </svg>
+          }
+        />
       </div>
 
       {/* Charts and Tables */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <RevenueTrendChart data={data.dailyRevenue} />
         <OrdersByStatusChart data={data.ordersByStatus} />
+      </div>
+      <div className="grid grid-cols-1 gap-6">
         <TopSellersTable products={data.topSellers} />
       </div>
     </div>
