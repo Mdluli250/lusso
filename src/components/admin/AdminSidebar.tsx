@@ -21,6 +21,7 @@ const navItems = [
   { label: 'Reviews', href: '/admin/reviews', icon: '⭐' },
   { label: 'Bundles', href: '/admin/bundles', icon: '🎁' },
   { label: 'Gallery', href: '/admin/gallery', icon: '🖼️' },
+  // Requirement 3.4: CMS admin UI renders within the existing admin shell sidebar navigation
   { label: 'Content', href: '/admin/content', icon: '📝' },
   { label: 'Customers', href: '/admin/customers', icon: '👥' },
 ];

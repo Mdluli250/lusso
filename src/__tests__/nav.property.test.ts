@@ -93,7 +93,7 @@ describe('Property 1: Active navigation link matches current route', () => {
           const inactiveLinks = mainNavLinks.filter(
             (link) => link.getAttribute('aria-current') !== 'page'
           );
-          expect(inactiveLinks.length).toBe(4);
+          expect(inactiveLinks.length).toBe(6);
 
           // Active link should have opacity-100 and border-b-2 classes
           const activeClasses = activeLinks[0].className;

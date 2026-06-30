@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { InquiryForm } from "@/components/experiences/InquiryForm";
+import { getContentSection } from "@/lib/cms/service";
 
 /**
  * Experiences Page — Lusso Picnics and scent-styling services.
  *
- * Server + Client hybrid: the page itself is a Server Component,
- * but it imports the InquiryForm Client Component for the inquiry form.
+ * Async Server Component that fetches content from the CMS service.
+ * Falls back to hardcoded strings when the database is unavailable.
  *
- * Requirements: 12.1, 12.2, 12.3
+ * Requirements: 2.1, 2.2, 7.10, 12.1, 12.2, 12.3
  */
 
 export const metadata: Metadata = {
@@ -17,7 +18,31 @@ export const metadata: Metadata = {
     "Explore Lusso Picnics — curated outdoor gatherings with candle ambiance — and our bespoke scent-styling services for weddings, events, and corporate occasions.",
 };
 
-export default function ExperiencesPage() {
+const experiencesFallbacks: Record<string, string> = {
+  "experiences.intro_1":
+    "Born from the experiences created through Lusso Picnics, Lusso Candles extends our passion for beautiful spaces into the home.",
+  "experiences.intro_2":
+    "We believe luxury is not about excess—it is about creating intentional moments that bring comfort, calm, and connection. Each candle is hand-poured in small batches using premium soy and beeswax blends and carefully curated fragrances that evoke warmth, elegance, and lasting memories.",
+  "experiences.intro_3":
+    "Whether you're hosting guests, unwinding after a long day, or celebrating life's special moments, Lusso Candles creates an atmosphere that feels effortlessly luxurious.",
+  "experiences.intro_tagline": "Clean. Comfortable. Intentional.",
+  "experiences.picnics_heading": "Lusso Picnics",
+  "experiences.picnics_body_1":
+    "Our curated outdoor experiences bring together intimate gatherings, thoughtful styling, and the warm glow of hand-poured candles. Each Lusso Picnic is designed as a sensory escape — from the soft flicker of candlelight to carefully chosen scents that complement the setting and season. Whether it's a birthday celebration, an anniversary, or simply an afternoon with friends, we create the atmosphere so you can be fully present in the moment.",
+  "experiences.picnics_body_2":
+    "Every detail is considered: linen draping, botanical arrangements, curated playlists, and of course, our signature candle installations that transform any outdoor space into something extraordinary. Based in Centurion, we bring the quiet luxury of a Lusso experience to parks, gardens, and private estates across Gauteng.",
+  "experiences.picnics_image": "/images/experiences/picnic.jpg",
+  "experiences.scent_heading": "Scent-Styling Services",
+  "experiences.scent_body_1":
+    "Fragrance has the power to define a space and anchor a memory. Our bespoke scent-styling service pairs you with a dedicated fragrance consultant who crafts a custom scent narrative for your event — whether it's a wedding, a product launch, or a corporate gathering. We work with you to select notes that reflect your vision, from fresh botanicals to warm amber and oud.",
+  "experiences.scent_body_2":
+    "The result is a cohesive olfactory experience woven throughout your venue: welcome candles at the entrance, signature blends at each table, and take-home favours your guests will treasure. Every element is hand-poured in our Centurion studio using premium soy wax and phthalate-free oils, ensuring a clean burn and lasting impression.",
+  "experiences.scent_image": "/images/experiences/scent-styling.png",
+};
+
+export default async function ExperiencesPage() {
+  const content = await getContentSection("experiences", experiencesFallbacks);
+
   return (
     <div className="bg-cream">
       {/* Page Header */}
@@ -33,23 +58,12 @@ export default function ExperiencesPage() {
             Experiences
           </h1>
           <div className="space-y-4 text-warm-grey text-lg md:text-xl leading-relaxed max-w-2xl mx-auto">
-            <p>
-              Born from the experiences created through Lusso Picnics, Lusso
-              Candles extends our passion for beautiful spaces into the home.
+            <p>{content.get("experiences.intro_1")}</p>
+            <p>{content.get("experiences.intro_2")}</p>
+            <p>{content.get("experiences.intro_3")}</p>
+            <p className="font-semibold">
+              {content.get("experiences.intro_tagline")}
             </p>
-            <p>
-              We believe luxury is not about excess—it is about creating
-              intentional moments that bring comfort, calm, and connection. Each
-              candle is hand-poured in small batches using premium soy and
-              beeswax blends and carefully curated fragrances that evoke warmth,
-              elegance, and lasting memories.
-            </p>
-            <p>
-              Whether you're hosting guests, unwinding after a long day, or
-              celebrating life's special moments, Lusso Candles creates an
-              atmosphere that feels effortlessly luxurious.
-            </p>
-            <p className="font-semibold">Clean. Comfortable. Intentional.</p>
           </div>
         </div>
       </section>
@@ -65,27 +79,15 @@ export default function ExperiencesPage() {
               id="picnics-heading"
               className="font-serif text-3xl md:text-4xl text-charcoal mb-6"
             >
-              Lusso Picnics
+              {content.get("experiences.picnics_heading")}
             </h2>
 
             <p className="text-warm-grey text-base md:text-lg leading-relaxed mb-4">
-              Our curated outdoor experiences bring together intimate
-              gatherings, thoughtful styling, and the warm glow of hand-poured
-              candles. Each Lusso Picnic is designed as a sensory escape — from
-              the soft flicker of candlelight to carefully chosen scents that
-              complement the setting and season. Whether it&apos;s a birthday
-              celebration, an anniversary, or simply an afternoon with friends,
-              we create the atmosphere so you can be fully present in the
-              moment.
+              {content.get("experiences.picnics_body_1")}
             </p>
 
             <p className="text-warm-grey text-base md:text-lg leading-relaxed mb-6">
-              Every detail is considered: linen draping, botanical arrangements,
-              curated playlists, and of course, our signature candle
-              installations that transform any outdoor space into something
-              extraordinary. Based in Centurion, we bring the quiet luxury of a
-              Lusso experience to parks, gardens, and private estates across
-              Gauteng.
+              {content.get("experiences.picnics_body_2")}
             </p>
 
             <a
@@ -98,7 +100,7 @@ export default function ExperiencesPage() {
 
           <div className="relative aspect-[4/5] w-full overflow-hidden rounded-xl">
             <Image
-              src="/images/experiences/picnic.jpg"
+              src={content.get("experiences.picnics_image")!}
               alt="Lusso Picnic setup with candles glowing at golden hour in an outdoor garden setting"
               fill
               className="object-cover"
@@ -116,7 +118,7 @@ export default function ExperiencesPage() {
         <div className="mx-auto max-w-4xl px-6 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div className="order-2 lg:order-1 relative aspect-[4/5] w-full overflow-hidden rounded-xl">
             <Image
-              src="/images/experiences/scent-styling.png"
+              src={content.get("experiences.scent_image")!}
               alt="Bespoke scent-styling consultation with fragrance samples arranged on a marble surface"
               fill
               className="object-cover"
@@ -129,25 +131,15 @@ export default function ExperiencesPage() {
               id="scent-styling-heading"
               className="font-serif text-3xl md:text-4xl text-charcoal mb-6"
             >
-              Scent-Styling Services
+              {content.get("experiences.scent_heading")}
             </h2>
 
             <p className="text-warm-grey text-base md:text-lg leading-relaxed mb-4">
-              Fragrance has the power to define a space and anchor a memory. Our
-              bespoke scent-styling service pairs you with a dedicated fragrance
-              consultant who crafts a custom scent narrative for your event —
-              whether it&apos;s a wedding, a product launch, or a corporate
-              gathering. We work with you to select notes that reflect your
-              vision, from fresh botanicals to warm amber and oud.
+              {content.get("experiences.scent_body_1")}
             </p>
 
             <p className="text-warm-grey text-base md:text-lg leading-relaxed mb-6">
-              The result is a cohesive olfactory experience woven throughout
-              your venue: welcome candles at the entrance, signature blends at
-              each table, and take-home favours your guests will treasure. Every
-              element is hand-poured in our Centurion studio using premium soy
-              wax and phthalate-free oils, ensuring a clean burn and lasting
-              impression.
+              {content.get("experiences.scent_body_2")}
             </p>
 
             <a

@@ -1,19 +1,26 @@
 /**
  * WhyChooseLusso — displays the reasons to choose Lusso on the Home page.
  *
- * Server Component (no "use client" directive).
+ * Async Server Component that fetches content from the CMS service.
  * Renders a heading and a two-column feature list that stacks vertically
  * below 768px.
  */
-export function Services() {
-  const reasons = [
-    "Hand-poured in small batches",
-    "Premium soy & beeswax blends",
-    "Long-lasting fragrance throw",
-    "Elegant reusable vessels",
-    "Thoughtfully curated scent collections",
-    "Locally crafted in South Africa",
-  ];
+import { getContent, getContentJson } from "@/lib/cms/service";
+
+const REASONS_FALLBACK: string[] = [
+  "Hand-poured in small batches",
+  "Premium soy & beeswax blends",
+  "Long-lasting fragrance throw",
+  "Elegant reusable vessels",
+  "Thoughtfully curated scent collections",
+  "Locally crafted in South Africa",
+];
+
+export async function Services() {
+  const [heading, reasons] = await Promise.all([
+    getContent("why_lusso.heading", "Why Choose Lusso?"),
+    getContentJson<string[]>("why_lusso.items", REASONS_FALLBACK),
+  ]);
 
   return (
     <section
@@ -25,7 +32,7 @@ export function Services() {
           id="why-lusso-heading"
           className="font-serif text-3xl md:text-4xl text-charcoal text-center mb-10"
         >
-          Why Choose Lusso?
+          {heading}
         </h2>
 
         <ul className="grid grid-cols-1 gap-4 md:grid-cols-2">

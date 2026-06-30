@@ -1,15 +1,21 @@
+import { getContentJson } from '@/lib/cms/service';
 import { TESTIMONIALS } from '@/lib/constants/brand';
 
 /**
  * Testimonials — customer reviews section on the Home page.
  *
- * Server Component (no "use client" directive).
- * Renders 2-3 testimonials from the TESTIMONIALS constant with
- * visually distinct quote text and customer attribution.
+ * Async Server Component that fetches testimonial data from the CMS,
+ * falling back to the TESTIMONIALS constant when the DB is unavailable
+ * or the content block is absent.
  *
- * Requirements: 6.1, 6.2, 6.3
+ * Requirements: 2.1, 2.2, 2.3, 7.4
  */
-export function Testimonials() {
+export async function Testimonials() {
+  const testimonials = await getContentJson<Array<{ quote: string; name: string }>>(
+    'testimonials',
+    [...TESTIMONIALS]
+  );
+
   return (
     <section className="section-spacing bg-sand" aria-labelledby="testimonials-heading">
       <div className="mx-auto max-w-4xl px-6">
@@ -21,7 +27,7 @@ export function Testimonials() {
         </h2>
 
         <div className="grid gap-8 md:grid-cols-3">
-          {TESTIMONIALS.map((testimonial) => (
+          {testimonials.map((testimonial) => (
             <blockquote
               key={testimonial.name}
               className="flex flex-col items-center text-center"

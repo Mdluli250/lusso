@@ -1,20 +1,26 @@
 import Image from 'next/image';
-import { GALLERY_IMAGES } from '@/lib/constants/brand';
+import { GALLERY_IMAGES, type GalleryImage } from '@/lib/constants/brand';
+import { getContentJson } from '@/lib/cms/service';
 
 /**
  * Gallery — responsive image grid showcasing candle photography.
  *
- * Server Component (no "use client" directive).
- * Renders images from the GALLERY_IMAGES constant in a responsive grid:
+ * Async Server Component that fetches gallery images from the CMS.
+ * Falls back to the GALLERY_IMAGES constant when the CMS is unavailable
+ * or the content block does not exist.
+ *
+ * Renders images in a responsive grid:
  * - 1 column below 640px
  * - 2 columns from 640px to 1023px
  * - 3 columns at 1024px and above
  *
  * Images below the fold use loading="lazy" to avoid blocking page render.
  *
- * Requirements: 5.1, 5.2, 5.3, 5.4
+ * Requirements: 2.1, 2.2, 2.3, 7.6
  */
-export function Gallery() {
+export async function Gallery() {
+  const images = await getContentJson<GalleryImage[]>('gallery_images', [...GALLERY_IMAGES]);
+
   return (
     <section className="section-spacing bg-sand" aria-labelledby="gallery-heading">
       <div className="mx-auto max-w-6xl px-6">
@@ -26,7 +32,7 @@ export function Gallery() {
         </h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {GALLERY_IMAGES.map((image, index) => (
+          {images.map((image, index) => (
             <div key={image.src} className="overflow-hidden rounded-lg">
               <Image
                 src={image.src}

@@ -2,13 +2,39 @@
  * Site-wide footer.
  * Displays business hours, sustainability note, social media links,
  * contact information, and attribution.
- * Requirements: 9.1, 9.2, 9.3, 9.4, 9.5, 9.6, 16.3, 16.4
+ * Requirements: 2.1, 2.2, 7.7, 9.1, 9.2, 9.3, 9.4, 9.5, 9.6, 16.3, 16.4
  */
 import Link from 'next/link';
 import { BUSINESS_INFO, SOCIAL_LINKS } from '@/lib/constants/brand';
+import { getContentSection } from '@/lib/cms/service';
 
-export default function Footer() {
+export default async function Footer() {
   const year = new Date().getFullYear();
+
+  // Fetch business_info.* keys with fallbacks from BUSINESS_INFO constant
+  const businessInfoFallbacks: Record<string, string> = {
+    'business_info.address': BUSINESS_INFO.address,
+    'business_info.hours': BUSINESS_INFO.hours,
+    'business_info.phone': BUSINESS_INFO.phone,
+    'business_info.phone_href': BUSINESS_INFO.phoneHref,
+    'business_info.email': BUSINESS_INFO.email,
+    'business_info.email_href': BUSINESS_INFO.emailHref,
+    'business_info.map_embed_url': BUSINESS_INFO.mapEmbedUrl,
+  };
+
+  // Fetch footer.* keys with fallbacks from current hardcoded strings
+  const footerFallbacks: Record<string, string> = {
+    'footer.sustainability_text':
+      'Crafted with sustainably sourced materials. We are committed to eco-conscious practices in every pour.',
+    'footer.newsletter_heading': 'Join Our Inner Circle',
+    'footer.newsletter_subtext':
+      'Early access to new scents, exclusive offers, and candle care tips.',
+  };
+
+  const [businessInfo, footerContent] = await Promise.all([
+    getContentSection('business_info', businessInfoFallbacks),
+    getContentSection('footer', footerFallbacks),
+  ]);
 
   return (
     <footer
@@ -24,8 +50,12 @@ export default function Footer() {
         {/* Newsletter signup */}
         <div className="mb-8 pb-8 border-b border-[var(--border)]">
           <div className="max-w-md">
-            <h2 className="text-sm font-semibold mb-2">Join Our Inner Circle</h2>
-            <p className="text-sm opacity-70 mb-3">Early access to new scents, exclusive offers, and candle care tips.</p>
+            <h2 className="text-sm font-semibold mb-2">
+              {footerContent.get('footer.newsletter_heading')}
+            </h2>
+            <p className="text-sm opacity-70 mb-3">
+              {footerContent.get('footer.newsletter_subtext')}
+            </p>
             <form className="flex gap-2" action="/api/email-capture" method="POST">
               <input
                 type="email"
@@ -60,8 +90,7 @@ export default function Footer() {
               <span>Lusso</span>
             </div>
             <p className="text-sm opacity-70 mb-3">
-              Crafted with sustainably sourced materials. We are committed to
-              eco-conscious practices in every pour.
+              {footerContent.get('footer.sustainability_text')}
             </p>
             <div className="flex flex-col gap-1 text-xs opacity-60">
               <span>🕯️ Hand-poured in Centurion, SA</span>
@@ -73,7 +102,9 @@ export default function Footer() {
           {/* Business Hours */}
           <div>
             <h2 className="mb-3 text-sm font-semibold">Hours</h2>
-            <p className="text-sm opacity-70">{BUSINESS_INFO.hours}</p>
+            <p className="text-sm opacity-70">
+              {businessInfo.get('business_info.hours')}
+            </p>
           </div>
 
           {/* Quick Nav Links */}
@@ -105,21 +136,21 @@ export default function Footer() {
           <div>
             <h2 className="mb-3 text-sm font-semibold">Contact</h2>
             <address className="not-italic text-sm opacity-70 space-y-1">
-              <p>{BUSINESS_INFO.address}</p>
+              <p>{businessInfo.get('business_info.address')}</p>
               <p>
                 <a
-                  href={BUSINESS_INFO.phoneHref}
+                  href={businessInfo.get('business_info.phone_href')}
                   className="inline-flex min-h-[44px] items-center underline underline-offset-2 hover:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent)] rounded-sm"
                 >
-                  {BUSINESS_INFO.phone}
+                  {businessInfo.get('business_info.phone')}
                 </a>
               </p>
               <p>
                 <a
-                  href={BUSINESS_INFO.emailHref}
+                  href={businessInfo.get('business_info.email_href')}
                   className="inline-flex min-h-[44px] items-center underline underline-offset-2 hover:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent)] rounded-sm"
                 >
-                  {BUSINESS_INFO.email}
+                  {businessInfo.get('business_info.email')}
                 </a>
               </p>
             </address>

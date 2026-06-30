@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
+import { CONTENT_REGISTRY } from '../src/lib/cms/registry';
 
 const connectionString = process.env.DATABASE_URL;
 if (!connectionString) {
@@ -191,6 +192,18 @@ const products = [
   },
 ];
 
+async function seedContentBlocks() {
+  for (const { key, type, value, label } of CONTENT_REGISTRY) {
+    await prisma.contentBlock.upsert({
+      where: { key },
+      update: {}, // no-op: never overwrite admin edits on re-seed
+      create: { key, type, value, label },
+    });
+  }
+
+  console.log(`✅ Seeded ${CONTENT_REGISTRY.length} content blocks successfully.`);
+}
+
 async function main() {
   console.log('🕯️  Seeding Lusso candle collection...');
 
@@ -233,6 +246,8 @@ async function main() {
   }
 
   console.log(`\n✅ Seeded ${products.length} products successfully.`);
+
+  await seedContentBlocks();
 }
 
 main()
