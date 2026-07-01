@@ -13,6 +13,12 @@ enum UserRole {
   ADMIN
 }
 
+enum DiscountType {
+  PERCENTAGE
+  FIXED_AMOUNT
+  FREE_SHIPPING
+}
+
 enum ReviewStatus {
   PENDING
   APPROVED
@@ -134,6 +140,7 @@ model Order {
   receiptPath           String? // Relative path to generated receipt PDF
   giftWrap              Boolean     @default(false)
   giftMessage           String?     @db.VarChar(200)
+  discountData          Json?
   subscriptionId        String?
   createdAt             DateTime    @default(now())
   updatedAt             DateTime    @updatedAt
@@ -243,4 +250,45 @@ model Subscription {
 
   @@index([userId])
   @@index([status, nextDeliveryAt])
+}
+
+// ─── Discount Codes ───────────────────────────────────────────────
+
+model DiscountCode {
+  id                   String         @id @default(cuid())
+  code                 String         @unique
+  type                 DiscountType
+  value                Int
+  minOrderAmountZAR    Int            @default(0)
+  maxUsageCount        Int?
+  perUserLimit         Int?
+  maxDiscountAmountZAR Int?
+  stackable            Boolean        @default(false)
+  startDate            DateTime?
+  endDate              DateTime?
+  active               Boolean        @default(true)
+  applicableProductIds String[]
+  usages               DiscountUsage[]
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+
+  @@index([active, startDate, endDate])
+}
+
+// ─── Discount Usage ───────────────────────────────────────────────
+
+model DiscountUsage {
+  id                String        @id @default(cuid())
+  discountCodeId    String?
+  emailCaptureCode  String?
+  userId            String
+  orderId           String
+  discountAmountZAR Int
+  createdAt         DateTime      @default(now())
+
+  discountCode DiscountCode? @relation(fields: [discountCodeId], references: [id], onDelete: SetNull)
+
+  @@index([discountCodeId])
+  @@index([userId])
+  @@index([emailCaptureCode])
 }

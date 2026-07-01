@@ -94,6 +94,7 @@ function buildBreadcrumbs(pathname: string) {
       reviews: 'Reviews',
       customers: 'Customers',
       bundles: 'Bundles',
+      discounts: 'Discounts',
       gallery: 'Gallery',
       content: 'Content',
     };

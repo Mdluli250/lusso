@@ -32,7 +32,7 @@ export default function CheckoutPage() {
       if ('error' in result) {
         setError(result.error);
       } else {
-        setCheckoutId(result.checkoutId);
+        setCheckoutId(result.checkoutId ?? null);
       }
 
       setLoading(false);
