@@ -1,19 +1,25 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { CartItem } from '@/types';
+import type { AppliedDiscount } from '@/lib/discounts/types';
 
 interface CartStore {
   items: CartItem[];
+  appliedDiscounts: AppliedDiscount[];
   addItem: (item: Omit<CartItem, 'quantity'>) => void;
   removeItem: (variantId: string) => void;
   updateQuantity: (variantId: string, quantity: number) => void;
   clearCart: () => void;
+  addDiscount: (discount: AppliedDiscount) => void;
+  removeDiscount: (codeId: string) => void;
+  clearDiscounts: () => void;
 }
 
 export const useCartStore = create<CartStore>()(
   persist(
     (set) => ({
       items: [],
+      appliedDiscounts: [],
 
       addItem: (item: Omit<CartItem, 'quantity'>) => {
         set((state) => {
@@ -56,7 +62,25 @@ export const useCartStore = create<CartStore>()(
       },
 
       clearCart: () => {
-        set({ items: [] });
+        set({ items: [], appliedDiscounts: [] });
+      },
+
+      addDiscount: (discount: AppliedDiscount) => {
+        set((state) => ({
+          appliedDiscounts: [...state.appliedDiscounts, discount],
+        }));
+      },
+
+      removeDiscount: (codeId: string) => {
+        set((state) => ({
+          appliedDiscounts: state.appliedDiscounts.filter(
+            (d) => d.codeId !== codeId
+          ),
+        }));
+      },
+
+      clearDiscounts: () => {
+        set({ appliedDiscounts: [] });
       },
     }),
     {
