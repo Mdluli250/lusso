@@ -10,6 +10,7 @@
 
 import { prisma } from '@/lib/prisma';
 import { CollectionCard } from '@/lib/constants/brand';
+import { getAdminCollections, getCollectionsHeading } from '@/lib/collections';
 import { HeroSection } from '@/components/home/HeroSection';
 import { AboutPreview } from '@/components/home/AboutPreview';
 import { CollectionsPreview } from '@/components/home/CollectionsPreview';
@@ -23,6 +24,18 @@ import { AnimatedSection } from '@/components/home/AnimatedSection';
 
 async function getCollections(): Promise<CollectionCard[]> {
   try {
+    // Prefer admin-managed collections if available
+    const adminCollections = await getAdminCollections();
+    if (adminCollections && adminCollections.length > 0) {
+      return adminCollections.map((card) => ({
+        title: card.title,
+        description: card.description,
+        imageUrl: card.imageUrl,
+        filterParam: card.filterParam,
+      }));
+    }
+
+    // Fallback: auto-generate from distinct waxType values
     const products = await prisma.product.findMany({
       where: { isActive: true },
       select: { waxType: true, scentProfile: true },
@@ -37,7 +50,7 @@ async function getCollections(): Promise<CollectionCard[]> {
       filterParam: `waxType=${p.waxType}`,
     }));
   } catch {
-    // Gracefully handle DB errors (e.g. during build / no DB connection)
+    // Gracefully handle unhandled errors — return empty array
     return [];
   }
 }
@@ -45,7 +58,10 @@ async function getCollections(): Promise<CollectionCard[]> {
 // ─── Home Page ────────────────────────────────────────────────────
 
 export default async function Home() {
-  const collections = await getCollections();
+  const [collections, heading] = await Promise.all([
+    getCollections(),
+    getCollectionsHeading(),
+  ]);
 
   return (
     <>
@@ -56,7 +72,7 @@ export default async function Home() {
       </AnimatedSection>
 
       <AnimatedSection type="staggerUp" stagger={0.2} duration={0.8}>
-        <CollectionsPreview collections={collections} />
+        <CollectionsPreview collections={collections} heading={heading ?? undefined} />
       </AnimatedSection>
 
       <AnimatedSection type="staggerUp" stagger={0.1} duration={0.7}>

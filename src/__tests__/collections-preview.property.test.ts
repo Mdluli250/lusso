@@ -63,7 +63,7 @@ const collectionsArrayArb: fc.Arbitrary<CollectionCard[]> = fc
   });
 
 describe('Property 2: Collections preview card count respects available groupings', () => {
-  it('renders min(3, N) cards for any collection array of size N, or null when N=0', () => {
+  it('renders min(6, N) cards for any collection array of size N, or null when N=0', () => {
     fc.assert(
       fc.property(collectionsArrayArb, (collections) => {
         const N = collections.length;
@@ -76,8 +76,8 @@ describe('Property 2: Collections preview card count respects available grouping
           // Component should render nothing
           expect(container.innerHTML).toBe('');
         } else {
-          // Should render exactly min(3, N) cards
-          const expectedCount = Math.min(3, N);
+          // Should render exactly min(6, N) cards
+          const expectedCount = Math.min(6, N);
           const cards = container.querySelectorAll('article');
           expect(cards.length).toBe(expectedCount);
 
