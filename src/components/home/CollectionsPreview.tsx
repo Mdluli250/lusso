@@ -14,17 +14,18 @@ import { CollectionCard } from "@/lib/constants/brand";
  */
 
 interface CollectionsPreviewProps {
-  collections: CollectionCard[]; // 1-3 items
+  collections: CollectionCard[]; // 1-6 items
+  heading?: string;
 }
 
-export function CollectionsPreview({ collections }: CollectionsPreviewProps) {
+export function CollectionsPreview({ collections, heading }: CollectionsPreviewProps) {
   // Handle empty state: render nothing if no collections available
   if (!collections || collections.length === 0) {
     return null;
   }
 
-  // Display exactly min(3, N) cards
-  const displayedCollections = collections.slice(0, 3);
+  // Display up to 6 cards
+  const displayedCollections = collections.slice(0, 6);
 
   return (
     <section
@@ -36,7 +37,7 @@ export function CollectionsPreview({ collections }: CollectionsPreviewProps) {
           id="collections-preview-heading"
           className="font-serif text-3xl md:text-4xl text-charcoal text-center mb-10"
         >
-          Our Collections
+          {heading || "Our Collections"}
         </h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
