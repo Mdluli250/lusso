@@ -275,6 +275,22 @@ model DiscountCode {
   @@index([active, startDate, endDate])
 }
 
+// ─── Gallery Images ───────────────────────────────────────────────
+
+model GalleryImage {
+  id        String   @id @default(cuid())
+  blobUrl   String   @unique @db.VarChar(2048)
+  alt       String   @db.VarChar(150)
+  width     Int
+  height    Int
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive, sortOrder])
+}
+
 // ─── Discount Usage ───────────────────────────────────────────────
 
 model DiscountUsage {
