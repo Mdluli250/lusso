@@ -308,7 +308,7 @@ export function GalleryGrid({ images: initialImages }: GalleryGridProps) {
           aria-labelledby="edit-modal-title"
         >
           <div
-            className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md mx-4"
+            className="bg-surface rounded-xl shadow-xl p-6 w-full max-w-md mx-4 border border-border"
             onClick={(e) => e.stopPropagation()}
           >
             <h3
@@ -319,7 +319,7 @@ export function GalleryGrid({ images: initialImages }: GalleryGridProps) {
             </h3>
 
             {/* Preview */}
-            <div className="mb-4 aspect-video rounded overflow-hidden bg-gray-100">
+            <div className="mb-4 aspect-video rounded overflow-hidden bg-surface-muted">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={editingImage.blobUrl}
@@ -341,7 +341,7 @@ export function GalleryGrid({ images: initialImages }: GalleryGridProps) {
                 type="text"
                 value={editAlt}
                 onChange={(e) => setEditAlt(e.target.value)}
-                className="w-full rounded-md border border-border px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full rounded-md border border-border px-3 py-2 text-sm text-foreground bg-surface focus:outline-none focus:border-theme-accent transition-colors"
                 placeholder="Descriptive alt text (10-150 characters)"
                 maxLength={150}
               />
@@ -363,7 +363,7 @@ export function GalleryGrid({ images: initialImages }: GalleryGridProps) {
                 type="checkbox"
                 checked={editIsActive}
                 onChange={(e) => setEditIsActive(e.target.checked)}
-                className="h-4 w-4 rounded border-border text-blue-600 focus:ring-blue-500"
+                className="h-4 w-4 rounded border-border text-theme-accent focus:ring-theme-accent"
               />
               <span className="text-xs text-muted">
                 {editIsActive
@@ -385,7 +385,7 @@ export function GalleryGrid({ images: initialImages }: GalleryGridProps) {
                 type="button"
                 onClick={handleCloseEdit}
                 disabled={isSaving}
-                className="px-4 py-2 text-sm rounded-md border border-border text-foreground hover:bg-gray-50 disabled:opacity-50"
+                className="px-4 py-2 text-sm rounded-md border border-border text-foreground hover:bg-surface-muted transition-colors disabled:opacity-50"
               >
                 Cancel
               </button>
@@ -393,7 +393,7 @@ export function GalleryGrid({ images: initialImages }: GalleryGridProps) {
                 type="button"
                 onClick={handleSaveEdit}
                 disabled={isSaving}
-                className="px-4 py-2 text-sm rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+                className="px-4 py-2 text-sm font-medium rounded-md bg-theme-accent text-theme-bg hover:opacity-90 transition-opacity disabled:opacity-50"
               >
                 {isSaving ? "Saving…" : "Save"}
               </button>
@@ -412,7 +412,7 @@ export function GalleryGrid({ images: initialImages }: GalleryGridProps) {
           aria-labelledby="delete-modal-title"
         >
           <div
-            className="bg-white rounded-lg shadow-xl p-6 w-full max-w-sm mx-4"
+            className="bg-surface rounded-xl shadow-xl p-6 w-full max-w-sm mx-4 border border-border"
             onClick={(e) => e.stopPropagation()}
           >
             <h3
@@ -426,7 +426,7 @@ export function GalleryGrid({ images: initialImages }: GalleryGridProps) {
             </p>
 
             {/* Image preview */}
-            <div className="mb-4 flex items-center gap-3 p-3 rounded-md bg-gray-50 border border-border">
+            <div className="mb-4 flex items-center gap-3 p-3 rounded-md bg-surface-muted border border-border">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={deletingImage.blobUrl}
@@ -456,7 +456,7 @@ export function GalleryGrid({ images: initialImages }: GalleryGridProps) {
                 type="button"
                 onClick={handleCloseDelete}
                 disabled={isDeleting}
-                className="px-4 py-2 text-sm rounded-md border border-border text-foreground hover:bg-gray-50 disabled:opacity-50"
+                className="px-4 py-2 text-sm rounded-md border border-border text-foreground hover:bg-surface-muted transition-colors disabled:opacity-50"
               >
                 Cancel
               </button>
