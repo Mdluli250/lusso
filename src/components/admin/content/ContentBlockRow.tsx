@@ -5,6 +5,7 @@ import type { ContentBlock } from "@prisma/client";
 import { InlineEditor } from "./InlineEditor";
 import { JsonEditor } from "./JsonEditor";
 import { upsertContentBlock } from "@/actions/admin/content";
+import { Button } from "@/components/ui/Button";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -100,22 +101,22 @@ function JsonEditorWrapper({ block, onSave, onCancel }: JsonEditorWrapperProps) 
       )}
 
       <div className="flex items-center gap-2">
-        <button
-          type="button"
+        <Button
+          variant="primary"
+          size="sm"
           onClick={handleSave}
           disabled={isPending}
-          className="px-4 py-1.5 text-xs font-medium rounded-md bg-theme-accent text-white hover:opacity-90 transition-opacity disabled:opacity-50"
         >
           {isPending ? "Saving…" : "Save"}
-        </button>
-        <button
-          type="button"
+        </Button>
+        <Button
+          variant="secondary"
+          size="sm"
           onClick={onCancel}
           disabled={isPending}
-          className="px-4 py-1.5 text-xs font-medium rounded-md border border-border text-foreground hover:bg-surface-muted transition-colors disabled:opacity-50"
         >
           Cancel
-        </button>
+        </Button>
       </div>
     </div>
   );
@@ -214,13 +215,14 @@ export function ContentBlockRow({
         </div>
 
         {/* Edit button */}
-        <button
-          type="button"
+        <Button
+          variant="secondary"
+          size="sm"
           onClick={() => setIsEditing(true)}
-          className="shrink-0 px-3 py-1.5 text-xs font-medium rounded-md border border-border text-foreground hover:bg-surface-muted transition-colors"
+          className="shrink-0"
         >
           Edit
-        </button>
+        </Button>
       </div>
     );
   }

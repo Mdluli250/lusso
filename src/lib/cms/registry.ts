@@ -13,7 +13,6 @@ import { ContentType } from "@prisma/client";
 import {
   TESTIMONIALS,
   SERVICES,
-  GALLERY_IMAGES,
   BUSINESS_INFO,
 } from "@/lib/constants/brand";
 
@@ -40,7 +39,6 @@ export const SECTION_LABELS: Record<string, string> = {
   about_page: "About Page",
   testimonials: "Testimonials",
   services: "Services",
-  gallery_images: "Gallery Images",
   business_info: "Business Info",
   experiences: "Experiences",
   footer: "Footer",
@@ -242,13 +240,6 @@ export const CONTENT_REGISTRY: ContentRegistryEntry[] = [
     value: JSON.stringify([...SERVICES]),
     label: "Services",
     description: "Array of { name, description } objects for the Services section.",
-  },
-  {
-    key: "gallery_images",
-    type: ContentType.json,
-    value: JSON.stringify(GALLERY_IMAGES),
-    label: "Gallery images",
-    description: "Array of { src, alt, width, height } objects for the gallery.",
   },
 
   // ─── Business Info ─────────────────────────────────────────────────────────

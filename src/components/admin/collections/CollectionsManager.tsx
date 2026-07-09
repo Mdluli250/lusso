@@ -5,6 +5,7 @@ import type { CollectionCard } from "@/actions/admin/collections";
 import { saveCollections, saveCollectionsHeading } from "@/actions/admin/collections";
 import { CollectionCardForm } from "./CollectionCardForm";
 import { ConfirmDialog } from "@/components/admin/ui/ConfirmDialog";
+import { Button } from "@/components/ui/Button";
 
 interface CollectionsManagerProps {
   initialCards: CollectionCard[];
@@ -226,13 +227,14 @@ export function CollectionsManager({ initialCards, initialHeading }: Collections
               )}
             </p>
           </div>
-          <button
+          <Button
+            variant="primary"
+            size="sm"
             onClick={handleHeadingSave}
             disabled={saving || headingDraft === heading || headingDraft.length > 60}
-            className="px-4 py-2 text-xs font-medium rounded-md bg-theme-accent text-white hover:opacity-90 transition-opacity disabled:opacity-50"
           >
             Save Heading
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -242,13 +244,14 @@ export function CollectionsManager({ initialCards, initialHeading }: Collections
           <h2 className="text-sm font-semibold text-foreground uppercase tracking-wide">
             Collection Cards ({cards.length}/6)
           </h2>
-          <button
+          <Button
+            variant="primary"
+            size="sm"
             onClick={handleAddClick}
             disabled={cards.length >= 6 || saving}
-            className="px-3 py-1.5 text-xs font-medium rounded-md bg-theme-accent text-white hover:opacity-90 transition-opacity disabled:opacity-50"
           >
             + Add Collection
-          </button>
+          </Button>
         </div>
 
         {cards.length === 0 ? (

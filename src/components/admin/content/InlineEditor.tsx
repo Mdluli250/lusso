@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { upsertContentBlock } from "@/actions/admin/content";
 import type { UpsertResult } from "@/actions/admin/content";
 import { JsonEditor } from "./JsonEditor";
+import { Button } from "@/components/ui/Button";
 
 // Feature: cms-content-management
 // Implements inline editing of a single ContentBlock.
@@ -165,22 +166,22 @@ export function InlineEditor({ block, onSave, onCancel }: InlineEditorProps) {
 
       {/* ── Action buttons ───────────────────────────────────── */}
       <div className="flex items-center gap-2">
-        <button
-          type="button"
+        <Button
+          variant="primary"
+          size="sm"
           onClick={handleSave}
           disabled={isPending || uploading}
-          className="px-4 py-1.5 text-xs font-medium rounded-md bg-theme-accent text-white hover:opacity-90 transition-opacity disabled:opacity-50"
         >
           {isPending ? "Saving…" : "Save"}
-        </button>
-        <button
-          type="button"
+        </Button>
+        <Button
+          variant="secondary"
+          size="sm"
           onClick={onCancel}
           disabled={isPending}
-          className="px-4 py-1.5 text-xs font-medium rounded-md border border-border text-foreground hover:bg-surface-muted transition-colors disabled:opacity-50"
         >
           Cancel
-        </button>
+        </Button>
       </div>
     </div>
   );
