@@ -44,8 +44,8 @@ export function GalleryImageCard({ image, onEdit, onDelete }: GalleryImageCardPr
           </div>
         )}
 
-        {/* Action buttons — visible on hover */}
-        <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        {/* Action buttons — always visible */}
+        <div className="absolute top-2 right-2 flex items-center gap-1">
           {/* Edit button */}
           <button
             type="button"
