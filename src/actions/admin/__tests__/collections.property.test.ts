@@ -255,7 +255,7 @@ describe('Property 3: Array bounds are enforced', () => {
 
   it('rejects empty arrays (length 0)', async () => {
     await fc.assert(
-      fc.asyncProperty(fc.constant([]), async (cards) => {
+      fc.asyncProperty(fc.constant([] as CollectionCard[]), async (cards) => {
         mockUpsert.mockClear();
 
         const result = await saveCollections(cards);

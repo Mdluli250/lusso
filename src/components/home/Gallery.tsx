@@ -1,13 +1,13 @@
 import Image from 'next/image';
 import { GALLERY_IMAGES, type GalleryImage } from '@/lib/constants/brand';
-import { getContentJson } from '@/lib/cms/service';
+import { getActiveGalleryImages } from '@/lib/admin/galleryQueries';
 
 /**
  * Gallery — responsive image grid showcasing candle photography.
  *
- * Async Server Component that fetches gallery images from the CMS.
- * Falls back to the GALLERY_IMAGES constant when the CMS is unavailable
- * or the content block does not exist.
+ * Async Server Component that fetches active gallery images from the database.
+ * Falls back to the GALLERY_IMAGES constant when the database query fails
+ * or returns no active records.
  *
  * Renders images in a responsive grid:
  * - 1 column below 640px
@@ -16,10 +16,30 @@ import { getContentJson } from '@/lib/cms/service';
  *
  * Images below the fold use loading="lazy" to avoid blocking page render.
  *
- * Requirements: 2.1, 2.2, 2.3, 7.6
+ * Requirements: 2.1, 2.2, 2.3, 2.4
  */
 export async function Gallery() {
-  const images = await getContentJson<GalleryImage[]>('gallery_images', [...GALLERY_IMAGES]);
+  let images: GalleryImage[];
+
+  try {
+    const dbImages = await getActiveGalleryImages();
+
+    if (dbImages.length > 0) {
+      // Map GalleryImageRecord fields to the existing render format
+      images = dbImages.map((record) => ({
+        src: record.blobUrl,
+        alt: record.alt,
+        width: record.width,
+        height: record.height,
+      }));
+    } else {
+      // Fall back to static constant if no active records exist
+      images = GALLERY_IMAGES;
+    }
+  } catch {
+    // Fall back to static constant on database error
+    images = GALLERY_IMAGES;
+  }
 
   return (
     <section className="section-spacing bg-sand" aria-labelledby="gallery-heading">

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { CollectionCard } from "@/actions/admin/collections";
+import { Button } from "@/components/ui/Button";
 
 interface CollectionCardFormProps {
   card?: CollectionCard;
@@ -188,20 +189,21 @@ export function CollectionCardForm({ card, onSubmit, onCancel }: CollectionCardF
 
           {/* Action buttons */}
           <div className="flex items-center justify-end gap-2 pt-2">
-            <button
-              type="button"
+            <Button
+              variant="secondary"
+              size="sm"
               onClick={onCancel}
-              className="px-4 py-2 text-xs font-medium rounded-md border border-border text-foreground hover:bg-surface-muted transition-colors"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
               type="submit"
               disabled={uploading}
-              className="px-4 py-2 text-xs font-medium rounded-md bg-theme-accent text-white hover:opacity-90 transition-opacity disabled:opacity-50"
             >
               {card ? "Update" : "Create"}
-            </button>
+            </Button>
           </div>
         </form>
       </div>

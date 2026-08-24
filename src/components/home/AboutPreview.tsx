@@ -48,7 +48,7 @@ export async function AboutPreview() {
 
         <Link
           href="/about"
-          className="inline-flex items-center justify-center px-8 py-3 min-h-[44px] min-w-[120px] rounded-lg bg-[#2c2825] text-white font-semibold text-base transition-opacity duration-150 hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2c2825]"
+          className="inline-flex items-center justify-center px-8 py-3 min-h-[44px] min-w-[120px] rounded-lg bg-charcoal text-cream font-semibold text-base transition-opacity duration-150 hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-charcoal"
         >
           {ctaLabel}
         </Link>
