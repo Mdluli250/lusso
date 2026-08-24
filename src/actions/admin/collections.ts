@@ -29,7 +29,7 @@ async function requireAdmin(): Promise<{ error?: string }> {
 
 // ─── Validation ───────────────────────────────────────────────────
 
-export function validateCollectionCards(cards: CollectionCard[]): string | null {
+export async function validateCollectionCards(cards: CollectionCard[]): Promise<string | null> {
   if (cards.length === 0) {
     return "At least one collection is required";
   }
@@ -61,7 +61,7 @@ export async function saveCollections(
   const auth = await requireAdmin();
   if (auth.error) return { error: auth.error };
 
-  const validationError = validateCollectionCards(cards);
+  const validationError = await validateCollectionCards(cards);
   if (validationError) return { error: validationError };
 
   const sortedCards = [...cards].sort(
