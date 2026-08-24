@@ -129,6 +129,12 @@ export async function updateProduct(
       return { error: Object.values(errors).join(", ") };
     }
 
+    // Fetch the current slug so we can revalidate the old URL if it changes
+    const current = await prisma.product.findUnique({
+      where: { id },
+      select: { slug: true },
+    });
+
     // Check slug uniqueness excluding self
     const existing = await prisma.product.findFirst({
       where: { slug: data.slug, NOT: { id } },
@@ -231,6 +237,10 @@ export async function updateProduct(
     revalidatePath("/collection");
     revalidatePath("/");
     revalidatePath(`/products/${data.slug}`);
+    // If the slug changed, also revalidate the old URL so it doesn't serve stale data
+    if (current && current.slug !== data.slug) {
+      revalidatePath(`/products/${current.slug}`);
+    }
 
     return { success: true };
   } catch (error) {

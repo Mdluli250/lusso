@@ -29,7 +29,10 @@ async function getAllProducts() {
   try {
     return await prisma.product.findMany({
       where: { isActive: true },
-      include: { variants: true },
+      include: {
+        variants: true,
+        images: { select: { id: true, url: true }, orderBy: { sortOrder: "asc" } },
+      },
       orderBy: { createdAt: "desc" },
     });
   } catch {
