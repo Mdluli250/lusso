@@ -37,8 +37,8 @@ export interface PayFastPaymentData {
   name_first?: string;
   /** Customer last name (optional, max 100 chars) */
   name_last?: string;
-  /** Customer email address (required for Onsite, optional for redirect) */
-  email_address?: string;
+  /** Customer email address (required for Onsite API) */
+  email_address: string;
 }
 
 // ─── Signature generation ─────────────────────────────────────────────────────
@@ -106,7 +106,7 @@ export async function generatePayFastUUID(
     notify_url: paymentData.notify_url,
     ...(paymentData.name_first ? { name_first: paymentData.name_first } : {}),
     ...(paymentData.name_last ? { name_last: paymentData.name_last } : {}),
-    ...(paymentData.email_address ? { email_address: paymentData.email_address } : {}),
+    email_address: paymentData.email_address,
     m_payment_id: paymentData.m_payment_id,
     amount: paymentData.amount,
     item_name: paymentData.item_name,

@@ -191,6 +191,10 @@ export async function createCheckoutSession(
     const notifyUrl = `${baseUrl}/api/webhooks/payfast`;
 
     // Fetch a one-time Onsite UUID from PayFast
+    // email_address is required by PayFast's Onsite API
+    const [nameFirst, ...nameParts] = (session.user.name ?? '').split(' ');
+    const nameLast = nameParts.join(' ') || undefined;
+
     let payfastUUID: string;
     try {
       payfastUUID = await generatePayFastUUID({
@@ -200,6 +204,9 @@ export async function createCheckoutSession(
         return_url: returnUrl,
         cancel_url: cancelUrl,
         notify_url: notifyUrl,
+        email_address: session.user.email ?? '',
+        name_first: nameFirst || undefined,
+        name_last: nameLast,
       });
     } catch (pfError) {
       // Roll back the PENDING order so it doesn't linger unresolvable
