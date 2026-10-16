@@ -191,14 +191,23 @@ export async function createCheckoutSession(
     const notifyUrl = `${baseUrl}/api/webhooks/payfast`;
 
     // Fetch a one-time Onsite UUID from PayFast
-    const payfastUUID = await generatePayFastUUID({
-      m_payment_id: merchantTransactionId,
-      amount: amountDecimal,
-      item_name: 'Lusso Order',
-      return_url: returnUrl,
-      cancel_url: cancelUrl,
-      notify_url: notifyUrl,
-    });
+    let payfastUUID: string;
+    try {
+      payfastUUID = await generatePayFastUUID({
+        m_payment_id: merchantTransactionId,
+        amount: amountDecimal,
+        item_name: 'Lusso Order',
+        return_url: returnUrl,
+        cancel_url: cancelUrl,
+        notify_url: notifyUrl,
+      });
+    } catch (pfError) {
+      // Roll back the PENDING order so it doesn't linger unresolvable
+      await prisma.order.delete({ where: { id: order.id } }).catch(() => null);
+      console.error('[Checkout] PayFast UUID generation failed:', pfError);
+      const message = pfError instanceof Error ? pfError.message : String(pfError);
+      return { error: `Payment provider error: ${message}` };
+    }
 
     // Re-use checkoutId field name so the rest of the call-stack needs no changes
     return { checkoutId: payfastUUID, orderId: order.id, merchantTransactionId: order.merchantTransactionId };

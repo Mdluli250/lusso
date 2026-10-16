@@ -90,6 +90,12 @@ export function generateSignature(
 export async function generatePayFastUUID(
   paymentData: PayFastPaymentData
 ): Promise<string> {
+  if (!PAYFAST_MERCHANT_ID || !PAYFAST_MERCHANT_KEY) {
+    throw new Error(
+      'PayFast is not configured. Set PAYFAST_MERCHANT_ID and PAYFAST_MERCHANT_KEY in your .env file.'
+    );
+  }
+
   const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
 
   const data: Record<string, string> = {
