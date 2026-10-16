@@ -48,7 +48,8 @@ export async function AboutPreview() {
 
         <Link
           href="/about"
-          className="inline-flex items-center justify-center px-8 py-3 min-h-[44px] min-w-[120px] rounded-lg bg-theme-accent text-theme-bg font-semibold text-base transition-opacity duration-150 hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-theme-accent"
+          style={{ color: 'var(--theme-bg)' }}
+          className="inline-flex items-center justify-center px-8 py-3 min-h-[44px] min-w-[120px] rounded-lg bg-theme-accent font-semibold text-base transition-opacity duration-150 hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-theme-accent"
         >
           {ctaLabel}
         </Link>
