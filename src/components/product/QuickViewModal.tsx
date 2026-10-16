@@ -112,7 +112,8 @@ export function QuickViewModal({
       scent: defaultVariant.scent,
       price: product.price,
       modelPath: defaultVariant.modelPath,
-      imageUrl: "",
+      // Use the same image resolution helper already used for the modal display
+      imageUrl: getProductCardImage(product),
     });
 
     showToast(`${product.name} added to cart`, {
