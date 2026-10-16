@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useCartStore } from '@/store/cartStore';
 import { useGiftWrapStore } from '@/store/giftWrapStore';
 import { createCheckoutSession } from '@/actions/checkout';
@@ -8,11 +9,13 @@ import { GiftWrapOption } from '@/components/checkout/GiftWrapOption';
 import PeachCheckoutForm from '@/components/checkout/PeachCheckoutForm';
 
 export default function CheckoutPage() {
+  const router = useRouter();
   const [checkoutId, setCheckoutId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const items = useCartStore((state) => state.items);
+  const appliedDiscounts = useCartStore((state) => state.appliedDiscounts);
   const giftWrapEnabled = useGiftWrapStore((state) => state.enabled);
   const giftMessage = useGiftWrapStore((state) => state.message);
 
@@ -24,17 +27,27 @@ export default function CheckoutPage() {
         return;
       }
 
-      const result = await createCheckoutSession(items, {
-        enabled: giftWrapEnabled,
-        message: giftMessage,
-      });
+      const result = await createCheckoutSession(
+        items,
+        { enabled: giftWrapEnabled, message: giftMessage },
+        appliedDiscounts.length > 0 ? appliedDiscounts : undefined
+      );
 
       if ('error' in result) {
         setError(result.error);
-      } else {
-        setCheckoutId(result.checkoutId ?? null);
+        setLoading(false);
+        return;
       }
 
+      if (!result.checkoutId) {
+        // Zero-total order — already marked PAID, go straight to success page.
+        router.replace(
+          `/success?merchantTransactionId=${encodeURIComponent(result.merchantTransactionId)}`
+        );
+        return;
+      }
+
+      setCheckoutId(result.checkoutId);
       setLoading(false);
     }
 

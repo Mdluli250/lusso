@@ -1,80 +1,172 @@
 import { createHmac } from 'crypto';
 
-// V2 API credentials
-const PEACH_BASE_URL = process.env.PEACH_BASE_URL || 'https://testapi-v2.peachpayments.com';
-const PEACH_USER_ID = process.env.PEACH_USER_ID!;
-const PEACH_PASSWORD = process.env.PEACH_PASSWORD!;
+// ─── Peach Orchestration endpoints ───────────────────────────────────────────
+// Sandbox:  auth  → https://sandbox-dashboard.peachpayments.com
+//           checkout → https://sandbox-checkout.peachpayments.com
+// Live:     auth  → https://dashboard.peachpayments.com
+//           checkout → https://secure.peachpayments.com
+
+const PEACH_AUTH_URL =
+  process.env.PEACH_AUTH_URL || 'https://sandbox-dashboard.peachpayments.com';
+const PEACH_CHECKOUT_URL =
+  process.env.PEACH_CHECKOUT_URL || 'https://sandbox-checkout.peachpayments.com';
+
+// OAuth credentials (from Peach Dashboard → Checkout → API keys)
+const PEACH_CLIENT_ID = process.env.PEACH_CLIENT_ID!;
+const PEACH_CLIENT_SECRET = process.env.PEACH_CLIENT_SECRET!;
+const PEACH_MERCHANT_ID = process.env.PEACH_MERCHANT_ID!;
 const PEACH_ENTITY_ID = process.env.PEACH_ENTITY_ID!;
+
+// Webhook signing secret (Peach Dashboard → Checkout → Webhook secret)
 const PEACH_WEBHOOK_SECRET = process.env.PEACH_WEBHOOK_SECRET || '';
 
-interface CreateCheckoutIdParams {
-  amount: string; // e.g. "349.00"
-  currency: string; // "ZAR"
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+interface CreateCheckoutParams {
+  /** Decimal string, e.g. "349.00" */
+  amount: string;
+  currency: string;
+  /** Full UUID — must match the value stored in the Order record */
   merchantTransactionId: string;
   shopperResultUrl: string;
 }
 
+interface PeachCheckoutResponse {
+  checkoutId: string;
+  redirectUrl?: string;
+}
+
+// ─── OAuth token fetch ────────────────────────────────────────────────────────
+
 /**
- * Creates a payment using the Peach Payments v2 API.
- * Uses PEACHEFT as the payment brand for EFT payments.
- * Returns the transaction ID on success, throws on failure.
+ * Obtains a short-lived Bearer token from the Peach Authentication service.
+ * Tokens are valid for a limited time; a fresh one is fetched per checkout
+ * creation (no caching) to keep things simple and correct.
+ */
+async function fetchAccessToken(): Promise<string> {
+  const response = await fetch(`${PEACH_AUTH_URL}/api/oauth/token`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      clientId: PEACH_CLIENT_ID,
+      clientSecret: PEACH_CLIENT_SECRET,
+      merchantId: PEACH_MERCHANT_ID,
+    }),
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(
+      `Peach auth failed (${response.status}): ${text}`
+    );
+  }
+
+  const data = await response.json();
+
+  if (!data.access_token) {
+    throw new Error(
+      `Peach auth returned no access_token: ${JSON.stringify(data)}`
+    );
+  }
+
+  return data.access_token as string;
+}
+
+// ─── Checkout creation ────────────────────────────────────────────────────────
+
+/**
+ * Creates a Peach Orchestration v2 checkout instance.
+ * Returns the checkoutId which the client-side SDK uses to render the
+ * Embedded Checkout form.
+ *
+ * Docs: https://developer.peachpayments.com/docs/checkout-embedded-tutorial
  */
 export async function createCheckoutId(
-  params: CreateCheckoutIdParams
+  params: CreateCheckoutParams
 ): Promise<string> {
+  const accessToken = await fetchAccessToken();
+
+  const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+
   const body = {
     authentication: {
-      userId: PEACH_USER_ID,
-      password: PEACH_PASSWORD,
       entityId: PEACH_ENTITY_ID,
     },
-    merchantTransactionId: params.merchantTransactionId.replace(/-/g, '').slice(0, 16),
+    // merchantTransactionId must be stored as-is in the Order record so the
+    // webhook lookup works. Do NOT truncate here.
+    merchantTransactionId: params.merchantTransactionId,
     amount: params.amount,
     currency: params.currency,
-    paymentBrand: 'PEACHEFT',
     paymentType: 'DB',
+    // Each checkout creation requires a unique nonce.
+    nonce: crypto.randomUUID(),
     shopperResultUrl: params.shopperResultUrl,
   };
 
-  const response = await fetch(`${PEACH_BASE_URL}/payments`, {
+  const response = await fetch(`${PEACH_CHECKOUT_URL}/v2/checkout`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`,
+      // Peach requires Origin for domain allowlist verification
+      Origin: baseUrl,
+      Referer: baseUrl,
     },
     body: JSON.stringify(body),
   });
 
-  const data = await response.json();
-
-  // Check for success - codes starting with "000." indicate success
-  if (data.result?.code && !data.result.code.startsWith('000.')) {
+  if (!response.ok) {
+    const text = await response.text();
     throw new Error(
-      `Peach Payments API error: ${data.result.code} - ${data.result.description}`
+      `Peach /v2/checkout failed (${response.status}): ${text}`
     );
   }
 
-  if (!data.id) {
+  const data: PeachCheckoutResponse = await response.json();
+
+  if (!data.checkoutId) {
     throw new Error(
-      `Peach Payments API did not return a transaction ID: ${JSON.stringify(data)}`
+      `Peach /v2/checkout returned no checkoutId: ${JSON.stringify(data)}`
     );
   }
 
-  return data.id;
+  return data.checkoutId;
 }
 
+// ─── Webhook signature validation ─────────────────────────────────────────────
+
 /**
- * Validates the HMAC-SHA256 webhook signature from Peach Payments.
- * Returns true if the signature matches, false otherwise.
+ * Validates the HMAC-SHA256 signature that Peach Payments attaches to
+ * webhook POST requests and shopper-result-URL redirects.
+ *
+ * The signature covers all query/body parameters sorted alphabetically,
+ * concatenated as key=value pairs, signed with the secret token.
+ *
+ * Returns true if the signature is valid (or if no secret is configured —
+ * set PEACH_WEBHOOK_SECRET in production to enforce validation).
  */
 export function validateWebhookSignature(
   payload: string,
   receivedSignature: string
 ): boolean {
-  if (!PEACH_WEBHOOK_SECRET) return true; // Skip validation if no secret configured
-  
-  const expectedSignature = createHmac('sha256', PEACH_WEBHOOK_SECRET)
+  if (!PEACH_WEBHOOK_SECRET) {
+    console.warn(
+      '[Peach] PEACH_WEBHOOK_SECRET is not set — webhook signature validation is disabled. ' +
+        'Set this variable in production to prevent spoofed webhook calls.'
+    );
+    return true;
+  }
+
+  const expected = createHmac('sha256', PEACH_WEBHOOK_SECRET)
     .update(payload)
     .digest('hex');
 
-  return expectedSignature === receivedSignature;
+  // Constant-time comparison to prevent timing attacks
+  if (expected.length !== receivedSignature.length) return false;
+
+  let mismatch = 0;
+  for (let i = 0; i < expected.length; i++) {
+    mismatch |= expected.charCodeAt(i) ^ receivedSignature.charCodeAt(i);
+  }
+  return mismatch === 0;
 }

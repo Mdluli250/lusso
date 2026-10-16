@@ -14,6 +14,7 @@ import type { CartItem } from '@/types';
 interface CheckoutSuccess {
   checkoutId?: string;
   orderId: string;
+  merchantTransactionId: string;
 }
 
 interface CheckoutError {
@@ -142,7 +143,7 @@ export async function createCheckoutSession(
         return createdOrder;
       });
 
-      return { orderId: order.id };
+      return { orderId: order.id, merchantTransactionId: order.merchantTransactionId };
     }
 
     // Insert Order record with PENDING status (inside transaction with usage records)
@@ -188,11 +189,13 @@ export async function createCheckoutSession(
     const checkoutId = await createCheckoutId({
       amount: amountDecimal,
       currency: 'ZAR',
+      // Pass the full UUID unchanged — the DB record and the Peach transaction
+      // must share the exact same value so the webhook lookup always matches.
       merchantTransactionId,
-      shopperResultUrl: `${baseUrl}/success?merchantTransactionId=${merchantTransactionId}`,
+      shopperResultUrl: `${baseUrl}/success?merchantTransactionId=${encodeURIComponent(merchantTransactionId)}`,
     });
 
-    return { checkoutId, orderId: order.id };
+    return { checkoutId, orderId: order.id, merchantTransactionId: order.merchantTransactionId };
   } catch (error) {
     console.error('Checkout session creation failed:', error);
     return {

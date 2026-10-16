@@ -44,9 +44,10 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
   return (
     <SuccessClient
       orderId={order.id}
+      merchantTransactionId={order.merchantTransactionId}
       totalAmountZAR={formatZAR(order.totalAmountZAR)}
       items={items}
-      status={order.status}
+      initialStatus={order.status}
     />
   );
 }
