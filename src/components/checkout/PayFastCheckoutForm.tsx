@@ -21,6 +21,8 @@ interface PayFastOnsiteOptions {
 interface PayFastCheckoutFormProps {
   /** One-time UUID returned by PayFast /onsite/process */
   uuid: string;
+  /** merchantTransactionId used to build the success URL after payment */
+  merchantTransactionId: string;
 }
 
 // PayFast Onsite engine script.
@@ -30,7 +32,7 @@ const ENGINE_JS_URL =
   process.env.NEXT_PUBLIC_PAYFAST_ENGINE_JS_URL ||
   'https://sandbox.payfast.co.za/onsite/engine.js';
 
-export default function PayFastCheckoutForm({ uuid }: PayFastCheckoutFormProps) {
+export default function PayFastCheckoutForm({ uuid, merchantTransactionId }: PayFastCheckoutFormProps) {
   const scriptRef = useRef<HTMLScriptElement | null>(null);
   const [sdkError, setSdkError] = useState<string | null>(null);
   const [launched, setLaunched] = useState(false);
@@ -49,10 +51,10 @@ export default function PayFastCheckoutForm({ uuid }: PayFastCheckoutFormProps) 
 
       window.payfast_do_onsite_payment({ uuid }, (result) => {
         if (result) {
-          // Payment completed — PayFast will also POST to notify_url (ITN).
-          // The return_url we supplied to /onsite/process handles the redirect,
-          // but if the callback fires first we can navigate manually as a fallback.
-          console.log('[PayFast] Payment completed via onsite modal');
+          // Payment completed — redirect to success page immediately.
+          // The ITN will arrive asynchronously and flip the order from PENDING → PAID;
+          // SuccessClient polls until that happens.
+          window.location.href = `/success?merchantTransactionId=${encodeURIComponent(merchantTransactionId)}`;
         } else {
           // User closed the modal without paying
           console.log('[PayFast] Payment modal closed without payment');

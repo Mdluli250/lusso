@@ -11,6 +11,7 @@ import PayFastCheckoutForm from '@/components/checkout/PayFastCheckoutForm';
 export default function CheckoutPage() {
   const router = useRouter();
   const [checkoutId, setCheckoutId] = useState<string | null>(null);
+  const [merchantTransactionId, setMerchantTransactionId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -48,6 +49,7 @@ export default function CheckoutPage() {
       }
 
       setCheckoutId(result.checkoutId);
+      setMerchantTransactionId(result.merchantTransactionId);
       setLoading(false);
     }
 
@@ -93,7 +95,9 @@ export default function CheckoutPage() {
           Enter your payment details below to complete your order.
         </p>
         <GiftWrapOption />
-        {checkoutId && <PayFastCheckoutForm uuid={checkoutId} />}
+        {checkoutId && merchantTransactionId && (
+          <PayFastCheckoutForm uuid={checkoutId} merchantTransactionId={merchantTransactionId} />
+        )}
       </div>
     </main>
   );
