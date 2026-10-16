@@ -134,7 +134,7 @@ model Order {
   status                OrderStatus @default(PENDING)
   totalAmountZAR        Int // In ZAR cents
   merchantTransactionId String      @unique
-  paymentStatus         String? // Raw status string from Peach Payments
+  paymentStatus         String? // Raw payment_status string from PayFast ITN
   items                 Json // Snapshot of cart items at time of purchase
   invoicePath           String? // Relative path to generated invoice PDF
   receiptPath           String? // Relative path to generated receipt PDF

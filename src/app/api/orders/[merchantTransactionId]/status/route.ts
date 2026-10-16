@@ -12,7 +12,7 @@ import { extractClientIp, checkRateLimit, createRateLimitResponse } from '@/lib/
  *
  * Used by SuccessClient to poll until the webhook has settled the order
  * from PENDING → PAID / FAILED, resolving the race condition between the
- * shopper redirect and the Peach webhook delivery.
+ * shopper redirect and the PayFast ITN delivery.
  */
 export async function GET(
   request: Request,

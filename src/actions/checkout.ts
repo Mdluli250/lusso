@@ -4,7 +4,7 @@ import { randomUUID } from 'crypto';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { createCheckoutId } from '@/lib/peach';
+import { generatePayFastUUID } from '@/lib/payfast';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { validatePromoCode } from '@/lib/discounts/service';
 import { calculateTotalDiscount } from '@/lib/discounts/calculate';
@@ -181,21 +181,27 @@ export async function createCheckoutSession(
       return createdOrder;
     });
 
-    // Convert cents to decimal string for Peach Payments (e.g. 34900 → "349.00")
+    // Convert cents to decimal string for PayFast (e.g. 34900 → "349.00")
     const amountDecimal = (totalAmountZAR / 100).toFixed(2);
 
-    // Create checkout ID via Peach Payments API
+    // Build PayFast return / cancel / notify URLs
     const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
-    const checkoutId = await createCheckoutId({
+    const returnUrl = `${baseUrl}/success?merchantTransactionId=${encodeURIComponent(merchantTransactionId)}`;
+    const cancelUrl = `${baseUrl}/cart`;
+    const notifyUrl = `${baseUrl}/api/webhooks/payfast`;
+
+    // Fetch a one-time Onsite UUID from PayFast
+    const payfastUUID = await generatePayFastUUID({
+      m_payment_id: merchantTransactionId,
       amount: amountDecimal,
-      currency: 'ZAR',
-      // Pass the full UUID unchanged — the DB record and the Peach transaction
-      // must share the exact same value so the webhook lookup always matches.
-      merchantTransactionId,
-      shopperResultUrl: `${baseUrl}/success?merchantTransactionId=${encodeURIComponent(merchantTransactionId)}`,
+      item_name: 'Lusso Order',
+      return_url: returnUrl,
+      cancel_url: cancelUrl,
+      notify_url: notifyUrl,
     });
 
-    return { checkoutId, orderId: order.id, merchantTransactionId: order.merchantTransactionId };
+    // Re-use checkoutId field name so the rest of the call-stack needs no changes
+    return { checkoutId: payfastUUID, orderId: order.id, merchantTransactionId: order.merchantTransactionId };
   } catch (error) {
     console.error('Checkout session creation failed:', error);
     return {

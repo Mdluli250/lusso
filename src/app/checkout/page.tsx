@@ -6,7 +6,7 @@ import { useCartStore } from '@/store/cartStore';
 import { useGiftWrapStore } from '@/store/giftWrapStore';
 import { createCheckoutSession } from '@/actions/checkout';
 import { GiftWrapOption } from '@/components/checkout/GiftWrapOption';
-import PeachCheckoutForm from '@/components/checkout/PeachCheckoutForm';
+import PayFastCheckoutForm from '@/components/checkout/PayFastCheckoutForm';
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -93,7 +93,7 @@ export default function CheckoutPage() {
           Enter your payment details below to complete your order.
         </p>
         <GiftWrapOption />
-        {checkoutId && <PeachCheckoutForm checkoutId={checkoutId} />}
+        {checkoutId && <PayFastCheckoutForm uuid={checkoutId} />}
       </div>
     </main>
   );

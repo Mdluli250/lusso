@@ -6,8 +6,8 @@
  * Responsibilities:
  * - Clears the Zustand cart on mount
  * - Polls /api/orders/[merchantTransactionId]/status until the order leaves
- *   PENDING, resolving the race between the shopper redirect and the Peach
- *   webhook delivery
+ *   PENDING, resolving the race between the shopper redirect and the PayFast
+ *   ITN delivery
  * - Renders the CelebrationScene (3D particle animation) once paid
  * - Triggers GSAP entrance animation on confirmation text within 500ms
  *
