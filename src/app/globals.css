@@ -11,6 +11,9 @@
   --theme-bg: #faf7f2;
   --theme-accent: #2c2825;
 
+  /* Z-index scale */
+  --z-toast: 9999;
+
   /* Static surface colors — warm neutrals */
   --background: #faf7f2;
   --foreground: #2c2825;

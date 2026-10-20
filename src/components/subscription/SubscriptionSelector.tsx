@@ -24,8 +24,11 @@ export function SubscriptionSelector({ variantId, price }: SubscriptionSelectorP
   const { data: session } = useSession();
   const [selectedFrequency, setSelectedFrequency] = useState<string>('MONTHLY');
   const [isPending, startTransition] = useTransition();
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-  const [payment, setPayment] = useState<{ checkoutId: string; merchantTransactionId: string } | null>(null);
+  const [message, setMessage] = useState<{ type: 'info' | 'error'; text: string } | null>(null);
+  const [payment, setPayment] = useState<{
+    checkoutId: string;
+    merchantTransactionId: string;
+  } | null>(null);
 
   const discountedPrice = Math.round(price * (1 - DISCOUNT_PERCENT / 100));
 
@@ -36,20 +39,30 @@ export function SubscriptionSelector({ variantId, price }: SubscriptionSelectorP
     }
 
     startTransition(async () => {
-      const result = await createSubscription({
-        variantId,
-        frequency: selectedFrequency,
-      });
+      const result = await createSubscription({ variantId, frequency: selectedFrequency });
 
       if (result.success) {
         if (result.checkoutId && result.merchantTransactionId) {
-          setPayment({ checkoutId: result.checkoutId, merchantTransactionId: result.merchantTransactionId });
-          setMessage({ type: 'success', text: 'Complete the secure payment to activate this subscription.' });
-        } else setMessage({ type: 'error', text: 'Payment setup was not returned. Please try again.' });
+          setPayment({
+            checkoutId: result.checkoutId,
+            merchantTransactionId: result.merchantTransactionId,
+          });
+          setMessage({
+            type: 'info',
+            text: 'Complete the secure payment below to activate your subscription.',
+          });
+        } else {
+          setMessage({ type: 'error', text: 'Payment setup was not returned. Please try again.' });
+        }
       } else {
         setMessage({ type: 'error', text: result.error });
       }
     });
+  };
+
+  const handleCancelPayment = () => {
+    setPayment(null);
+    setMessage(null);
   };
 
   return (
@@ -91,32 +104,26 @@ export function SubscriptionSelector({ variantId, price }: SubscriptionSelectorP
         <span className="text-sm text-[var(--theme-accent)]/50 line-through">
           {formatZAR(price)}
         </span>
+        <span className="text-xs text-emerald-600 font-medium">
+          Save {DISCOUNT_PERCENT}%
+        </span>
       </div>
 
-      {/* Subscribe button */}
-      <Button
-        variant="primary"
-        size="sm"
-        fullWidth
-        onClick={handleSubscribe}
-        disabled={isPending}
-        aria-label="Subscribe to this product"
-      >
-        {isPending ? 'Subscribing...' : 'Subscribe'}
-      </Button>
-
-      {/* Feedback message */}
-      {message && (
-        <p
-          className={`text-xs ${message.type === 'success' ? 'text-green-500' : 'text-red-400'}`}
-          role="alert"
+      {/* Subscribe button — only shown before payment is initiated */}
+      {!payment && (
+        <Button
+          variant="primary"
+          size="sm"
+          fullWidth
+          onClick={handleSubscribe}
+          disabled={isPending || !session?.user}
+          aria-label="Subscribe to this product"
         >
-          {message.text}
-        </p>
+          {isPending ? 'Subscribing…' : 'Subscribe'}
+        </Button>
       )}
 
-      {payment && <PayFastCheckoutForm uuid={payment.checkoutId} merchantTransactionId={payment.merchantTransactionId} />}
-
+      {/* Sign-in prompt for unauthenticated users */}
       {!session?.user && (
         <p className="text-xs text-[var(--theme-accent)]/50">
           <a href="/auth/signin" className="underline hover:text-[var(--theme-accent)]">
@@ -124,6 +131,33 @@ export function SubscriptionSelector({ variantId, price }: SubscriptionSelectorP
           </a>{' '}
           to subscribe and save.
         </p>
+      )}
+
+      {/* Feedback message */}
+      {message && (
+        <p
+          className={`text-xs ${message.type === 'error' ? 'text-red-400' : 'text-[var(--theme-accent)]/70'}`}
+          role="alert"
+        >
+          {message.text}
+        </p>
+      )}
+
+      {/* PayFast payment form — shown once checkout session is ready */}
+      {payment && (
+        <div className="space-y-3">
+          <PayFastCheckoutForm
+            uuid={payment.checkoutId}
+            merchantTransactionId={payment.merchantTransactionId}
+          />
+          <button
+            type="button"
+            onClick={handleCancelPayment}
+            className="w-full text-xs text-[var(--theme-accent)]/50 hover:text-[var(--theme-accent)] underline transition-colors"
+          >
+            Cancel and go back
+          </button>
+        </div>
       )}
     </div>
   );

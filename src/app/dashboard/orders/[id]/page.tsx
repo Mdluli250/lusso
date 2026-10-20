@@ -90,11 +90,17 @@ export default async function DashboardOrderDetailPage({ params }: OrderDetailPa
           <div className="rounded-xl border border-[var(--theme-accent)]/15 px-5 py-4 space-y-2">
             <h2 className="text-sm font-semibold text-foreground">Delivery Address</h2>
             <address className="not-italic text-sm text-muted">
-              <p>{shippingAddress.recipient}</p>
-              <p>{shippingAddress.phone}</p>
-              <p>{shippingAddress.addressLine1}{shippingAddress.addressLine2 ? `, ${shippingAddress.addressLine2}` : ''}</p>
-              <p>{shippingAddress.city}, {shippingAddress.province} {shippingAddress.postalCode}</p>
-              <p>{shippingAddress.country}</p>
+              <p>{shippingAddress.recipient ?? ''}</p>
+              <p>{shippingAddress.phone ?? ''}</p>
+              <p>
+                {shippingAddress.addressLine1 ?? ''}
+                {shippingAddress.addressLine2 ? `, ${shippingAddress.addressLine2}` : ''}
+              </p>
+              <p>
+                {shippingAddress.city ?? ''}, {shippingAddress.province ?? ''}{' '}
+                {shippingAddress.postalCode ?? ''}
+              </p>
+              <p>{shippingAddress.country ?? ''}</p>
             </address>
           </div>
         )}
@@ -176,8 +182,8 @@ export default async function DashboardOrderDetailPage({ params }: OrderDetailPa
           </div>
         )}
 
-        {/* Return request — for PAID + DELIVERED orders */}
-        {order.status === 'PAID' && (
+        {/* Return request — for PAID + DELIVERED orders only */}
+        {order.status === 'PAID' && order.fulfillmentStatus === 'DELIVERED' && (
           <div className="rounded-xl border border-[var(--theme-accent)]/15 px-5 py-4 space-y-3">
             <h2 className="text-sm font-semibold text-foreground">Returns &amp; refunds</h2>
             {existingReturn ? (

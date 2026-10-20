@@ -7,7 +7,9 @@
  * Fixes applied:
  *   - Header count uses total quantity (sum of item.quantity), not unique line count
  *   - FreeShippingBar shown above item list
- *   - PromoCodeInput shown in footer above CartSummary
+ *   - GiftWrapOption shown in footer alongside PromoCodeInput + CartSummary
+ *   - GSAP tween race condition fixed: kill in-progress tweens before starting close
+ *   - aria-labelledby points to the visible heading id
  *
  * Requirements: 6.1, 6.2
  */
@@ -20,6 +22,7 @@ import { CartSummary } from './CartSummary';
 import { CartUpsell } from './CartUpsell';
 import { FreeShippingBar } from './FreeShippingBar';
 import { PromoCodeInput } from './PromoCodeInput';
+import { GiftWrapOption } from '@/components/checkout/GiftWrapOption';
 import { EmptyState } from '@/components/ui/EmptyState';
 
 interface CartSlideDrawerProps {
@@ -34,9 +37,13 @@ export function CartSlideDrawer({ isOpen, onClose }: CartSlideDrawerProps) {
 
   const panelRef = useRef<HTMLDivElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
+  const HEADING_ID = 'cart-slide-drawer-title';
 
   useEffect(() => {
     if (isOpen && panelRef.current) {
+      // Kill any in-progress close animation before starting open
+      gsap.killTweensOf(panelRef.current);
+      gsap.killTweensOf(overlayRef.current);
       gsap.fromTo(panelRef.current, { x: '100%' }, { x: '0%', duration: 0.3, ease: 'power2.out' });
       gsap.fromTo(overlayRef.current, { opacity: 0 }, { opacity: 1, duration: 0.2 });
     }
@@ -44,6 +51,9 @@ export function CartSlideDrawer({ isOpen, onClose }: CartSlideDrawerProps) {
 
   const handleClose = useCallback(() => {
     if (panelRef.current) {
+      // Kill any in-progress open animation before starting close
+      gsap.killTweensOf(panelRef.current);
+      gsap.killTweensOf(overlayRef.current);
       gsap.to(panelRef.current, {
         x: '100%',
         duration: 0.25,
@@ -90,11 +100,14 @@ export function CartSlideDrawer({ isOpen, onClose }: CartSlideDrawerProps) {
         className="absolute right-0 top-0 h-full w-full max-w-md bg-[var(--theme-bg)] shadow-xl flex flex-col"
         role="dialog"
         aria-modal="true"
-        aria-label="Shopping cart"
+        aria-labelledby={HEADING_ID}
       >
-        {/* Header — total quantity */}
+        {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--theme-accent)]/15 shrink-0">
-          <h2 className="text-lg font-semibold text-[var(--theme-accent)]">
+          <h2
+            id={HEADING_ID}
+            className="text-lg font-semibold text-[var(--theme-accent)]"
+          >
             Cart
             {totalItems > 0 && (
               <span className="ml-1.5 text-sm font-normal text-[var(--theme-accent)]/60">
@@ -103,6 +116,7 @@ export function CartSlideDrawer({ isOpen, onClose }: CartSlideDrawerProps) {
             )}
           </h2>
           <button
+            type="button"
             onClick={handleClose}
             className="p-2 rounded-lg hover:bg-[var(--theme-accent)]/10 transition-colors text-[var(--theme-accent)]"
             aria-label="Close cart"
@@ -147,9 +161,10 @@ export function CartSlideDrawer({ isOpen, onClose }: CartSlideDrawerProps) {
           )}
         </div>
 
-        {/* Footer — promo + summary + checkout */}
+        {/* Footer — gift wrap + promo + summary + checkout */}
         {items.length > 0 && (
           <div className="border-t border-[var(--theme-accent)]/15 px-6 py-4 space-y-4 shrink-0">
+            <GiftWrapOption />
             <PromoCodeInput />
             <CartSummary />
           </div>

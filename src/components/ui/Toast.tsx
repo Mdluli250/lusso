@@ -145,29 +145,32 @@ interface ToastItemProps {
 function ToastItem({ toast, onDismiss }: ToastItemProps) {
   const [visible, setVisible] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const dismissTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Trigger enter animation on mount
   useEffect(() => {
     // Defer to next frame so the CSS transition fires
     const raf = requestAnimationFrame(() => setVisible(true));
 
-    // Auto-dismiss after 3 seconds (Req: auto-dismisses after 3 seconds)
+    // Auto-dismiss after 3 seconds
     timerRef.current = setTimeout(() => {
       setVisible(false);
       // Wait for exit animation before removing from DOM
-      setTimeout(() => onDismiss(toast.id), 300);
+      dismissTimerRef.current = setTimeout(() => onDismiss(toast.id), 300);
     }, 3000);
 
     return () => {
       cancelAnimationFrame(raf);
       if (timerRef.current) clearTimeout(timerRef.current);
+      if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current);
     };
   }, [toast.id, onDismiss]);
 
   const handleDismiss = () => {
     setVisible(false);
     if (timerRef.current) clearTimeout(timerRef.current);
-    setTimeout(() => onDismiss(toast.id), 300);
+    if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current);
+    dismissTimerRef.current = setTimeout(() => onDismiss(toast.id), 300);
   };
 
   return (

@@ -77,5 +77,10 @@ export async function GET(request: Request) {
     },
   });
 
-  return NextResponse.json(orders, { headers: rateLimitHeaders });
+  const serialized = orders.map((order) => ({
+    ...order,
+    createdAt: order.createdAt.toISOString(),
+  }));
+
+  return NextResponse.json(serialized, { headers: rateLimitHeaders });
 }

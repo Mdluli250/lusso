@@ -164,8 +164,8 @@ export async function POST(request: Request): Promise<Response> {
       for (const code of data.codes ?? []) {
         await tx.discountUsage.createMany({
           data: [{
-            discountCodeId: code.isEmailCapture ? undefined : code.codeId,
-            emailCaptureCode: code.isEmailCapture ? code.codeId.replace('emailcapture:', '') : undefined,
+            discountCodeId: code.isEmailCapture ? null : code.codeId,
+            emailCaptureCode: code.isEmailCapture ? code.codeId.replace('emailcapture:', '') : null,
             userId: order.userId,
             orderId: order.id,
             discountAmountZAR: code.amount,

@@ -4,8 +4,8 @@
  * PromoCodeInput — renders a promo code input field with Apply/Remove
  * functionality in the cart drawer order summary section.
  *
- * Supports multiple applied codes (when stackable) and displays
- * original subtotal, discount line items, and final total.
+ * Supports multiple applied codes (when stackable). The order total is
+ * rendered by CartSummary — this component only shows applied codes.
  *
  * Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.8
  */
@@ -31,13 +31,6 @@ export function PromoCodeInput() {
     (sum, item) => sum + item.price * item.quantity,
     0
   );
-
-  const totalDiscountCents = appliedDiscounts.reduce(
-    (sum, d) => sum + d.discountAmountZAR,
-    0
-  );
-
-  const finalTotal = Math.max(subtotalCents - totalDiscountCents, 0);
 
   async function handleApply() {
     if (!codeInput.trim() || isLoading) return;
@@ -88,7 +81,7 @@ export function PromoCodeInput() {
           }}
           placeholder="Promo code"
           aria-label="Promo code"
-          className="flex-1 px-3 py-2 text-sm rounded-lg border border-theme-accent/20 bg-transparent text-theme-accent placeholder:text-theme-accent/40 focus:outline-none focus:border-theme-accent/50"
+          className="flex-1 px-3 py-2 text-sm rounded-lg border border-[var(--theme-accent)]/20 bg-transparent text-[var(--theme-accent)] placeholder:text-[var(--theme-accent)]/40 focus:outline-none focus:border-[var(--theme-accent)]/50"
           disabled={isLoading}
         />
         <Button
@@ -117,47 +110,22 @@ export function PromoCodeInput() {
               className="flex items-center justify-between text-sm"
             >
               <div className="flex items-center gap-2">
-                <span className="px-2 py-0.5 rounded bg-theme-accent/10 text-theme-accent font-medium text-xs uppercase">
+                <span className="px-2 py-0.5 rounded bg-[var(--theme-accent)]/10 text-[var(--theme-accent)] font-medium text-xs uppercase">
                   {discount.code}
                 </span>
                 <span className="text-green-600">
-                  - {formatZAR(discount.discountAmountZAR)}
+                  {discount.type === 'FREE_SHIPPING' ? 'Free shipping' : `− ${formatZAR(discount.discountAmountZAR)}`}
                 </span>
               </div>
               <button
                 onClick={() => handleRemove(discount.codeId)}
-                className="text-xs text-theme-accent/50 hover:text-red-500 transition-colors"
+                className="text-xs text-[var(--theme-accent)]/50 hover:text-red-500 transition-colors"
                 aria-label={`Remove code ${discount.code}`}
               >
                 Remove
               </button>
             </div>
           ))}
-        </div>
-      )}
-
-      {/* Order summary with discounts */}
-      {appliedDiscounts.length > 0 && (
-        <div className="pt-2 border-t border-theme-accent/10 space-y-1">
-          <div className="flex justify-between text-sm text-theme-accent/70">
-            <span>Subtotal</span>
-            <span className="tabular-nums">{formatZAR(subtotalCents)}</span>
-          </div>
-          {appliedDiscounts.map((discount) => (
-            <div
-              key={discount.codeId}
-              className="flex justify-between text-sm text-green-600"
-            >
-              <span>Discount ({discount.code})</span>
-              <span className="tabular-nums">
-                - {formatZAR(discount.discountAmountZAR)}
-              </span>
-            </div>
-          ))}
-          <div className="flex justify-between text-base font-medium text-theme-accent pt-1">
-            <span>Total</span>
-            <span className="tabular-nums">{formatZAR(finalTotal)}</span>
-          </div>
         </div>
       )}
     </div>

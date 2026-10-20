@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { signIn, signOut, useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import CartIcon from "./CartIcon";
 import { SearchBar } from "@/components/ui/SearchBar";
@@ -228,11 +228,11 @@ export default function NavBar() {
               </button>
             </div>
           ) : (
-            /* Sign in button */
-            <button
-              onClick={() => signIn("google")}
+            /* Sign in button — navigates to the full sign-in page */
+            <a
+              href="/auth/signin"
               className={[
-                "rounded-lg px-3 py-2.5 text-sm font-medium min-h-[44px]",
+                "rounded-lg px-3 py-2.5 text-sm font-medium min-h-[44px] inline-flex items-center",
                 "bg-[var(--theme-accent)] text-cream",
                 "transition-opacity duration-150 hover:opacity-90",
                 "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2",
@@ -240,7 +240,7 @@ export default function NavBar() {
               ].join(" ")}
             >
               Sign in
-            </button>
+            </a>
           )}
 
           {/* Mobile nav toggle — hamburger menu (md and below) */}
@@ -423,10 +423,12 @@ function MobileMenu({
       {isOpen && (
         <div
           ref={overlayRef}
-          className="fixed inset-0 z-40 bg-black/50"
+          className="fixed inset-0 z-40"
           onClick={handleOverlayClick}
-          aria-hidden="true"
         >
+          {/* Backdrop — aria-hidden so AT ignores the click-blocker */}
+          <div className="absolute inset-0 bg-black/50" aria-hidden="true" />
+
           <div
             ref={menuRef}
             id="mobile-nav-menu"

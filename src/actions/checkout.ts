@@ -174,8 +174,8 @@ export async function createCheckoutSession(
         if (validatedDiscounts.length > 0) {
           await tx.discountUsage.createMany({
             data: validatedDiscounts.map((d) => ({
-              discountCodeId: d.isEmailCapture ? undefined : d.codeId,
-              emailCaptureCode: d.isEmailCapture ? d.codeId.replace('emailcapture:', '') : undefined,
+              discountCodeId: d.isEmailCapture ? null : d.codeId,
+              emailCaptureCode: d.isEmailCapture ? d.codeId.replace('emailcapture:', '') : null,
               userId,
               orderId: created.id,
               discountAmountZAR: d.discountAmountZAR,

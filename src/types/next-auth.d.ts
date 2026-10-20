@@ -1,4 +1,5 @@
 import 'next-auth';
+import 'next-auth/jwt';
 
 declare module 'next-auth' {
   interface Session {
@@ -9,5 +10,16 @@ declare module 'next-auth' {
       image?: string | null;
       role: 'CUSTOMER' | 'ADMIN';
     };
+  }
+
+  interface User {
+    role?: 'CUSTOMER' | 'ADMIN';
+  }
+}
+
+declare module 'next-auth/jwt' {
+  interface JWT {
+    id?: string;
+    role?: 'CUSTOMER' | 'ADMIN';
   }
 }

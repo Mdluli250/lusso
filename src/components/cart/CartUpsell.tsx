@@ -26,7 +26,7 @@ export function CartUpsell() {
   useEffect(() => {
     if (items.length === 0) { setRecs([]); return; }
     const productId = items[0].productId;
-    if (productId.startsWith('bundle-')) return;
+    if (productId.startsWith('bundle-')) { setRecs([]); return; }
 
     let cancelled = false;
     fetch(`/api/recommendations/${encodeURIComponent(productId)}`)

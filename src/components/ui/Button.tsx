@@ -69,6 +69,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     return (
       <button
         ref={ref}
+        type={rest.type ?? 'button'}
         disabled={disabled}
         aria-disabled={disabled}
         className={[

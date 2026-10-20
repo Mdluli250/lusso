@@ -5,7 +5,7 @@ import type {
   AppliedDiscount,
   ValidationResult,
 } from './types';
-import { validateDiscountConditions, validateStackingRules as validateStackingRulesPure } from './validate';
+import { validateDiscountConditions, validateStackingRules as validateStackingRulesPure, type StackingValidationResult } from './validate';
 
 /**
  * Validates a promo code against the database and cart state.
@@ -142,7 +142,7 @@ export async function validatePromoCode(
 export async function validateStackingRules(
   newCode: DiscountCodeData,
   existingDiscounts: AppliedDiscount[]
-): Promise<ValidationResult> {
+): Promise<StackingValidationResult> {
   // Determine if any existing discount is non-stackable
   let hasNonStackableExisting = false;
 
@@ -171,13 +171,7 @@ export async function validateStackingRules(
     hasNonStackableExisting
   );
 
-  if (!stackingResult.valid) {
-    return stackingResult;
-  }
-
-  // Stacking is valid — calculate the discount for the new code
-  // We return a success with a placeholder discount (caller provides cart context)
-  return { valid: true } as ValidationResult;
+  return stackingResult;
 }
 
 /**
