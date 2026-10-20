@@ -15,9 +15,10 @@ export default function CheckoutPage() {
   const [checkoutId, setCheckoutId] = useState<string | null>(null);
   const [merchantTransactionId, setMerchantTransactionId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  // loading=true until checkout session is created; sessionReady=true once PayFast UUID is returned
   const [loading, setLoading] = useState(true);
   const [sessionReady, setSessionReady] = useState(false);
+  // Tracks whether Zustand has rehydrated from localStorage yet
+  const [hydrated, setHydrated] = useState(false);
   const checkoutStarted = useRef(false);
 
   const items = useCartStore((state) => state.items);
@@ -25,13 +26,18 @@ export default function CheckoutPage() {
   const giftWrapEnabled = useGiftWrapStore((state) => state.enabled);
   const giftMessage = useGiftWrapStore((state) => state.message);
 
+  // Wait one tick after mount for Zustand to rehydrate from localStorage
+  useEffect(() => {
+    setHydrated(true);
+  }, []);
+
   // Fetch live shipping rates for the order summary display
   const [shippingRate, setShippingRate] = useState(7500);
   const [freeThreshold, setFreeThreshold] = useState(75000);
 
   useEffect(() => {
     fetch('/api/shipping-rates')
-      .then((r) => r.ok ? r.json() : null)
+      .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
         if (data?.standardRateCents) setShippingRate(data.standardRateCents);
         if (data?.freeShippingThresholdCents) setFreeThreshold(data.freeShippingThresholdCents);
@@ -43,10 +49,14 @@ export default function CheckoutPage() {
   const discountTotal = appliedDiscounts.reduce((sum, d) => sum + d.discountAmountZAR, 0);
   const hasFreeShipping = appliedDiscounts.some((d) => d.type === 'FREE_SHIPPING');
   const estimatedShipping = subtotal >= freeThreshold || hasFreeShipping ? 0 : shippingRate;
-  const estimatedTotal = Math.max(subtotal - discountTotal, 0) + estimatedShipping + (giftWrapEnabled ? 4900 : 0);
+  const estimatedTotal =
+    Math.max(subtotal - discountTotal, 0) + estimatedShipping + (giftWrapEnabled ? 4900 : 0);
   const itemCount = items.reduce((n, i) => n + i.quantity, 0);
 
+  // Only start checkout after Zustand has rehydrated
   useEffect(() => {
+    if (!hydrated) return;
+
     async function initCheckout() {
       if (checkoutStarted.current) return;
       checkoutStarted.current = true;
@@ -92,8 +102,8 @@ export default function CheckoutPage() {
     }
 
     initCheckout();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hydrated]);
 
   if (loading) {
     return (
@@ -160,7 +170,7 @@ export default function CheckoutPage() {
         {/* Shipping address */}
         <ShippingAddressSummary />
 
-        {/* Gift wrap — shown before session is locked so state is captured */}
+        {/* Gift wrap — only before checkout session is locked */}
         {!sessionReady && <GiftWrapOption />}
 
         {/* Order cost summary */}
@@ -168,11 +178,12 @@ export default function CheckoutPage() {
           <h2 className="font-semibold text-[var(--theme-accent)] mb-3">Order Summary</h2>
 
           <div className="flex justify-between text-[var(--theme-accent)]/70">
-            <span>Subtotal ({itemCount} item{itemCount !== 1 ? 's' : ''})</span>
+            <span>
+              Subtotal ({itemCount} item{itemCount !== 1 ? 's' : ''})
+            </span>
             <span className="tabular-nums">{formatZAR(subtotal)}</span>
           </div>
 
-          {/* Applied discounts */}
           {appliedDiscounts.length > 0 && (
             <div className="space-y-1">
               {appliedDiscounts.map((d) => (
@@ -219,7 +230,10 @@ export default function CheckoutPage() {
 
         {/* PayFast payment form — shown once checkout session is ready */}
         {checkoutId && merchantTransactionId && (
-          <PayFastCheckoutForm uuid={checkoutId} merchantTransactionId={merchantTransactionId} />
+          <PayFastCheckoutForm
+            uuid={checkoutId}
+            merchantTransactionId={merchantTransactionId}
+          />
         )}
       </div>
     </main>

@@ -141,13 +141,14 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   // ── Update order status ───────────────────────────────────────────────────────
+  const resolvedStatus = newStatus; // narrowed: never null past this point
   const settledOrder = await prisma.$transaction(async (tx) => {
     const changed = await tx.order.updateMany({
       where: { id: order.id, status: 'PENDING' },
-      data: { status: newStatus, paymentStatus, payfastPaymentId: pfData['pf_payment_id'] ?? null, reservationExpiresAt: null },
+      data: { status: resolvedStatus, paymentStatus, payfastPaymentId: pfData['pf_payment_id'] ?? null, reservationExpiresAt: null },
     });
     if (changed.count !== 1) return false;
-    if (newStatus === 'FAILED') {
+    if (resolvedStatus === 'FAILED') {
       const items = order.items as Array<{ variantId?: string; quantity: number }>;
       for (const item of items) {
         if (item.variantId) await tx.productVariant.update({ where: { id: item.variantId }, data: { stock: { increment: item.quantity } } });
@@ -159,7 +160,7 @@ export async function POST(request: Request): Promise<Response> {
         });
       }
     }
-    if (newStatus === 'PAID' && order.status === 'PENDING' && order.discountData && typeof order.discountData === 'object') {
+    if (resolvedStatus === 'PAID' && order.status === 'PENDING' && order.discountData && typeof order.discountData === 'object') {
       const data = order.discountData as { codes?: Array<{ codeId: string; isEmailCapture?: boolean; amount: number }> };
       for (const code of data.codes ?? []) {
         await tx.discountUsage.createMany({
@@ -174,7 +175,7 @@ export async function POST(request: Request): Promise<Response> {
         });
       }
     }
-    if (order.subscriptionId && newStatus === 'PAID') {
+    if (order.subscriptionId && resolvedStatus === 'PAID') {
       const token = pfData['token'] ?? pfData['subscription_id'] ?? pfData['custom_str1'] ?? null;
       const subscription = await tx.subscription.findUnique({ where: { id: order.subscriptionId } });
       const isInitialSubscriptionPayment = subscription?.token == null;
@@ -194,7 +195,7 @@ export async function POST(request: Request): Promise<Response> {
         await tx.order.update({ where: { id: order.id }, data: { fulfillmentStatus: 'PROCESSING' } });
       }
     }
-    if (order.subscriptionId && newStatus === 'FAILED') {
+    if (order.subscriptionId && resolvedStatus === 'FAILED') {
       const subscription = await tx.subscription.findUnique({ where: { id: order.subscriptionId } });
       if (subscription?.token == null) {
         await tx.subscription.delete({ where: { id: order.subscriptionId } });
@@ -211,11 +212,11 @@ export async function POST(request: Request): Promise<Response> {
   if (!settledOrder) return NextResponse.json({ received: true }, { status: 200 });
 
   console.log(
-    `[PayFast ITN] Order ${order.id} updated → ${newStatus} (payment_status: ${paymentStatus})`
+    `[PayFast ITN] Order ${order.id} updated → ${resolvedStatus} (payment_status: ${paymentStatus})`
   );
 
   // ── Generate invoice + receipt on successful payment ─────────────────────────
-  if (newStatus === 'PAID') {
+  if (resolvedStatus === 'PAID') {
     try {
       const orderWithUser = await prisma.order.findUnique({
         where: { id: order.id },
@@ -301,7 +302,7 @@ export async function POST(request: Request): Promise<Response> {
     }
   }
 
-  if (newStatus === 'FAILED') {
+  if (resolvedStatus === 'FAILED') {
     const failedUser = await prisma.user.findUnique({ where: { id: order.userId }, select: { email: true, name: true } });
     await sendPaymentFailedEmail(order.id, failedUser?.email ?? '', failedUser?.name ?? 'Customer')
       .catch((error) => console.error('[PayFast ITN] Failure notice error:', error));
