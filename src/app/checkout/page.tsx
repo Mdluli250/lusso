@@ -139,7 +139,7 @@ export default function CheckoutPage() {
                   <span className="flex items-center gap-1">
                     <span className="text-xs font-mono bg-green-500/10 px-1.5 py-0.5 rounded">{d.code}</span>
                     <span className="text-xs">
-                      {d.type === 'FREE_SHIPPING' ? 'Free shipping' : d.type === 'PERCENTAGE' ? `${d.value}% off` : `R${(d.value / 100).toFixed(2)} off`}
+                      {d.type === 'FREE_SHIPPING' ? 'Free shipping' : d.type === 'PERCENTAGE' ? 'Percentage discount' : 'Fixed amount discount'}
                     </span>
                   </span>
                   <span>-R{(d.discountAmountZAR / 100).toFixed(2)}</span>
