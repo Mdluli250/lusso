@@ -35,32 +35,18 @@ const ENGINE_JS_URL =
 export default function PayFastCheckoutForm({ uuid, merchantTransactionId }: PayFastCheckoutFormProps) {
   const scriptRef = useRef<HTMLScriptElement | null>(null);
   const [sdkError, setSdkError] = useState<string | null>(null);
+  const [sdkReady, setSdkReady] = useState(false);
   const [launched, setLaunched] = useState(false);
 
   useEffect(() => {
     if (!uuid) return;
 
-    function launchPayment() {
-      if (!window.payfast_do_onsite_payment) {
-        setSdkError('Payment SDK failed to load. Please refresh the page.');
-        return;
+    function markSdkReady() {
+      if (window.payfast_do_onsite_payment) {
+        setSdkReady(true);
+      } else {
+        setSdkError('Payment SDK failed to initialize. Please refresh the page.');
       }
-
-      if (launched) return; // guard against double-launch
-      setLaunched(true);
-
-      window.payfast_do_onsite_payment({ uuid }, (result) => {
-        if (result) {
-          // Payment completed — redirect to success page immediately.
-          // The ITN will arrive asynchronously and flip the order from PENDING → PAID;
-          // SuccessClient polls until that happens.
-          window.location.href = `/success?merchantTransactionId=${encodeURIComponent(merchantTransactionId)}`;
-        } else {
-          // User closed the modal without paying
-          console.log('[PayFast] Payment modal closed without payment');
-          setLaunched(false); // allow them to try again
-        }
-      });
     }
 
     // If the engine script is already in the DOM (e.g. HMR), reuse it.
@@ -70,9 +56,9 @@ export default function PayFastCheckoutForm({ uuid, merchantTransactionId }: Pay
 
     if (existing) {
       if (window.payfast_do_onsite_payment) {
-        launchPayment();
+        setSdkReady(true);
       } else {
-        existing.addEventListener('load', launchPayment, { once: true });
+        existing.addEventListener('load', markSdkReady, { once: true });
       }
       return;
     }
@@ -80,7 +66,7 @@ export default function PayFastCheckoutForm({ uuid, merchantTransactionId }: Pay
     const script = document.createElement('script');
     script.src = ENGINE_JS_URL;
     script.async = true;
-    script.addEventListener('load', launchPayment, { once: true });
+    script.addEventListener('load', markSdkReady, { once: true });
     script.addEventListener('error', () => {
       setSdkError('Payment SDK failed to load. Please refresh the page.');
     });
@@ -89,13 +75,31 @@ export default function PayFastCheckoutForm({ uuid, merchantTransactionId }: Pay
 
     return () => {
       if (scriptRef.current && document.body.contains(scriptRef.current)) {
-        scriptRef.current.removeEventListener('load', launchPayment);
+        scriptRef.current.removeEventListener('load', markSdkReady);
         document.body.removeChild(scriptRef.current);
         scriptRef.current = null;
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [uuid]);
+
+  function launchPayment() {
+    if (!window.payfast_do_onsite_payment) {
+      setSdkError('Payment SDK failed to load. Please refresh the page.');
+      return;
+    }
+    if (launched) return;
+
+    setLaunched(true);
+    window.payfast_do_onsite_payment({ uuid }, (result) => {
+      if (result) {
+        // The ITN updates the order asynchronously; the success page polls until it does.
+        window.location.href = `/success?merchantTransactionId=${encodeURIComponent(merchantTransactionId)}`;
+      } else {
+        setLaunched(false);
+      }
+    });
+  }
 
   if (sdkError) {
     return (
@@ -117,26 +121,27 @@ export default function PayFastCheckoutForm({ uuid, merchantTransactionId }: Pay
 
   return (
     <div className="w-full max-w-lg mx-auto flex flex-col items-center gap-6 py-8">
-      {/* Loading indicator shown while the modal is opening */}
-      {!launched && (
+      {!sdkReady && (
         <div className="flex flex-col items-center gap-3 text-[var(--theme-accent)]/70">
           <div className="w-8 h-8 border-2 border-current border-t-transparent rounded-full animate-spin" />
-          <p className="text-sm">Opening secure payment window&hellip;</p>
+          <p className="text-sm">Loading secure payment&hellip;</p>
         </div>
       )}
 
       {launched && (
         <p className="text-sm text-[var(--theme-accent)]/70 text-center">
-          Complete your payment in the PayFast window. If it did not open,{' '}
-          <button
-            type="button"
-            onClick={() => setLaunched(false)}
-            className="underline hover:text-[var(--theme-accent)] transition-colors"
-          >
-            click here to retry
-          </button>
-          .
+          Complete your payment in the PayFast window. If you close it, you can try again below.
         </p>
+      )}
+
+      {sdkReady && !launched && (
+        <button
+          type="button"
+          onClick={launchPayment}
+          className="rounded-md bg-[var(--theme-accent)] px-6 py-3 font-medium text-[var(--theme-bg)] transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--theme-accent)] focus-visible:ring-offset-2"
+        >
+          Continue to secure payment
+        </button>
       )}
 
       <a

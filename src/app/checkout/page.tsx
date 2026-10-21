@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCartStore } from '@/store/cartStore';
 import { useGiftWrapStore } from '@/store/giftWrapStore';
@@ -15,6 +15,7 @@ export default function CheckoutPage() {
   const [merchantTransactionId, setMerchantTransactionId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const checkoutStarted = useRef(false);
 
   const items = useCartStore((state) => state.items);
   const appliedDiscounts = useCartStore((state) => state.appliedDiscounts);
@@ -36,22 +37,35 @@ export default function CheckoutPage() {
   }, []);
 
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const discountTotal = appliedDiscounts.reduce((sum, discount) => sum + discount.discountAmountZAR, 0);
   const hasFreeShipping = appliedDiscounts.some((d) => d.type === 'FREE_SHIPPING');
   const estimatedShipping = subtotal >= freeThreshold || hasFreeShipping ? 0 : shippingRate;
+  const estimatedTotal = Math.max(subtotal - discountTotal, 0) + estimatedShipping + (giftWrapEnabled ? 4900 : 0);
 
   useEffect(() => {
     async function initCheckout() {
+      if (checkoutStarted.current) return;
+      checkoutStarted.current = true;
+
       if (items.length === 0) {
         setError('Your cart is empty. Please add items before checking out.');
         setLoading(false);
         return;
       }
 
-      const result = await createCheckoutSession(
-        items,
-        { enabled: giftWrapEnabled, message: giftMessage },
-        appliedDiscounts.length > 0 ? appliedDiscounts : undefined
-      );
+      let result: Awaited<ReturnType<typeof createCheckoutSession>>;
+      try {
+        result = await createCheckoutSession(
+          items,
+          { enabled: giftWrapEnabled, message: giftMessage },
+          appliedDiscounts.length > 0 ? appliedDiscounts : undefined
+        );
+      } catch (checkoutError) {
+        console.error('Checkout initialization failed:', checkoutError);
+        setError('Checkout could not be started. Please try again.');
+        setLoading(false);
+        return;
+      }
 
       if ('error' in result) {
         setError(result.error);
@@ -88,6 +102,7 @@ export default function CheckoutPage() {
 
   if (error) {
     const needsAddress = error.toLowerCase().includes('delivery address');
+    const needsSignIn = error.toLowerCase().includes('signed in');
     return (
       <main className="min-h-screen flex items-center justify-center bg-[var(--theme-bg)] text-[var(--theme-accent)]">
         <div className="text-center space-y-4 max-w-md px-4">
@@ -95,6 +110,14 @@ export default function CheckoutPage() {
           <h1 className="text-2xl font-semibold">Checkout Error</h1>
           <p className="text-[var(--theme-accent)]/70">{error}</p>
           <div className="flex gap-3 justify-center flex-wrap mt-4">
+            {needsSignIn && (
+              <a
+                href={`/auth/signin?callbackUrl=${encodeURIComponent('/checkout')}`}
+                className="inline-block px-6 py-3 bg-[var(--theme-accent)] text-cream rounded-md hover:opacity-90 transition-opacity"
+              >
+                Sign in to continue
+              </a>
+            )}
             {needsAddress && (
               <a
                 href="/dashboard/settings"
@@ -160,7 +183,7 @@ export default function CheckoutPage() {
           )}
           <div className="border-t border-[var(--theme-accent)]/10 pt-2 flex justify-between font-semibold text-[var(--theme-accent)]">
             <span>Total (estimated)</span>
-            <span>R{((subtotal - appliedDiscounts.reduce((sum, d) => sum + d.discountAmountZAR, 0) + estimatedShipping + (giftWrapEnabled ? 4900 : 0)) / 100).toFixed(2)}</span>
+            <span>R{(estimatedTotal / 100).toFixed(2)}</span>
           </div>
         </div>
 
