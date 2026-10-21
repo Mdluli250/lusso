@@ -276,7 +276,7 @@ export function ContactForm() {
       <div>
         <button
           type="submit"
-          className="min-h-[44px] min-w-[120px] rounded-md bg-charcoal px-6 py-3 text-base font-medium text-white transition-colors duration-150 hover:bg-warm-grey focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-charcoal"
+          className="min-h-[44px] min-w-[120px] rounded-md bg-theme-accent text-theme-bg px-6 py-3 text-base font-medium transition-opacity duration-150 hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-theme-accent"
         >
           Send Message
         </button>

@@ -41,7 +41,7 @@ export function EmailPopup() {
     // Show after 5 second delay
     const timer = setTimeout(() => {
       setIsVisible(true);
-    }, 5000);
+    },10000);
 
     return () => clearTimeout(timer);
   }, [session]);

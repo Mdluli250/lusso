@@ -55,7 +55,8 @@ function computeCheckoutTotal(
   const totalDiscount =
     discounts.length > 0 ? calculateTotalDiscount(discounts, cartSubtotal) : 0;
   const giftWrapCost = giftWrap ? 4900 : 0;
-  return Math.max(cartSubtotal - totalDiscount, 0) + giftWrapCost;
+  const shipping = cartSubtotal >= 75000 || discounts.some((discount) => discount.type === 'FREE_SHIPPING') ? 0 : 7500;
+  return Math.max(cartSubtotal - totalDiscount, 0) + giftWrapCost + shipping;
 }
 
 // ---------------------------------------------------------------------------
@@ -78,7 +79,8 @@ describe('Property 9: Checkout Total Calculation', () => {
               ? calculateTotalDiscount(discounts, cartSubtotal)
               : 0;
           const giftWrapCost = giftWrap ? 4900 : 0;
-          const expected = Math.max(cartSubtotal - totalDiscount, 0) + giftWrapCost;
+          const shipping = cartSubtotal >= 75000 || discounts.some((discount) => discount.type === 'FREE_SHIPPING') ? 0 : 7500;
+          const expected = Math.max(cartSubtotal - totalDiscount, 0) + giftWrapCost + shipping;
 
           const actual = computeCheckoutTotal(cartSubtotal, discounts, giftWrap);
 
@@ -123,7 +125,7 @@ describe('Property 9: Checkout Total Calculation', () => {
           ];
 
           const total = computeCheckoutTotal(cartSubtotal, discounts, false);
-          expect(total).toBe(0);
+          expect(total).toBe(cartSubtotal >= 75000 || discounts.some((discount) => discount.type === 'FREE_SHIPPING') ? 0 : 7500);
         },
       ),
       { numRuns: 100 },
@@ -148,7 +150,7 @@ describe('Property 9: Checkout Total Calculation', () => {
           ];
 
           const total = computeCheckoutTotal(cartSubtotal, discounts, true);
-          expect(total).toBe(4900);
+          expect(total).toBe(4900 + (cartSubtotal >= 75000 || discounts.some((discount) => discount.type === 'FREE_SHIPPING') ? 0 : 7500));
         },
       ),
       { numRuns: 100 },
@@ -170,16 +172,17 @@ describe('Property 9: Checkout Total Calculation', () => {
               ? calculateTotalDiscount(discounts, cartSubtotal)
               : 0;
           const giftWrapCost = giftWrap ? 4900 : 0;
+          const shipping = cartSubtotal >= 75000 || discounts.some((discount) => discount.type === 'FREE_SHIPPING') ? 0 : 7500;
           const totalAmountZAR =
-            Math.max(cartSubtotal - totalDiscount, 0) + giftWrapCost;
+            Math.max(cartSubtotal - totalDiscount, 0) + giftWrapCost + shipping;
 
           // Verify against our helper (which also uses calculateTotalDiscount)
           const helperResult = computeCheckoutTotal(cartSubtotal, discounts, giftWrap);
           expect(totalAmountZAR).toBe(helperResult);
 
-          // The key invariant: totalAmountZAR >= giftWrapCost
+          // The key invariant: totalAmountZAR >= giftWrapCost + shipping
           // (discount can zero out the cart but not the gift wrap)
-          expect(totalAmountZAR).toBeGreaterThanOrEqual(giftWrapCost);
+          expect(totalAmountZAR).toBeGreaterThanOrEqual(giftWrapCost + shipping);
         },
       ),
       { numRuns: 100 },

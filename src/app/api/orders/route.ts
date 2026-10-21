@@ -70,6 +70,10 @@ export async function GET(request: Request) {
       createdAt: true,
       totalAmountZAR: true,
       status: true,
+      fulfillmentStatus: true,
+      carrier: true,
+      trackingNumber: true,
+      refundAmountZAR: true,
     },
   });
 

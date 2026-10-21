@@ -425,4 +425,34 @@ export const CONTENT_REGISTRY: ContentRegistryEntry[] = [
     label: "Why Lusso items",
     description: "Array of plain strings listing the reasons to choose Lusso.",
   },
+
+  // ─── Announcement Banner ───────────────────────────────────────────────────
+  {
+    key: "announcement.active",
+    type: ContentType.text,
+    value: "false",
+    label: "Announcement active",
+    description: 'Set to "true" to show the banner, "false" to hide it.',
+  },
+  {
+    key: "announcement.text",
+    type: ContentType.text,
+    value: "Free shipping on all orders this weekend!",
+    label: "Announcement text",
+    description: "Message shown in the site-wide banner at the top of every page.",
+  },
+  {
+    key: "announcement.link",
+    type: ContentType.text,
+    value: "/collection",
+    label: "Announcement link URL",
+    description: "Optional URL for the call-to-action link in the banner.",
+  },
+  {
+    key: "announcement.link_label",
+    type: ContentType.text,
+    value: "Shop now →",
+    label: "Announcement link label",
+    description: "Text for the call-to-action link.",
+  },
 ];

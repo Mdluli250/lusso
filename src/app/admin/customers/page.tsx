@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { formatZAR } from '@/lib/formatCurrency';
 import Link from 'next/link';
+import { RoleToggle } from '@/components/admin/customers/RoleToggle';
 
 /**
  * Admin Customers page — Server Component.
@@ -68,7 +69,15 @@ export default async function CustomersPage({ searchParams }: CustomersPageProps
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-foreground">Customers</h1>
-        <span className="text-sm text-muted">{totalCount} total</span>
+        <div className="flex items-center gap-3">
+          <span className="text-sm text-muted">{totalCount} total</span>
+          <a
+            href="/api/admin/export/customers"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-border text-sm font-medium text-foreground hover:bg-surface-muted transition-colors"
+          >
+            ↓ Export CSV
+          </a>
+        </div>
       </div>
 
       {/* Search */}
@@ -135,12 +144,15 @@ export default async function CustomersPage({ searchParams }: CustomersPageProps
                     {new Date(customer.createdAt).toLocaleDateString('en-ZA')}
                   </td>
                   <td className="px-4 py-3">
-                    <Link
-                      href={`/admin/orders?search=${encodeURIComponent(customer.email)}`}
-                      className="text-xs text-theme-accent hover:underline"
-                    >
-                      View orders
-                    </Link>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Link
+                        href={`/admin/orders?search=${encodeURIComponent(customer.email)}`}
+                        className="text-xs text-theme-accent hover:underline"
+                      >
+                        View orders
+                      </Link>
+                      <RoleToggle userId={customer.id} currentRole={customer.role} />
+                    </div>
                   </td>
                 </tr>
               ))

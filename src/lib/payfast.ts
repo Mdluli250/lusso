@@ -39,6 +39,11 @@ export interface PayFastPaymentData {
   name_last?: string;
   /** Customer email address (required for Onsite API) */
   email_address: string;
+  subscription_type?: string;
+  billing_date?: string;
+  recurring_amount?: string;
+  frequency?: string;
+  cycles?: string;
 }
 
 // ─── Signature generation ─────────────────────────────────────────────────────
@@ -110,7 +115,14 @@ export async function generatePayFastUUID(
     m_payment_id: paymentData.m_payment_id,
     amount: paymentData.amount,
     item_name: paymentData.item_name,
+    ...(paymentData.subscription_type ? { subscription_type: paymentData.subscription_type } : {}),
+    ...(paymentData.billing_date ? { billing_date: paymentData.billing_date } : {}),
+    ...(paymentData.recurring_amount ? { recurring_amount: paymentData.recurring_amount } : {}),
+    ...(paymentData.frequency ? { frequency: paymentData.frequency } : {}),
+    ...(paymentData.cycles ? { cycles: paymentData.cycles } : {}),
   };
+
+  if (paymentData.subscription_type === '2') data.subscription_type = '2';
 
   // Signature must be appended last and is not included in its own hash input
   data['signature'] = generateSignature(data);

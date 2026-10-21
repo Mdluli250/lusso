@@ -4,10 +4,12 @@ import { SessionProvider } from '@/components/providers/SessionProvider';
 import { ThemeProvider } from '@/components/providers/ThemeProvider';
 import { ToastProvider } from '@/components/ui/Toast';
 import { EmailPopup } from '@/components/marketing/EmailPopup';
+import { CookieBanner } from '@/components/marketing/CookieBanner';
 import { ComparisonBar } from '@/components/comparison/ComparisonBar';
 import NavBar from '@/components/layout/NavBar';
 import Footer from '@/components/layout/Footer';
 import { OrganizationJsonLd } from '@/components/seo/OrganizationJsonLd';
+import { AnnouncementBanner } from '@/components/marketing/AnnouncementBanner';
 import './globals.css';
 
 const geistSans = Geist({
@@ -76,11 +78,13 @@ export default function RootLayout({
         <SessionProvider>
           <ThemeProvider>
             <ToastProvider>
+              <AnnouncementBanner />
               <NavBar />
               <main className="flex-1 pb-[var(--comparison-bar-height,0px)] page-enter">{children}</main>
               <Footer />
               <ComparisonBar />
               <EmailPopup />
+              <CookieBanner />
             </ToastProvider>
           </ThemeProvider>
         </SessionProvider>

@@ -40,6 +40,9 @@ export async function GET(
     select: {
       id: true,
       status: true,
+      fulfillmentStatus: true,
+      trackingNumber: true,
+      carrier: true,
       userId: true,
     },
   });
@@ -53,5 +56,5 @@ export async function GET(
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
-  return NextResponse.json({ status: order.status }, { status: 200 });
+  return NextResponse.json({ status: order.status, fulfillmentStatus: order.fulfillmentStatus, trackingNumber: order.trackingNumber, carrier: order.carrier }, { status: 200 });
 }

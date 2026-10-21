@@ -17,6 +17,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { CelebrationScene } from '@/components/three/CelebrationScene';
 import { useCartStore } from '@/store/cartStore';
+import { useGiftWrapStore } from '@/store/giftWrapStore';
 import gsap from 'gsap';
 
 interface SuccessClientProps {
@@ -46,13 +47,17 @@ export function SuccessClient({
   const [pollError, setPollError] = useState(false);
   const confirmationRef = useRef<HTMLDivElement>(null);
   const clearCart = useCartStore((state) => state.clearCart);
+  const resetGiftWrap = useGiftWrapStore((state) => state.reset);
   const pollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pollStartRef = useRef<number>(Date.now());
 
   // ── Cart clear ─────────────────────────────────────────────────────────────
   useEffect(() => {
-    clearCart();
-  }, [clearCart]);
+    if (status === 'PAID') {
+      clearCart();
+      resetGiftWrap();
+    }
+  }, [clearCart, resetGiftWrap, status]);
 
   // ── GSAP entrance ──────────────────────────────────────────────────────────
   useEffect(() => {
@@ -192,13 +197,18 @@ export function SuccessClient({
 
           {/* Receipt download — only when PAID */}
           {isPaid && (
-            <div className="mt-4 pt-4 border-t border-[var(--theme-accent)]/10">
+            <div className="mt-4 pt-4 border-t border-[var(--theme-accent)]/10 flex gap-3 flex-wrap justify-center">
               <a
                 href={`/api/documents/receipts/${orderId}`}
-                download
-                className="inline-block px-4 py-2 text-sm font-medium text-[var(--theme-accent)] bg-[var(--theme-accent)]/10 hover:bg-[var(--theme-accent)]/20 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)] focus:ring-offset-2"
+                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-[var(--theme-accent)] bg-[var(--theme-accent)]/10 hover:bg-[var(--theme-accent)]/20 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)] focus:ring-offset-2"
               >
-                Download Receipt
+                ✅ Download Receipt
+              </a>
+              <a
+                href={`/api/documents/invoices/${orderId}`}
+                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-[var(--theme-accent)] bg-[var(--theme-accent)]/10 hover:bg-[var(--theme-accent)]/20 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)] focus:ring-offset-2"
+              >
+                🧾 Download Invoice
               </a>
             </div>
           )}

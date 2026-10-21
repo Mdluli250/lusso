@@ -92,7 +92,8 @@ export default async function ExperiencesPage() {
 
             <a
               href="#inquiry-form"
-              className="inline-block min-h-[44px] min-w-[120px] rounded-md bg-charcoal px-6 py-3 text-base font-medium text-cream text-center transition-colors duration-150 hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-charcoal"
+              style={{ color: 'var(--theme-bg)' }}
+              className="inline-block min-h-[44px] min-w-[120px] rounded-md bg-theme-accent px-6 py-3 text-base font-medium text-center transition-opacity duration-150 hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-theme-accent"
             >
               Inquire About a Picnic
             </a>
@@ -144,7 +145,8 @@ export default async function ExperiencesPage() {
 
             <a
               href="#inquiry-form"
-              className="inline-block min-h-[44px] min-w-[120px] rounded-md bg-charcoal px-6 py-3 text-base font-medium text-cream text-center transition-colors duration-150 hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-charcoal"
+              style={{ color: 'var(--theme-bg)' }}
+              className="inline-block min-h-[44px] min-w-[120px] rounded-md bg-theme-accent px-6 py-3 text-base font-medium text-center transition-opacity duration-150 hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-theme-accent"
             >
               Book a Consultation
             </a>

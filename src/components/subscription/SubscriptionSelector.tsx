@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import { createSubscription } from '@/actions/subscriptions';
 import { formatZAR } from '@/lib/formatCurrency';
 import { Button } from '@/components/ui/Button';
+import PayFastCheckoutForm from '@/components/checkout/PayFastCheckoutForm';
 
 interface SubscriptionSelectorProps {
   variantId: string;
@@ -24,6 +25,7 @@ export function SubscriptionSelector({ variantId, price }: SubscriptionSelectorP
   const [selectedFrequency, setSelectedFrequency] = useState<string>('MONTHLY');
   const [isPending, startTransition] = useTransition();
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [payment, setPayment] = useState<{ checkoutId: string; merchantTransactionId: string } | null>(null);
 
   const discountedPrice = Math.round(price * (1 - DISCOUNT_PERCENT / 100));
 
@@ -40,7 +42,10 @@ export function SubscriptionSelector({ variantId, price }: SubscriptionSelectorP
       });
 
       if (result.success) {
-        setMessage({ type: 'success', text: 'Subscription created! Check your dashboard for details.' });
+        if (result.checkoutId && result.merchantTransactionId) {
+          setPayment({ checkoutId: result.checkoutId, merchantTransactionId: result.merchantTransactionId });
+          setMessage({ type: 'success', text: 'Complete the secure payment to activate this subscription.' });
+        } else setMessage({ type: 'error', text: 'Payment setup was not returned. Please try again.' });
       } else {
         setMessage({ type: 'error', text: result.error });
       }
@@ -109,6 +114,8 @@ export function SubscriptionSelector({ variantId, price }: SubscriptionSelectorP
           {message.text}
         </p>
       )}
+
+      {payment && <PayFastCheckoutForm uuid={payment.checkoutId} merchantTransactionId={payment.merchantTransactionId} />}
 
       {!session?.user && (
         <p className="text-xs text-[var(--theme-accent)]/50">

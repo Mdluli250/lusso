@@ -1,20 +1,19 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import path from 'path';
-
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { generateReceipt } from '@/lib/documents/receipt-generator';
-import { readDocument, getStorageBasePath } from '@/lib/documents/storage';
+import { generateReceiptPDF } from '@/lib/documents/receipt-generator';
 import type { ReceiptData } from '@/lib/documents/types';
 
 /**
- * Receipt download route handler.
- * Authenticates user, verifies ownership, and serves the receipt PDF.
- * Triggers on-demand generation if the receipt doesn't exist yet.
+ * GET /api/documents/receipts/[orderId]
+ *
+ * Generates and streams a receipt PDF on demand.
+ * Requires the requesting user to own the order or be an admin.
+ * Serverless-safe — no filesystem writes.
  */
 export async function GET(
-  request: Request,
+  _request: Request,
   { params }: { params: Promise<{ orderId: string }> }
 ): Promise<Response> {
   const session = await getServerSession(authOptions);
@@ -33,67 +32,46 @@ export async function GET(
     return NextResponse.json({ error: 'Order not found' }, { status: 404 });
   }
 
-  // Verify ownership: user owns the order OR is an admin
-  if (session.user.id !== order.userId && session.user.role !== 'ADMIN') {
+  if (session.user.id !== order.userId && (session.user as any).role !== 'ADMIN') {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
-  let receiptPath = order.receiptPath;
-
-  // If receiptPath is null, trigger on-demand generation
-  if (!receiptPath) {
-    const items = order.items as Array<{
-      name: string;
-      quantity: number;
-      price: number;
-    }>;
-
-    const receiptData: ReceiptData = {
-      orderId: order.id,
-      receiptDate: new Date(),
-      customerName: order.user.name || 'Customer',
-      customerEmail: order.user.email,
-      items: items.map((item) => ({
-        name: item.name,
-        quantity: item.quantity,
-        unitPriceCents: item.price,
-      })),
-      totalCents: order.totalAmountZAR,
-    };
-
-    receiptPath = await generateReceipt(receiptData);
-
-    if (!receiptPath) {
-      return NextResponse.json(
-        { error: 'Failed to generate receipt' },
-        { status: 500 }
-      );
-    }
-
-    // Update order record with the generated path
-    await prisma.order.update({
-      where: { id: order.id },
-      data: { receiptPath },
-    });
+  if (order.status !== 'PAID') {
+    return NextResponse.json({ error: 'Receipt is only available for paid orders' }, { status: 400 });
   }
 
-  // Read the PDF from filesystem
+  const items = Array.isArray(order.items)
+    ? (order.items as Array<{ name: string; quantity: number; price: number }>)
+    : [];
+
+  const receiptData: ReceiptData = {
+    orderId: order.id,
+    receiptDate: order.createdAt,
+    customerName: order.user.name ?? 'Customer',
+    customerEmail: order.user.email,
+    items: items.map((item) => ({
+      name: item.name,
+      quantity: item.quantity,
+      unitPriceCents: item.price,
+    })),
+    shippingCents: order.shippingAmountZAR ?? 0,
+    totalCents: order.totalAmountZAR,
+  };
+
   try {
-    const fullPath = path.resolve(getStorageBasePath(), receiptPath);
-    const pdfBuffer = await readDocument(fullPath);
+    const pdfBuffer = await generateReceiptPDF(receiptData);
+    const filename = `lusso-receipt-${order.id.slice(0, 8).toUpperCase()}.pdf`;
 
     return new Response(new Uint8Array(pdfBuffer), {
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="receipt-${orderId}.pdf"`,
+        'Content-Disposition': `attachment; filename="${filename}"`,
+        'Cache-Control': 'private, no-store',
       },
     });
-  } catch (error) {
-    console.error(`[ReceiptDownload] Failed to read receipt for order ${orderId}:`, error);
-    return NextResponse.json(
-      { error: 'Failed to read receipt file' },
-      { status: 500 }
-    );
+  } catch (err) {
+    console.error(`[ReceiptDownload] Generation failed for order ${orderId}:`, err);
+    return NextResponse.json({ error: 'Failed to generate receipt' }, { status: 500 });
   }
 }

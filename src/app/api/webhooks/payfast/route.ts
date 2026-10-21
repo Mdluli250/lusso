@@ -5,6 +5,8 @@ import { extractClientIp, checkRateLimit, createRateLimitResponse } from '@/lib/
 import { generateInvoice } from '@/lib/documents/invoice-generator';
 import { generateReceipt } from '@/lib/documents/receipt-generator';
 import type { InvoiceData, ReceiptData } from '@/lib/documents/types';
+import { sendOrderEmail, sendOrderConfirmationEmail, sendPaymentFailedEmail } from '@/lib/email';
+import { calculateNextDeliveryDate } from '@/lib/subscriptions';
 import {
   validateITNSignature,
   validateITNSourceIP,
@@ -71,6 +73,7 @@ export async function POST(request: Request): Promise<Response> {
     return NextResponse.json({ received: true }, { status: 200 });
   }
 
+
   // ── Security check 1: MD5 signature ─────────────────────────────────────────
   const signatureValid = validateITNSignature(pfData);
   if (!signatureValid) {
@@ -126,22 +129,86 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   // ── Skip redundant writes for already-terminal orders ────────────────────────
-  if (order.status === 'PAID' || order.status === 'REFUNDED') {
+  if (order.status === 'PAID' || order.status === 'REFUNDED' || order.paymentStatus === 'REFUND_PENDING') {
     console.log(
       `[PayFast ITN] Order ${order.id} is already ${order.status} — skipping update.`
     );
     return NextResponse.json({ received: true }, { status: 200 });
   }
+  if (order.status !== 'PENDING') {
+    console.log(`[PayFast ITN] Order ${order.id} is already terminal (${order.status}) — skipping late notification.`);
+    return NextResponse.json({ received: true }, { status: 200 });
+  }
 
   // ── Update order status ───────────────────────────────────────────────────────
-  await prisma.order.update({
-    where: { id: order.id },
-    data: {
-      status: newStatus,
-      // Store the raw PayFast payment_status for auditing / support queries.
-      paymentStatus,
-    },
+  const settledOrder = await prisma.$transaction(async (tx) => {
+    const changed = await tx.order.updateMany({
+      where: { id: order.id, status: 'PENDING' },
+      data: { status: newStatus, paymentStatus, payfastPaymentId: pfData['pf_payment_id'] ?? null, reservationExpiresAt: null },
+    });
+    if (changed.count !== 1) return false;
+    if (newStatus === 'FAILED') {
+      const items = order.items as Array<{ variantId?: string; quantity: number }>;
+      for (const item of items) {
+        if (item.variantId) await tx.productVariant.update({ where: { id: item.variantId }, data: { stock: { increment: item.quantity } } });
+      }
+      if (order.subscriptionId) {
+        await tx.subscription.update({
+          where: { id: order.subscriptionId },
+          data: { status: 'PAUSED', failureReason: 'Subscription payment failed.', retryCount: { increment: 1 } },
+        });
+      }
+    }
+    if (newStatus === 'PAID' && order.status === 'PENDING' && order.discountData && typeof order.discountData === 'object') {
+      const data = order.discountData as { codes?: Array<{ codeId: string; isEmailCapture?: boolean; amount: number }> };
+      for (const code of data.codes ?? []) {
+        await tx.discountUsage.createMany({
+          data: [{
+            discountCodeId: code.isEmailCapture ? undefined : code.codeId,
+            emailCaptureCode: code.isEmailCapture ? code.codeId.replace('emailcapture:', '') : undefined,
+            userId: order.userId,
+            orderId: order.id,
+            discountAmountZAR: code.amount,
+          }],
+          skipDuplicates: true,
+        });
+      }
+    }
+    if (order.subscriptionId && newStatus === 'PAID') {
+      const token = pfData['token'] ?? pfData['subscription_id'] ?? pfData['custom_str1'] ?? null;
+      const subscription = await tx.subscription.findUnique({ where: { id: order.subscriptionId } });
+      const isInitialSubscriptionPayment = subscription?.token == null;
+      await tx.subscription.update({
+        where: { id: order.subscriptionId },
+        data: {
+          status: isInitialSubscriptionPayment && !token ? 'PAUSED' : 'ACTIVE',
+          token: token ?? subscription?.token,
+          nextDeliveryAt: subscription ? calculateNextDeliveryDate(new Date(), subscription.frequency) : null,
+          lastChargedAt: new Date(),
+          failureReason: isInitialSubscriptionPayment && !token ? 'PayFast did not return a recurring billing token.' : null,
+        },
+      });
+      if (isInitialSubscriptionPayment && !token) {
+        await tx.order.update({ where: { id: order.id }, data: { fulfillmentStatus: 'CANCELLED' } });
+      } else if (isInitialSubscriptionPayment && token) {
+        await tx.order.update({ where: { id: order.id }, data: { fulfillmentStatus: 'PROCESSING' } });
+      }
+    }
+    if (order.subscriptionId && newStatus === 'FAILED') {
+      const subscription = await tx.subscription.findUnique({ where: { id: order.subscriptionId } });
+      if (subscription?.token == null) {
+        await tx.subscription.delete({ where: { id: order.subscriptionId } });
+      } else {
+        await tx.subscription.update({
+          where: { id: order.subscriptionId },
+          data: { status: 'PAUSED', failureReason: 'Initial subscription payment failed.', retryCount: { increment: 1 } },
+        });
+      }
+    }
+    return true;
   });
+
+  if (!settledOrder) return NextResponse.json({ received: true }, { status: 200 });
 
   console.log(
     `[PayFast ITN] Order ${order.id} updated → ${newStatus} (payment_status: ${paymentStatus})`
@@ -156,6 +223,20 @@ export async function POST(request: Request): Promise<Response> {
       });
 
       if (orderWithUser) {
+        await sendOrderConfirmationEmail(orderWithUser.id, orderWithUser.user.email, {
+            orderId: orderWithUser.id,
+            customerName: orderWithUser.user.name || 'Customer',
+            items: items.map((item) => ({
+              name: item.name,
+              scent: item.scent,
+              quantity: item.quantity,
+              price: item.price,
+            })),
+            subtotalCents: Math.max(orderWithUser.totalAmountZAR - orderWithUser.shippingAmountZAR, 0),
+            shippingCents: orderWithUser.shippingAmountZAR,
+            totalCents: orderWithUser.totalAmountZAR,
+            shippingAddress: orderWithUser.shippingAddress as any,
+          }).catch((emailError) => console.error('[PayFast ITN] Confirmation email failed:', emailError));
         const items = orderWithUser.items as Array<{
           name: string;
           scent?: string;
@@ -174,8 +255,9 @@ export async function POST(request: Request): Promise<Response> {
             quantity: item.quantity,
             unitPriceCents: item.price,
           })),
-          subtotalCents: orderWithUser.totalAmountZAR,
+          subtotalCents: Math.max(orderWithUser.totalAmountZAR - orderWithUser.shippingAmountZAR, 0),
           totalCents: orderWithUser.totalAmountZAR,
+          shippingCents: orderWithUser.shippingAmountZAR,
         };
 
         const receiptData: ReceiptData = {
@@ -189,6 +271,7 @@ export async function POST(request: Request): Promise<Response> {
             unitPriceCents: item.price,
           })),
           totalCents: orderWithUser.totalAmountZAR,
+          shippingCents: orderWithUser.shippingAmountZAR,
         };
 
         const [invoicePath, receiptPath] = await Promise.all([
@@ -214,6 +297,12 @@ export async function POST(request: Request): Promise<Response> {
         err
       );
     }
+  }
+
+  if (newStatus === 'FAILED') {
+    const failedUser = await prisma.user.findUnique({ where: { id: order.userId }, select: { email: true, name: true } });
+    await sendPaymentFailedEmail(order.id, failedUser?.email ?? '', failedUser?.name ?? 'Customer')
+      .catch((error) => console.error('[PayFast ITN] Failure notice error:', error));
   }
 
   return NextResponse.json({ received: true }, { status: 200 });

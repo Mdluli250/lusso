@@ -11,6 +11,7 @@ export interface InvoiceData {
   }>;
   subtotalCents: number;
   totalCents: number;
+  shippingCents?: number;
 }
 
 export interface ReceiptData {
@@ -24,4 +25,5 @@ export interface ReceiptData {
     unitPriceCents: number;
   }>;
   totalCents: number;
+  shippingCents?: number;
 }

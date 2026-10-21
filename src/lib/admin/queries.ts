@@ -76,6 +76,13 @@ interface OrderFull extends OrderWithCustomer {
   items: { name: string; quantity: number; price: number }[];
   giftWrap: boolean;
   giftMessage: string | null;
+  shippingAddress: Record<string, string> | null;
+  shippingAmountZAR: number;
+  fulfillmentStatus: string;
+  carrier: string | null;
+  trackingNumber: string | null;
+    refundAmountZAR: number; // Added refund amount
+    payfastPaymentId: string | null; // Added PayFast reference
 }
 
 interface InventoryVariant {
@@ -416,6 +423,13 @@ export async function getOrderById(id: string): Promise<OrderFull | null> {
     items,
     giftWrap: order.giftWrap,
     giftMessage: order.giftMessage,
+    shippingAddress: order.shippingAddress as Record<string, string> | null,
+    shippingAmountZAR: order.shippingAmountZAR,
+    fulfillmentStatus: order.fulfillmentStatus,
+    carrier: order.carrier,
+    trackingNumber: order.trackingNumber,
+    refundAmountZAR: order.refundAmountZAR,
+    payfastPaymentId: order.payfastPaymentId,
   };
 }
 

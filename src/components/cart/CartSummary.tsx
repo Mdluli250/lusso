@@ -29,6 +29,8 @@ export function CartSummary() {
     (sum, item) => sum + item.price * item.quantity,
     0
   );
+  const freeShippingCode = appliedDiscounts.some((discount) => discount.type === 'FREE_SHIPPING');
+  const shipping = subtotalCents >= 75000 || freeShippingCode ? 0 : 7500;
 
   const totalDiscountCents = appliedDiscounts.reduce(
     (sum, d) => sum + d.discountAmountZAR,
@@ -42,7 +44,7 @@ export function CartSummary() {
     Math.max(subtotalCents - totalDiscountCents, 0) + giftWrapCents;
 
   const hasDiscounts = appliedDiscounts.length > 0;
-  const showBreakdown = hasDiscounts || giftWrapEnabled;
+  const showBreakdown = hasDiscounts || giftWrapEnabled || shipping > 0;
   const isEmpty = totalItems === 0;
 
   return (
@@ -60,6 +62,11 @@ export function CartSummary() {
               : `${totalItems} items`}
           </span>
           <span className="tabular-nums">{formatZAR(subtotalCents)}</span>
+        </div>
+
+        <div className="flex justify-between text-sm text-[var(--theme-accent)]/70">
+          <span>Shipping</span>
+          <span className="tabular-nums">{shipping === 0 ? 'Free' : formatZAR(shipping)}</span>
         </div>
 
         {/* Per-discount deduction rows */}
@@ -97,16 +104,15 @@ export function CartSummary() {
           <div className="border-t border-[var(--theme-accent)]/10 pt-2 mt-2">
             <div className="flex justify-between text-base font-semibold text-[var(--theme-accent)]">
               <span>Total</span>
-              <span className="tabular-nums">{formatZAR(finalTotal)}</span>
+              <span className="tabular-nums">{formatZAR(finalTotal + shipping)}</span>
             </div>
           </div>
         )}
 
-        {/* Plain total when there's no breakdown */}
         {!showBreakdown && (
           <div className="flex justify-between text-base font-semibold text-[var(--theme-accent)]">
             <span>Total</span>
-            <span className="tabular-nums">{formatZAR(finalTotal)}</span>
+            <span className="tabular-nums">{formatZAR(finalTotal + shipping)}</span>
           </div>
         )}
       </div>

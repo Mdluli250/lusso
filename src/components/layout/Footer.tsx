@@ -70,7 +70,7 @@ export default async function Footer() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-6">
           {/* Brand & Sustainability */}
           <div>
             <div className="mb-3 flex items-center gap-2 text-sm font-semibold tracking-tight">
@@ -132,6 +132,29 @@ export default async function Footer() {
             </ul>
           </div>
 
+          {/* Help & Legal */}
+          <div>
+            <h2 className="mb-3 text-sm font-semibold">Help &amp; Legal</h2>
+            <ul className="space-y-2 text-sm opacity-70">
+              {[
+                { href: '/faq', label: 'FAQ' },
+                { href: '/candle-care', label: 'Candle Care' },
+                { href: '/returns', label: 'Returns & Refunds' },
+                { href: '/terms', label: 'Terms of Service' },
+                { href: '/privacy', label: 'Privacy Policy' },
+              ].map(({ href, label }) => (
+                <li key={href}>
+                  <Link
+                    href={href}
+                    className="hover:opacity-100 transition-opacity focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent)] rounded-sm"
+                  >
+                    {label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
           {/* Contact Info */}
           <div>
             <h2 className="mb-3 text-sm font-semibold">Contact</h2>
@@ -177,11 +200,16 @@ export default async function Footer() {
           </div>
         </div>
 
-        {/* Bottom bar: copyright + attribution */}
-        <div className="mt-8 flex flex-col items-center justify-between gap-2 border-t border-[var(--border)] pt-6 sm:flex-row">
+        {/* Bottom bar: copyright + legal links */}
+        <div className="mt-8 flex flex-col items-center justify-between gap-3 border-t border-[var(--border)] pt-6 sm:flex-row">
           <p className="text-xs opacity-50">
             &copy; {year} Lusso. All rights reserved.
           </p>
+          <div className="flex gap-4 text-xs opacity-50">
+            <Link href="/privacy" className="hover:opacity-100 transition-opacity">Privacy</Link>
+            <Link href="/terms" className="hover:opacity-100 transition-opacity">Terms</Link>
+            <Link href="/returns" className="hover:opacity-100 transition-opacity">Returns</Link>
+          </div>
         </div>
       </div>
     </footer>

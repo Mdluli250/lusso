@@ -32,7 +32,15 @@ export default async function OrdersPage({ searchParams }: OrdersPageProps) {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-foreground">Orders</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-foreground">Orders</h1>
+        <a
+          href="/api/admin/export/orders"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-border text-sm font-medium text-foreground hover:bg-surface-muted transition-colors"
+        >
+          ↓ Export CSV
+        </a>
+      </div>
 
       <OrderTable
         orders={orders}

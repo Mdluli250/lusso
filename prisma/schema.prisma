@@ -40,20 +40,25 @@ enum SubscriptionFrequency {
 // ─── NextAuth.js Models ───────────────────────────────────────────
 
 model User {
-  id             String           @id @default(cuid())
-  name           String?
-  email          String           @unique
-  emailVerified  DateTime?
-  image          String?
-  role           UserRole         @default(CUSTOMER)
-  accounts       Account[]
-  orders         Order[]
-  wishlistItems  WishlistItem[]
-  reviews        Review[]
-  recentlyViewed RecentlyViewed[]
-  subscriptions  Subscription[]
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
+  id                   String           @id @default(cuid())
+  name                 String?
+  email                String           @unique
+  emailVerified        DateTime?
+  image                String?
+  role                 UserRole         @default(CUSTOMER)
+  // Credential auth fields
+  password             String?          @db.Text
+  passwordResetToken   String?          @unique
+  passwordResetExpires DateTime?
+  shippingAddress      ShippingAddress?
+  accounts             Account[]
+  orders               Order[]
+  wishlistItems        WishlistItem[]
+  reviews              Review[]
+  recentlyViewed       RecentlyViewed[]
+  subscriptions        Subscription[]
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
 }
 
 model Account {
@@ -128,6 +133,31 @@ enum OrderStatus {
   REFUNDED
 }
 
+enum FulfillmentStatus {
+  UNFULFILLED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+model ShippingAddress {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  recipient    String   @db.VarChar(120)
+  phone        String   @db.VarChar(30)
+  addressLine1 String   @db.VarChar(180)
+  addressLine2 String?  @db.VarChar(180)
+  city         String   @db.VarChar(100)
+  province     String   @db.VarChar(100)
+  postalCode   String   @db.VarChar(20)
+  country      String   @default("South Africa") @db.VarChar(80)
+  updatedAt    DateTime @updatedAt
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
 model Order {
   id                    String      @id @default(cuid())
   userId                String
@@ -142,6 +172,18 @@ model Order {
   giftMessage           String?     @db.VarChar(200)
   discountData          Json?
   subscriptionId        String?
+  shippingAddress       Json?
+  shippingAmountZAR     Int                 @default(0)
+  fulfillmentStatus     FulfillmentStatus   @default(UNFULFILLED)
+  carrier               String?             @db.VarChar(100)
+  trackingNumber        String?             @db.VarChar(200)
+  shippedAt             DateTime?
+  deliveredAt           DateTime?
+  refundedAt            DateTime?
+  refundReference       String?             @db.VarChar(200)
+  refundAmountZAR       Int                 @default(0)
+  payfastPaymentId      String?
+  reservationExpiresAt  DateTime?
   createdAt             DateTime    @default(now())
   updatedAt             DateTime    @updatedAt
 
@@ -242,6 +284,10 @@ model Subscription {
   status         SubscriptionStatus    @default(ACTIVE)
   nextDeliveryAt DateTime?
   failureReason  String?
+  token          String?               @db.VarChar(255)
+  paymentMethod  String?               @db.VarChar(80)
+  lastChargedAt  DateTime?
+  retryCount     Int                   @default(0)
   createdAt      DateTime              @default(now())
   updatedAt      DateTime              @updatedAt
 
@@ -250,6 +296,14 @@ model Subscription {
 
   @@index([userId])
   @@index([status, nextDeliveryAt])
+}
+
+model NotificationLog {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  type      String   @db.VarChar(80)
+  recipient String   @db.VarChar(254)
+  sentAt    DateTime @default(now())
 }
 
 // ─── Discount Codes ───────────────────────────────────────────────
@@ -289,6 +343,31 @@ model GalleryImage {
   updatedAt DateTime @updatedAt
 
   @@index([isActive, sortOrder])
+}
+
+// ─── Return Requests ──────────────────────────────────────────────
+
+enum ReturnRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  COMPLETED
+}
+
+model ReturnRequest {
+  id        String              @id @default(cuid())
+  orderId   String
+  userId    String
+  reason    String              @db.VarChar(1000)
+  items     Json                // Array of { name, quantity } being returned
+  status    ReturnRequestStatus @default(PENDING)
+  adminNote String?             @db.VarChar(500)
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+
+  @@index([orderId])
+  @@index([userId])
+  @@index([status])
 }
 
 // ─── Discount Usage ───────────────────────────────────────────────

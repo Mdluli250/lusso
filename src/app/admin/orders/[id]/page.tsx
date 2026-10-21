@@ -3,6 +3,8 @@ import { getOrderById } from '@/lib/admin/queries';
 import { StatusBadge } from '@/components/admin/ui/StatusBadge';
 import { StatusTransition } from '@/components/admin/orders/StatusTransition';
 import { formatZAR } from '@/lib/formatCurrency';
+import { FulfillmentForm } from '@/components/admin/orders/FulfillmentForm';
+import { RefundForm } from '@/components/admin/orders/RefundForm';
 
 interface OrderDetailPageProps {
   params: Promise<{ id: string }>;
@@ -104,6 +106,27 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
         <StatusTransition orderId={order.id} currentStatus={order.status} />
       </div>
 
+      <div className="rounded-lg border border-border p-5 space-y-4">
+        <h2 className="text-lg font-semibold text-foreground">Delivery &amp; Fulfillment</h2>
+        {order.shippingAddress ? (
+          <address className="not-italic text-sm text-foreground">
+            {order.shippingAddress.recipient}<br />{order.shippingAddress.phone}<br />
+            {order.shippingAddress.addressLine1}{order.shippingAddress.addressLine2 ? `, ${order.shippingAddress.addressLine2}` : ''}<br />
+            {order.shippingAddress.city}, {order.shippingAddress.province} {order.shippingAddress.postalCode}<br />{order.shippingAddress.country}
+          </address>
+        ) : <p className="text-sm text-muted">No delivery address saved on this order.</p>}
+        <p className="text-sm text-muted">Shipping: {formatZAR(order.shippingAmountZAR)}</p>
+        <FulfillmentForm orderId={order.id} status={order.status === 'PAID' ? order.fulfillmentStatus : 'UNFULFILLED'} carrier={order.carrier} trackingNumber={order.trackingNumber} />
+      </div>
+
+      <div className="rounded-lg border border-border p-5 space-y-4">
+        <h2 className="text-lg font-semibold text-foreground">Refund</h2>
+        <p className="text-sm text-muted">Refunded to date: {formatZAR(order.refundAmountZAR)}</p>
+        {order.status === 'PAID' && order.payfastPaymentId
+          ? <RefundForm orderId={order.id} remainingCents={Math.max(order.totalAmountZAR - order.refundAmountZAR, 0)} />
+          : <p className="text-sm text-muted">Gateway refund is unavailable for this order.</p>}
+      </div>
+
       {/* Gift Wrapping */}
       <div className="rounded-lg border border-border p-5 space-y-4">
         <h2 className="text-lg font-semibold text-foreground">Gift Wrapping</h2>
@@ -129,13 +152,20 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
       {order.status === 'PAID' && (
         <div className="rounded-lg border border-border p-5 space-y-4">
           <h2 className="text-lg font-semibold text-foreground">Documents</h2>
-          <a
-            href={`/api/documents/invoices/${order.id}`}
-            download
-            className="inline-block px-4 py-2 text-sm font-medium text-foreground bg-surface-muted hover:bg-surface-muted/80 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-1"
-          >
-            Download Invoice
-          </a>
+          <div className="flex gap-3 flex-wrap">
+            <a
+              href={`/api/documents/invoices/${order.id}`}
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-foreground bg-surface-muted hover:bg-surface-muted/80 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-1"
+            >
+              🧾 Download Invoice
+            </a>
+            <a
+              href={`/api/documents/receipts/${order.id}`}
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-foreground bg-surface-muted hover:bg-surface-muted/80 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-1"
+            >
+              ✅ Download Receipt
+            </a>
+          </div>
         </div>
       )}
 

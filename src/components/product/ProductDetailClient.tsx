@@ -28,6 +28,7 @@ import { useCartStore } from "@/store/cartStore";
 import { useRecentlyViewedStore } from "@/store/recentlyViewedStore";
 import { VariantSelector } from "./VariantSelector";
 import { IngredientSection, type Ingredient } from "./IngredientSection";
+import { ShareButton } from "./ShareButton";
 import type { ProductWithVariants, ProductVariant } from "./types";
 
 // ─── Types ────────────────────────────────────────────────────────
@@ -252,15 +253,15 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
 
           {/* Right: Product info */}
           <div className="flex flex-col gap-6">
-            {/* Name + Wishlist */}
+            {/* Name + Wishlist + Share */}
             <div className="flex items-start justify-between gap-4">
               <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[var(--theme-accent)] leading-tight">
                 {product.name}
               </h1>
-              <WishlistButton
-                productId={product.id}
-                className="shrink-0 mt-2"
-              />
+              <div className="flex items-center gap-2 shrink-0 mt-2">
+                <ShareButton title={product.name} text={`${product.name} — ${product.scentProfile} scent, ${product.burnTimeHours}h burn time`} />
+                <WishlistButton productId={product.id} />
+              </div>
             </div>
 
             {/* Description */}
@@ -305,6 +306,11 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
 
             {/* Add to Cart */}
             <div className="flex flex-col gap-3 pt-4">
+              {selectedVariant && selectedVariant.stock > 0 && selectedVariant.stock <= 5 && (
+                <p className="text-sm text-amber-500/80 font-medium">
+                  Only {selectedVariant.stock} left in stock
+                </p>
+              )}
               <Button
                 variant="primary"
                 size="lg"
@@ -322,7 +328,7 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
 
               {isOutOfStock && (
                 <p className="text-sm text-red-400/80 text-center">
-                  This variant is currently out of stock.
+                  This variant is currently out of stock. Check back soon.
                 </p>
               )}
             </div>
@@ -340,6 +346,18 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
         {/* Scroll-driven ingredient section */}
         <div className="mt-16 lg:mt-24 max-w-3xl">
           <IngredientSection ingredients={ingredients} />
+          <div className="mt-6 pt-5 border-t border-[var(--theme-accent)]/15">
+            <a
+              href="/candle-care"
+              className="inline-flex items-center gap-2 text-sm text-[var(--theme-accent)]/60 hover:text-[var(--theme-accent)] transition-colors"
+            >
+              <span aria-hidden="true">🕯️</span>
+              Candle care guide — get the most from your candle
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-4 w-4" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+              </svg>
+            </a>
+          </div>
         </div>
 
         {/* Reviews section */}

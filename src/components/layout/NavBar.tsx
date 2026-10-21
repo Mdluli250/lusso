@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { signIn, signOut, useSession } from "next-auth/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import CartIcon from "./CartIcon";
+import { SearchBar } from "@/components/ui/SearchBar";
 
 interface NavLink {
   href: string;
@@ -149,27 +150,10 @@ export default function NavBar() {
 
         {/* Right-side actions */}
         <div className="flex items-center gap-2">
-          {/* Search icon — links to the same /collection shop page */}
-          <Link
-            href="/collection"
-            className="p-2 rounded-lg text-[var(--theme-accent)] hover:bg-[var(--theme-accent)]/5 transition-colors"
-            aria-label="Browse products"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-              className="w-5 h-5"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
-              />
-            </svg>
-          </Link>
+          {/* Search bar — desktop only */}
+          <div className="hidden md:block w-56">
+            <SearchBar />
+          </div>
 
           {/* Wishlist icon */}
           <Link
@@ -489,6 +473,15 @@ function MobileMenu({
 
             {/* Navigation links */}
             <ul role="list" className="flex flex-col gap-1">
+              <li>
+                <Link
+                  href="/search"
+                  onClick={closeMenu}
+                  className="block rounded-lg px-4 py-3 text-base font-medium min-h-[44px] text-[var(--theme-accent)] opacity-70 hover:opacity-100 hover:bg-[var(--theme-accent)]/5 transition-opacity focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent)]"
+                >
+                  🔍 Search
+                </Link>
+              </li>
               {allLinks.map(({ href, label }) => {
                 const isActive = pathname === href;
                 return (

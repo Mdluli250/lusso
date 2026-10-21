@@ -32,6 +32,10 @@ export default async function DashboardPage() {
         createdAt: true,
         totalAmountZAR: true,
         status: true,
+        fulfillmentStatus: true,
+        carrier: true,
+        trackingNumber: true,
+        refundAmountZAR: true,
       },
     });
 
@@ -40,6 +44,10 @@ export default async function DashboardPage() {
       createdAt: order.createdAt.toISOString(),
       totalAmountZAR: order.totalAmountZAR,
       status: order.status,
+      fulfillmentStatus: order.fulfillmentStatus,
+      carrier: order.carrier,
+      trackingNumber: order.trackingNumber,
+      refundAmountZAR: order.refundAmountZAR,
     }));
 
     paidOrderCount = orders.filter((o) => o.status === 'PAID').length;

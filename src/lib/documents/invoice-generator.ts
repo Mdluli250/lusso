@@ -1,112 +1,152 @@
 import PDFDocument from 'pdfkit';
-import { createWriteStream } from 'fs';
-import path from 'path';
 import { InvoiceData } from './types';
 import { formatZARForDocument } from './format';
-import { buildDocumentPath, ensureStorageDirectory, getStorageBasePath } from './storage';
 
 /**
- * Generate an invoice PDF and write it to the filesystem.
- * Returns the relative file path of the generated PDF, or empty string on failure.
+ * Generate an invoice PDF and return it as a Buffer.
+ * Buffer-based — no filesystem writes — safe for serverless environments (Vercel).
+ */
+export async function generateInvoicePDF(data: InvoiceData): Promise<Buffer> {
+  return new Promise<Buffer>((resolve, reject) => {
+    const doc = new PDFDocument({ margin: 50, size: 'A4' });
+    const chunks: Buffer[] = [];
+
+    doc.on('data', (chunk: Buffer) => chunks.push(chunk));
+    doc.on('end', () => resolve(Buffer.concat(chunks)));
+    doc.on('error', reject);
+
+    const BRAND_COLOR = '#1a1208';
+    const MUTED = '#8a7b6e';
+    const PAGE_WIDTH = doc.page.width - 100; // usable width with margins
+
+    // ── Header ────────────────────────────────────────────────────
+    doc.rect(0, 0, doc.page.width, 80).fill(BRAND_COLOR);
+    doc.fillColor('#f9f6f2')
+      .fontSize(26).font('Helvetica-Bold')
+      .text('LUSSO', 50, 22, { width: PAGE_WIDTH, align: 'left' });
+    doc.fillColor('#c8b99a')
+      .fontSize(9).font('Helvetica')
+      .text('HAND-POURED LUXURY CANDLES', 50, 52, { width: PAGE_WIDTH, align: 'left' });
+    doc.fillColor('#c8b99a')
+      .fontSize(9)
+      .text('support@lusso.co.za  ·  lusso.co.za', 50, 64, { width: PAGE_WIDTH, align: 'right' });
+
+    doc.moveDown(3);
+
+    // ── Invoice label + meta ──────────────────────────────────────
+    const metaY = 100;
+    doc.fillColor(BRAND_COLOR).fontSize(20).font('Helvetica-Bold')
+      .text('INVOICE', 50, metaY);
+
+    doc.fillColor(MUTED).fontSize(9).font('Helvetica')
+      .text(`Invoice No: ${data.orderId.slice(0, 8).toUpperCase()}`, 50, metaY + 28)
+      .text(`Date: ${data.invoiceDate.toLocaleDateString('en-ZA', { day: 'numeric', month: 'long', year: 'numeric' })}`, 50, metaY + 40);
+
+    // Bill to (right-aligned block)
+    doc.fillColor(BRAND_COLOR).fontSize(9).font('Helvetica-Bold')
+      .text('BILL TO', 350, metaY, { width: 200 });
+    doc.fillColor(MUTED).fontSize(9).font('Helvetica')
+      .text(data.customerName, 350, metaY + 14, { width: 200 })
+      .text(data.customerEmail, 350, metaY + 26, { width: 200 });
+
+    // ── Divider ───────────────────────────────────────────────────
+    const divY = metaY + 70;
+    doc.moveTo(50, divY).lineTo(doc.page.width - 50, divY)
+      .strokeColor('#e8e0d8').lineWidth(1).stroke();
+
+    // ── Items table header ────────────────────────────────────────
+    const COL = { product: 50, scent: 230, qty: 330, unit: 390, total: 470 };
+    const headerY = divY + 14;
+
+    doc.rect(50, headerY - 4, PAGE_WIDTH, 20).fill('#f5f0eb');
+    doc.fillColor(BRAND_COLOR).fontSize(8.5).font('Helvetica-Bold')
+      .text('PRODUCT',    COL.product, headerY, { width: 175 })
+      .text('SCENT',      COL.scent,   headerY, { width: 95 })
+      .text('QTY',        COL.qty,     headerY, { width: 55 })
+      .text('UNIT PRICE', COL.unit,    headerY, { width: 75 })
+      .text('TOTAL',      COL.total,   headerY, { width: 75 });
+
+    // ── Line items ────────────────────────────────────────────────
+    let y = headerY + 26;
+    doc.font('Helvetica').fontSize(9);
+
+    for (const item of data.items) {
+      const lineTotal = item.quantity * item.unitPriceCents;
+
+      doc.fillColor('#2d1f0e')
+        .text(item.name,                              COL.product, y, { width: 175 })
+        .text(item.scent ?? '—',                      COL.scent,   y, { width: 95 })
+        .text(String(item.quantity),                  COL.qty,     y, { width: 55 })
+        .text(formatZARForDocument(item.unitPriceCents), COL.unit,  y, { width: 75 })
+        .text(formatZARForDocument(lineTotal),        COL.total,   y, { width: 75 });
+
+      y += 20;
+
+      // Light row divider
+      doc.moveTo(50, y - 4).lineTo(doc.page.width - 50, y - 4)
+        .strokeColor('#f0ebe4').lineWidth(0.5).stroke();
+    }
+
+    // ── Totals block ──────────────────────────────────────────────
+    y += 10;
+    const totalsX = COL.unit;
+    const valX = COL.total;
+
+    doc.fillColor(MUTED).fontSize(9).font('Helvetica')
+      .text('Subtotal:', totalsX, y, { width: 75 })
+      .text(formatZARForDocument(data.subtotalCents), valX, y, { width: 75 });
+    y += 16;
+
+    if (data.shippingCents && data.shippingCents > 0) {
+      doc.text('Shipping:', totalsX, y, { width: 75 })
+        .text(formatZARForDocument(data.shippingCents), valX, y, { width: 75 });
+      y += 16;
+    } else if (data.shippingCents === 0) {
+      doc.text('Shipping:', totalsX, y, { width: 75 })
+        .text('Free', valX, y, { width: 75 });
+      y += 16;
+    }
+
+    // Total row with background
+    doc.rect(totalsX - 8, y - 4, PAGE_WIDTH - (totalsX - 58), 24).fill(BRAND_COLOR);
+    doc.fillColor('#f9f6f2').fontSize(10).font('Helvetica-Bold')
+      .text('TOTAL', totalsX, y, { width: 75 })
+      .text(formatZARForDocument(data.totalCents), valX, y, { width: 75 });
+
+    // ── Footer ────────────────────────────────────────────────────
+    doc.fillColor(MUTED).fontSize(8.5).font('Helvetica')
+      .text('Thank you for your order.', 50, doc.page.height - 60,
+            { width: PAGE_WIDTH, align: 'center' })
+      .text('Questions? contact support@lusso.co.za', 50, doc.page.height - 46,
+            { width: PAGE_WIDTH, align: 'center' });
+
+    doc.end();
+  });
+}
+
+/**
+ * Legacy file-based wrapper kept for the PayFast webhook which writes to disk.
+ * On Vercel this will silently fail and return '' — the API route falls back to
+ * on-demand generation, so this is acceptable.
  */
 export async function generateInvoice(data: InvoiceData): Promise<string> {
   try {
+    const { createWriteStream } = await import('fs');
+    const { mkdir } = await import('fs/promises');
+    const path = await import('path');
+    const { buildDocumentPath, getStorageBasePath } = await import('./storage');
+
     const relativePath = buildDocumentPath('invoices', data.orderId);
     const basePath = getStorageBasePath();
     const fullPath = path.resolve(basePath, relativePath);
     const dirPath = path.dirname(fullPath);
 
-    await ensureStorageDirectory(dirPath);
+    await mkdir(dirPath, { recursive: true });
 
-    return await new Promise<string>((resolve, reject) => {
-      const doc = new PDFDocument({ margin: 50 });
-      const stream = createWriteStream(fullPath);
-
-      stream.on('finish', () => resolve(relativePath));
-      stream.on('error', reject);
-
-      doc.pipe(stream);
-
-      // Store branding
-      doc.fontSize(24).font('Helvetica-Bold').text('Lusso', { align: 'center' });
-      doc.moveDown(0.5);
-      doc.fontSize(10).font('Helvetica').text('Hand-Poured Luxury Candles', { align: 'center' });
-      doc.text('hello@artisancandles.co.za | www.artisancandles.co.za', { align: 'center' });
-      doc.moveDown(1.5);
-
-      // Invoice title
-      doc.fontSize(18).font('Helvetica-Bold').text('INVOICE', { align: 'left' });
-      doc.moveDown(0.5);
-
-      // Invoice details
-      doc.fontSize(10).font('Helvetica');
-      doc.text(`Invoice Number: ${data.orderId}`);
-      doc.text(`Invoice Date: ${data.invoiceDate.toLocaleDateString('en-ZA')}`);
-      doc.moveDown(1);
-
-      // Customer details
-      doc.fontSize(12).font('Helvetica-Bold').text('Bill To:');
-      doc.fontSize(10).font('Helvetica');
-      doc.text(data.customerName);
-      doc.text(data.customerEmail);
-      doc.moveDown(1.5);
-
-      // Line items table header
-      const tableTop = doc.y;
-      const col1 = 50;   // Product
-      const col2 = 220;  // Scent
-      const col3 = 320;  // Qty
-      const col4 = 380;  // Unit Price
-      const col5 = 470;  // Line Total
-
-      doc.fontSize(10).font('Helvetica-Bold');
-      doc.text('Product', col1, tableTop);
-      doc.text('Scent', col2, tableTop);
-      doc.text('Qty', col3, tableTop);
-      doc.text('Unit Price', col4, tableTop);
-      doc.text('Total', col5, tableTop);
-
-      // Divider line
-      doc.moveTo(col1, tableTop + 15).lineTo(550, tableTop + 15).stroke();
-
-      // Line items
-      let y = tableTop + 25;
-      doc.font('Helvetica');
-
-      for (const item of data.items) {
-        const lineTotal = item.quantity * item.unitPriceCents;
-
-        doc.text(item.name, col1, y, { width: 160 });
-        doc.text(item.scent || '-', col2, y, { width: 90 });
-        doc.text(String(item.quantity), col3, y);
-        doc.text(formatZARForDocument(item.unitPriceCents), col4, y);
-        doc.text(formatZARForDocument(lineTotal), col5, y);
-
-        y += 20;
-      }
-
-      // Divider line before totals
-      doc.moveTo(col1, y + 5).lineTo(550, y + 5).stroke();
-      y += 15;
-
-      // Subtotal and total
-      doc.font('Helvetica');
-      doc.text('Subtotal:', col4, y);
-      doc.text(formatZARForDocument(data.subtotalCents), col5, y);
-      y += 20;
-
-      doc.font('Helvetica-Bold');
-      doc.text('Total:', col4, y);
-      doc.text(formatZARForDocument(data.totalCents), col5, y);
-
-      // Footer
-      doc.moveDown(4);
-      doc.fontSize(9).font('Helvetica').text('Thank you for your purchase!', { align: 'center' });
-
-      doc.end();
-    });
-  } catch (error) {
-    console.error(`[InvoiceGenerator] Failed to generate invoice for order ${data.orderId}:`, error);
+    const buffer = await generateInvoicePDF(data);
+    await import('fs/promises').then((fs) => fs.writeFile(fullPath, buffer));
+    return relativePath;
+  } catch {
     return '';
   }
 }
