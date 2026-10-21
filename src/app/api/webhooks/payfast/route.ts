@@ -223,26 +223,28 @@ export async function POST(request: Request): Promise<Response> {
       });
 
       if (orderWithUser) {
-        await sendOrderConfirmationEmail(orderWithUser.id, orderWithUser.user.email, {
-            orderId: orderWithUser.id,
-            customerName: orderWithUser.user.name || 'Customer',
-            items: items.map((item) => ({
-              name: item.name,
-              scent: item.scent,
-              quantity: item.quantity,
-              price: item.price,
-            })),
-            subtotalCents: Math.max(orderWithUser.totalAmountZAR - orderWithUser.shippingAmountZAR, 0),
-            shippingCents: orderWithUser.shippingAmountZAR,
-            totalCents: orderWithUser.totalAmountZAR,
-            shippingAddress: orderWithUser.shippingAddress as any,
-          }).catch((emailError) => console.error('[PayFast ITN] Confirmation email failed:', emailError));
         const items = orderWithUser.items as Array<{
           name: string;
           scent?: string;
           quantity: number;
           price: number;
+          variantId?: string;
         }>;
+
+        await sendOrderConfirmationEmail(orderWithUser.id, orderWithUser.user.email, {
+          orderId: orderWithUser.id,
+          customerName: orderWithUser.user.name || 'Customer',
+          items: items.map((item) => ({
+            name: item.name,
+            scent: item.scent,
+            quantity: item.quantity,
+            price: item.price,
+          })),
+          subtotalCents: Math.max(orderWithUser.totalAmountZAR - orderWithUser.shippingAmountZAR, 0),
+          shippingCents: orderWithUser.shippingAmountZAR,
+          totalCents: orderWithUser.totalAmountZAR,
+          shippingAddress: orderWithUser.shippingAddress as any,
+        }).catch((emailError) => console.error('[PayFast ITN] Confirmation email failed:', emailError));
 
         const invoiceData: InvoiceData = {
           orderId: orderWithUser.id,
