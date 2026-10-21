@@ -46,7 +46,7 @@ export async function chargeSubscriptionToken(token: string, amountCents: number
 
 export async function refundPayFastPayment(paymentId: string, amountCents: number, reason: string) {
   const query = await apiRequest(`/refunds/query/${encodeURIComponent(paymentId)}`, 'GET');
-  const queryData = query.data as { response?: { status?: string; amount_available_for_refund?: number | string }; amount_available_for_refund?: number | string } | undefined;
+  const queryData = query.data as { response?: { status?: string; amount_available_for_refund?: number | string }; status?: string; amount_available_for_refund?: number | string } | undefined;
   const details = queryData?.response ?? queryData;
   const available = Number(details?.amount_available_for_refund);
   if (details?.status === 'NOT_AVAILABLE' || !Number.isFinite(available) || amountCents > available) {
