@@ -12,9 +12,6 @@ const STATUS_STYLES: Record<string, string> = {
 export default async function AdminReturnsPage() {
   const returns = await prisma.returnRequest.findMany({
     orderBy: { createdAt: 'desc' },
-    include: {
-      // We don't have a direct relation, so join manually below
-    },
   }).catch(() => []);
 
   // Enrich with order + user info
