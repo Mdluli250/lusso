@@ -120,16 +120,16 @@ export function ProductCard({ product, onQuickView }: ProductCardProps) {
     <article
       className={[
         "group flex flex-col rounded-2xl overflow-hidden",
-        "border border-[var(--theme-accent)]/20",
-        "bg-[var(--theme-accent)]/5",
-        "hover:border-[var(--theme-accent)]/40",
-        "hover:bg-[var(--theme-accent)]/8",
-        "transition-all duration-200",
+        "border border-[var(--theme-accent)]/15",
+        "bg-[var(--theme-bg)]",
+        "shadow-sm",
+        "hover:border-[var(--theme-accent)]/30 hover:shadow-lg hover:-translate-y-1",
+        "transition-all duration-300",
       ].join(" ")}
       aria-label={product.name}
     >
-      {/* Thumbnail area */}
-      <div className="relative aspect-square overflow-hidden bg-[var(--theme-accent)]/10">
+      {/* Thumbnail area — taller aspect ratio for a more editorial feel */}
+      <div className="relative aspect-[3/4] overflow-hidden bg-[var(--theme-accent)]/5">
         <Link
           href={`/products/${product.slug}`}
           className="relative block w-full h-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent)]"
@@ -198,14 +198,14 @@ export function ProductCard({ product, onQuickView }: ProductCardProps) {
       </div>
 
       {/* Product info */}
-      <div className="flex flex-col gap-2 p-4 flex-1">
+      <div className="flex flex-col gap-2.5 p-4 lg:p-5 flex-1">
         {/* Name */}
         <Link
           href={`/products/${product.slug}`}
           className={[
-            "font-semibold text-base leading-snug",
+            "font-semibold text-sm lg:text-base leading-snug",
             "text-[var(--theme-accent)]",
-            "hover:opacity-80 transition-opacity",
+            "hover:opacity-70 transition-opacity",
             "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent)]",
             "line-clamp-2",
           ].join(" ")}
@@ -215,32 +215,29 @@ export function ProductCard({ product, onQuickView }: ProductCardProps) {
 
         {/* Badges */}
         <div className="flex flex-wrap gap-1.5" aria-label="Product attributes">
-          <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-[var(--theme-accent)]/15 text-[var(--theme-accent)]/80 capitalize">
+          <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-[var(--theme-accent)]/10 text-[var(--theme-accent)]/70 capitalize">
             {product.scentProfile}
           </span>
-          <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-[var(--theme-accent)]/15 text-[var(--theme-accent)]/80 capitalize">
+          <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-[var(--theme-accent)]/10 text-[var(--theme-accent)]/70 capitalize">
             {product.waxType}
           </span>
-          <span className="text-xs text-[var(--theme-accent)]/60">
+        </div>
+
+        {/* Rating + burn time */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-1">
+            <span className="text-amber-500 text-xs" aria-label="5 out of 5 stars">★★★★★</span>
+            <span className="text-xs text-[var(--theme-accent)]/40">(12)</span>
+          </div>
+          <span className="text-xs text-[var(--theme-accent)]/50">
             {product.burnTimeHours}h burn
           </span>
         </div>
 
-        {/* Rating */}
-        <div className="flex items-center gap-1.5">
-          <div
-            className="flex text-amber-500 text-xs"
-            aria-label="5 out of 5 stars"
-          >
-            {"★★★★★"}
-          </div>
-          <span className="text-xs text-[var(--theme-accent)]/50">(12)</span>
-        </div>
-
         {/* Price row */}
-        <div className="flex items-center justify-between mt-auto pt-2">
+        <div className="flex items-center justify-between mt-auto pt-2.5 border-t border-[var(--theme-accent)]/10">
           <span
-            className="text-lg font-bold text-[var(--theme-accent)]"
+            className="text-base lg:text-lg font-bold text-[var(--theme-accent)]"
             aria-label={`Price: ${formatZAR(product.price)}`}
           >
             {formatZAR(product.price)}
@@ -252,8 +249,8 @@ export function ProductCard({ product, onQuickView }: ProductCardProps) {
               Out of stock
             </span>
           ) : defaultVariant && defaultVariant.stock <= 5 ? (
-            <span className="text-xs text-amber-500 font-medium animate-pulse">
-              Only {defaultVariant.stock} left!
+            <span className="text-xs text-amber-500 font-medium">
+              Only {defaultVariant.stock} left
             </span>
           ) : null}
         </div>

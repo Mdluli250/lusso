@@ -1,8 +1,6 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 // ─── Types ────────────────────────────────────────────────────────
@@ -20,16 +18,15 @@ export type SaveCollectionsResult = { success: true } | { error: string };
 // ─── Auth Guard ───────────────────────────────────────────────────
 
 async function requireAdmin(): Promise<{ error?: string }> {
-  const session = await getServerSession(authOptions);
-  if (!session?.user || (session.user as any).role !== "ADMIN") {
-    return { error: "Unauthorized" };
-  }
+  const { requireAdminSession } = await import('@/lib/admin/auth');
+  const result = await requireAdminSession();
+  if (!result.ok) return { error: result.error };
   return {};
 }
 
-// ─── Validation ───────────────────────────────────────────────────
+// ─── Validation (not a server action — pure function, not exported) ───────────
 
-export async function validateCollectionCards(cards: CollectionCard[]): Promise<string | null> {
+function validateCollectionCards(cards: CollectionCard[]): string | null {
   if (cards.length === 0) {
     return "At least one collection is required";
   }
@@ -61,7 +58,7 @@ export async function saveCollections(
   const auth = await requireAdmin();
   if (auth.error) return { error: auth.error };
 
-  const validationError = await validateCollectionCards(cards);
+  const validationError = validateCollectionCards(cards);
   if (validationError) return { error: validationError };
 
   const sortedCards = [...cards].sort(

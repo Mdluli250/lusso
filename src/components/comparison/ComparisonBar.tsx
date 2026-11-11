@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import Link from 'next/link';
-import { useComparisonStore } from '@/store/comparisonStore';
+import { useComparisonStore, selectFilledCount } from '@/store/comparisonStore';
 
 /**
  * ComparisonBar — Persistent bottom bar showing selected comparison products.
@@ -14,7 +14,7 @@ export function ComparisonBar() {
   const slots = useComparisonStore((s) => s.slots);
   const removeProduct = useComparisonStore((s) => s.removeProduct);
   const clear = useComparisonStore((s) => s.clear);
-  const filledCount = (slots[0] ? 1 : 0) + (slots[1] ? 1 : 0);
+  const filledCount = useComparisonStore(selectFilledCount);
 
   useEffect(() => {
     if (filledCount > 0) {
@@ -79,8 +79,8 @@ export function ComparisonBar() {
             className={[
               'px-4 py-2 rounded-lg text-sm font-medium transition-all',
               filledCount >= 2
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'bg-[var(--theme-accent)]/20 text-[var(--theme-accent)]/60 pointer-events-none',
+                ? 'bg-[var(--theme-accent)] text-[var(--theme-bg)] hover:opacity-90'
+                : 'bg-[var(--theme-accent)]/10 text-[var(--theme-accent)]/40 pointer-events-none',
             ].join(' ')}
             aria-disabled={filledCount < 2}
           >

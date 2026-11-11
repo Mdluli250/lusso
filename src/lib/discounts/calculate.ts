@@ -1,3 +1,4 @@
+import { randomBytes } from 'crypto';
 import type { CartItemForDiscount, DiscountCodeData, AppliedDiscount } from './types';
 
 /**
@@ -61,13 +62,12 @@ export function calculateTotalDiscount(
 
 /**
  * Generates a random 8-character uppercase alphanumeric promo code.
- * Characters: A-Z, 0-9.
+ * Uses crypto.randomBytes for cryptographic security.
  */
 export function generatePromoCode(): string {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  let code = '';
-  for (let i = 0; i < 8; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return code;
+  const bytes = randomBytes(8);
+  return Array.from(bytes)
+    .map((b) => chars[b % chars.length])
+    .join('');
 }

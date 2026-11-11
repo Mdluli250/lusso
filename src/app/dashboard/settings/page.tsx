@@ -20,8 +20,8 @@ export default async function DashboardSettingsPage() {
   const address = await prisma.shippingAddress.findUnique({ where: { userId: session.user.id } });
 
   return (
-    <div className="px-4 py-12 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto space-y-8">
+    <div className="px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
+      <div className="max-w-2xl mx-auto space-y-8">
         <AccountSettingsForm
           user={{
             name: session.user.name,

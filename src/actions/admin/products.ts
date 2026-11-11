@@ -1,8 +1,6 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { validateProductForm } from "@/lib/admin/validateProduct";
 
@@ -37,10 +35,9 @@ interface ProductFormData {
 }
 
 async function requireAdmin(): Promise<{ error?: string }> {
-  const session = await getServerSession(authOptions);
-  if (!session?.user || (session.user as any).role !== "ADMIN") {
-    return { error: "Unauthorized" };
-  }
+  const { requireAdminSession } = await import('@/lib/admin/auth');
+  const result = await requireAdminSession();
+  if (!result.ok) return { error: result.error };
   return {};
 }
 

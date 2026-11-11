@@ -1,4 +1,4 @@
-import { randomUUID } from 'crypto';
+import { randomUUID, timingSafeEqual } from 'crypto';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { calculateNextDeliveryDate, calculateSubscriptionPrice } from '@/lib/subscriptions';
@@ -12,7 +12,18 @@ import { sendOrderEmail } from '@/lib/email';
 export async function POST(request: Request) {
   const cronSecret = request.headers.get('x-cron-secret') || request.headers.get('authorization');
 
-  if (!process.env.CRON_SECRET || cronSecret !== process.env.CRON_SECRET) {
+  if (!process.env.CRON_SECRET) {
+    return NextResponse.json({ error: 'Cron secret not configured' }, { status: 500 });
+  }
+
+  // Use timingSafeEqual to prevent timing-based secret enumeration
+  const expected = Buffer.from(process.env.CRON_SECRET, 'utf8');
+  const received = Buffer.from(cronSecret ?? '', 'utf8');
+  const secretValid =
+    expected.length === received.length &&
+    timingSafeEqual(expected, received);
+
+  if (!secretValid) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

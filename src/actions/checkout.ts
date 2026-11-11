@@ -122,7 +122,7 @@ export async function createCheckoutSession(
     const cartSubtotal = canonicalItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
     const totalDiscount = validatedDiscounts.length > 0 ? calculateTotalDiscount(validatedDiscounts, cartSubtotal) : 0;
 
-    if (validatedDiscounts.reduce((sum, d) => sum + d.discountAmountZAR, 0) > cartSubtotal) {
+    if (totalDiscount > cartSubtotal) {
       return { error: 'Applied discounts exceed your cart subtotal. Remove and reapply your discount codes.' };
     }
 
@@ -216,27 +216,56 @@ export async function createCheckoutSession(
     const amountDecimal = (totalAmountZAR / 100).toFixed(2);
     const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
 
+    // Guard: PayFast requires a valid email address.
+    // OAuth accounts occasionally omit email — catch this before hitting the API.
+    const userEmail = session.user.email?.trim();
+    if (!userEmail) {
+      await prisma.$transaction(async (tx) => {
+        await tx.order.delete({ where: { id: order.id } });
+        for (const item of canonicalItems) {
+          await tx.productVariant.update({
+            where: { id: item.variantId },
+            data: { stock: { increment: item.quantity } },
+          });
+        }
+      }).catch(() => null);
+      return { error: 'Your account has no email address. Please update your profile and try again.' };
+    }
+
+    // Build a human-readable item name: first product name, with overflow indicator
+    const firstItemName = canonicalItems[0]?.name ?? 'Lusso Order';
+    const itemName = canonicalItems.length > 1
+      ? `${firstItemName} + ${canonicalItems.length - 1} more`
+      : firstItemName;
+
     let payfastUUID: string;
     try {
       const [nameFirst, ...nameParts] = (session.user.name ?? '').split(' ');
       payfastUUID = await generatePayFastUUID({
         m_payment_id: merchantTransactionId,
         amount: amountDecimal,
-        item_name: 'Lusso Order',
+        item_name: itemName.slice(0, 100), // PayFast max 100 chars
         return_url: `${baseUrl}/success?merchantTransactionId=${encodeURIComponent(merchantTransactionId)}`,
         cancel_url: `${baseUrl}/cart`,
         notify_url: `${baseUrl}/api/webhooks/payfast`,
-        email_address: session.user.email ?? '',
+        email_address: userEmail,
         name_first: nameFirst || undefined,
         name_last: nameParts.join(' ') || undefined,
       });
     } catch (pfError) {
+      // Restore inventory in the correct order: increment stock BEFORE deleting
+      // the order so there's no window where the order exists without reserved stock.
       await prisma.$transaction(async (tx) => {
-        await tx.order.delete({ where: { id: order.id } });
         for (const item of canonicalItems) {
-          await tx.productVariant.update({ where: { id: item.variantId }, data: { stock: { increment: item.quantity } } });
+          await tx.productVariant.update({
+            where: { id: item.variantId },
+            data: { stock: { increment: item.quantity } },
+          });
         }
-      }).catch(() => null);
+        await tx.order.delete({ where: { id: order.id } });
+      }).catch((rollbackErr) =>
+        console.error('[Checkout] Rollback failed after PayFast error:', rollbackErr)
+      );
       const message = pfError instanceof Error ? pfError.message : String(pfError);
       return { error: `Payment provider error: ${message}` };
     }

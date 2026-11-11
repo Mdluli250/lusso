@@ -1,17 +1,14 @@
 import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { requireAdminSession } from '@/lib/admin/auth';
 
 /**
  * GET /api/admin/export/orders
  * Streams all orders as a CSV file. Admin only.
  */
 export async function GET(): Promise<Response> {
-  const session = await getServerSession(authOptions);
-  if (!session?.user || (session.user as any).role !== 'ADMIN') {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const auth = await requireAdminSession();
+  if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: 401 });
 
   const orders = await prisma.order.findMany({
     orderBy: { createdAt: 'desc' },

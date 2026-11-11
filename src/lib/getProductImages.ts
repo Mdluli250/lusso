@@ -1,13 +1,4 @@
-import { getProductImage } from './getProductImage';
-
-const PRODUCT_IMAGES = [
-  '/images/gallery/candle-closeup-1.png',
-  '/images/gallery/styled-trio-1.png',
-  '/images/gallery/candle-closeup-2.png',
-  '/images/gallery/styled-trio-2.png',
-  '/images/gallery/overhead-workspace.png',
-  '/images/gallery/overhead-gift-set.png',
-];
+import { PRODUCT_IMAGES } from './getProductImage';
 
 /**
  * Returns 3-4 images for a product by cycling through available gallery images.

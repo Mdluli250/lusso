@@ -48,27 +48,20 @@ export default async function CollectionPage() {
 
   return (
     <div className="min-h-screen bg-[var(--theme-bg)] transition-colors duration-700">
-      <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-16 py-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-8 sm:py-12">
         {/* Breadcrumb navigation */}
         <Breadcrumbs
           items={[{ label: "Home", href: "/" }, { label: "Shop" }]}
         />
 
         {/* Page header */}
-        <header className="mb-12">
-          <h1 className="text-4xl sm:text-5xl font-bold text-[var(--theme-accent)] leading-tight">
-            Clean | Comfortable | Luxurious.
+        <header className="mb-8 sm:mb-10">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[var(--theme-accent)] leading-tight">
+            Clean · Comfortable · Luxurious
           </h1>
-          <p className="mt-3 text-lg text-[var(--theme-accent)]/70 max-w-xl space-y-4">
-            <span>
-              Hand-poured luxury candles crafted to transform everyday spaces
-              into moments of comfort, warmth, and elegance.
-            </span>
-            <span>
-              Made with premium soy and beeswax blends, Lusso Candles are
-              designed to bring beautiful fragrance, timeless style, and
-              intentional living into every room.
-            </span>
+          <p className="mt-3 text-base text-[var(--theme-accent)]/70 max-w-xl leading-relaxed">
+            Hand-poured luxury candles crafted to transform everyday spaces
+            into moments of comfort, warmth, and elegance.
           </p>
         </header>
 

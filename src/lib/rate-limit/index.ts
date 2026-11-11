@@ -20,6 +20,13 @@ let storeInstance: RateLimitStore | null = null;
 /**
  * Get the rate limit store instance (memory or Redis based on env).
  * Returns a singleton MemoryRateLimitStore by default.
+ *
+ * IMPORTANT — serverless behaviour:
+ * On Vercel and other serverless platforms each function invocation may run
+ * in a fresh Node.js process. The MemoryRateLimitStore is module-scoped and
+ * will be reset on every cold start, meaning in-memory rate limiting is NOT
+ * reliable at scale. For production use, provide a Redis URL via
+ * RATE_LIMIT_REDIS_URL to enable a persistent store.
  */
 export function getRateLimitStore(): RateLimitStore {
   if (!storeInstance) {

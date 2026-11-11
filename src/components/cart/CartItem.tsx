@@ -101,7 +101,7 @@ export function CartItem({ item }: CartItemProps) {
       </div>
 
       {/* Line total */}
-      <div className="w-20 text-right shrink-0">
+      <div className="hidden sm:block w-20 text-right shrink-0">
         <span className="text-sm font-semibold text-[var(--theme-accent)] tabular-nums">
           {formatZAR(lineTotal)}
         </span>

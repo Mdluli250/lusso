@@ -54,20 +54,23 @@ export interface PayFastPaymentData {
  * Rules:
  * - Pairs must appear in the same order as the PayFast docs (i.e. the order
  *   of the keys in `data`, NOT alphabetical).
- * - Empty values are excluded.
+ * - Empty values and undefined values are excluded.
  * - Values are percent-encoded; spaces become '+'.
  * - If a passphrase is set it is appended as `&passphrase=<encoded>`.
  *
  * @see https://developers.payfast.co.za/docs#step-2
  */
 export function generateSignature(
-  data: Record<string, string>,
+  data: Record<string, string | undefined>,
   passPhrase: string = PAYFAST_PASSPHRASE
 ): string {
   let pfOutput = '';
   for (const key in data) {
-    if (Object.prototype.hasOwnProperty.call(data, key) && data[key] !== '') {
-      pfOutput += `${key}=${encodeURIComponent(data[key].trim()).replace(/%20/g, '+')}&`;
+    if (Object.prototype.hasOwnProperty.call(data, key)) {
+      const val = data[key];
+      // Skip undefined and empty string values
+      if (val === undefined || val === '') continue;
+      pfOutput += `${key}=${encodeURIComponent(val.trim()).replace(/%20/g, '+')}&`;
     }
   }
 
@@ -103,54 +106,62 @@ export async function generatePayFastUUID(
 
   const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
 
-  const data: Record<string, string> = {
+  // Build the data object in the exact field order PayFast documents.
+  // Undefined/empty values are excluded by generateSignature and the
+  // body-building loop below.
+  const data: Record<string, string | undefined> = {
     merchant_id: PAYFAST_MERCHANT_ID,
     merchant_key: PAYFAST_MERCHANT_KEY,
     return_url: paymentData.return_url,
     cancel_url: paymentData.cancel_url,
     notify_url: paymentData.notify_url,
-    ...(paymentData.name_first ? { name_first: paymentData.name_first } : {}),
-    ...(paymentData.name_last ? { name_last: paymentData.name_last } : {}),
+    name_first: paymentData.name_first,
+    name_last: paymentData.name_last,
     email_address: paymentData.email_address,
     m_payment_id: paymentData.m_payment_id,
     amount: paymentData.amount,
     item_name: paymentData.item_name,
-    ...(paymentData.subscription_type ? { subscription_type: paymentData.subscription_type } : {}),
-    ...(paymentData.billing_date ? { billing_date: paymentData.billing_date } : {}),
-    ...(paymentData.recurring_amount ? { recurring_amount: paymentData.recurring_amount } : {}),
-    ...(paymentData.frequency ? { frequency: paymentData.frequency } : {}),
-    ...(paymentData.cycles ? { cycles: paymentData.cycles } : {}),
+    // Subscription fields — only included when present
+    subscription_type: paymentData.subscription_type,
+    billing_date: paymentData.billing_date,
+    recurring_amount: paymentData.recurring_amount,
+    frequency: paymentData.frequency,
+    cycles: paymentData.cycles,
   };
 
-  if (paymentData.subscription_type === '2') data.subscription_type = '2';
-
-  // Signature must be appended last and is not included in its own hash input
+  // Signature must be computed over the data above (excluding undefined/empty),
+  // then appended as the last field in the POST body.
   data['signature'] = generateSignature(data);
 
+  // Build the URL-encoded POST body, skipping undefined and empty values.
   let pfParamString = '';
   for (const key in data) {
     if (Object.prototype.hasOwnProperty.call(data, key)) {
-      pfParamString += `${key}=${encodeURIComponent(data[key].trim()).replace(/%20/g, '+')}&`;
+      const val = data[key];
+      if (val === undefined || val === '') continue;
+      pfParamString += `${key}=${encodeURIComponent(val.trim()).replace(/%20/g, '+')}&`;
     }
   }
   pfParamString = pfParamString.slice(0, -1);
 
+  // Note: do NOT set Content-Length manually — Node's native fetch (used by
+  // Next.js 13+) forbids it and throws a TypeError. The runtime sets it
+  // automatically from the body.
   const response = await fetch(
     `https://${PAYFAST_HOST}/onsite/process`,
     {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
-        'Content-Length': String(Buffer.byteLength(pfParamString)),
         // PayFast requires a Referer header when using the Onsite API
-        Referer: baseUrl,
+        Referer: `${baseUrl}/checkout`,
       },
       body: pfParamString,
     }
   );
 
   if (!response.ok) {
-    const text = await response.text();
+    const text = await response.text().catch(() => '(no body)');
     throw new Error(
       `PayFast /onsite/process failed (${response.status}): ${text}`
     );
@@ -189,12 +200,15 @@ export function validateITNSignature(
 ): boolean {
   const received = pfData['signature'] ?? '';
 
-  // Build param string from all fields EXCEPT signature, in received order
+  // Build param string from all fields EXCEPT signature, in received order.
+  // Skip empty/undefined values consistently with generateSignature.
   let pfParamString = '';
   for (const key in pfData) {
     if (
       Object.prototype.hasOwnProperty.call(pfData, key) &&
-      key !== 'signature'
+      key !== 'signature' &&
+      pfData[key] !== undefined &&
+      pfData[key] !== ''
     ) {
       pfParamString += `${key}=${encodeURIComponent(pfData[key].trim()).replace(/%20/g, '+')}&`;
     }
@@ -256,7 +270,6 @@ export async function confirmITNWithPayFast(
     method: 'POST',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
-      'Content-Length': String(Buffer.byteLength(pfParamString)),
     },
     body: pfParamString,
   });

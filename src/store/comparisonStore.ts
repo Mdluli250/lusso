@@ -73,10 +73,9 @@ export const useComparisonStore = create<ComparisonStore>()(
         return slots[0]?.id === productId || slots[1]?.id === productId;
       },
 
-      get filledCount() {
-        const { slots } = get();
-        return (slots[0] ? 1 : 0) + (slots[1] ? 1 : 0);
-      },
+      // filledCount is not stored in state — compute it via a selector instead.
+      // The broken getter pattern on the state object is not tracked by Zustand.
+      filledCount: 0,
     }),
     {
       name: 'lusso-comparison',
@@ -92,3 +91,7 @@ export const useComparisonStore = create<ComparisonStore>()(
     }
   )
 );
+
+/** Reactive selector for the number of filled comparison slots (0, 1, or 2). */
+export const selectFilledCount = (s: ComparisonStore): number =>
+  (s.slots[0] ? 1 : 0) + (s.slots[1] ? 1 : 0);

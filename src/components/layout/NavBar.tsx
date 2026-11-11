@@ -17,8 +17,6 @@ const NAV_LINKS: NavLink[] = [
   { href: "/", label: "Home" },
   { href: "/about", label: "About" },
   { href: "/collection", label: "Shop" },
-  { href: "/bundle", label: "Bundle" },
-  { href: "/quiz", label: "Find Your Scent" },
   { href: "/experiences", label: "Experiences" },
   { href: "/contact", label: "Contact" },
 ];
@@ -43,21 +41,21 @@ export default function NavBar() {
     <header
       className={[
         "sticky top-0 z-50",
-        "bg-[var(--theme-bg)] text-[var(--theme-accent)]",
+        "bg-[var(--theme-bg)]/95 text-[var(--theme-accent)]",
         "border-b border-[var(--border)]",
-        "backdrop-blur-sm",
+        "backdrop-blur-md",
         "transition-colors duration-[600ms] ease-[power2.inOut]",
       ].join(" ")}
     >
       <nav
         aria-label="Main navigation"
-        className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8"
+        className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8 lg:py-0"
       >
         {/* Brand logo / name */}
         <Link
           href="/"
           className={[
-            "flex items-center gap-2 text-xl font-bold tracking-tight",
+            "flex items-center gap-2.5 font-bold tracking-tight shrink-0",
             "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2",
             "focus-visible:outline-[var(--theme-accent)] rounded",
           ].join(" ")}
@@ -68,7 +66,7 @@ export default function NavBar() {
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
             fill="currentColor"
-            className="h-6 w-6 shrink-0"
+            className="h-6 w-6 shrink-0 lg:h-7 lg:w-7"
           >
             <path
               fillRule="evenodd"
@@ -76,11 +74,11 @@ export default function NavBar() {
               clipRule="evenodd"
             />
           </svg>
-          <span className="font-serif font-normal tracking-wider">Lusso</span>
+          <span className="font-serif font-normal tracking-wider text-xl lg:text-2xl">Lusso</span>
         </Link>
 
-        {/* Primary nav links — hidden on small screens, shown md+ */}
-        <ul className="hidden items-center gap-1 md:flex" role="list">
+        {/* Primary nav links — hidden on small screens, shown lg+ only to prevent overflow */}
+        <ul className="hidden items-center lg:flex" role="list">
           {NAV_LINKS.map(({ href, label }) => {
             const isActive = pathname === href;
             return (
@@ -89,14 +87,14 @@ export default function NavBar() {
                   href={href}
                   aria-current={isActive ? "page" : undefined}
                   className={[
-                    "rounded-lg px-3 py-3 text-sm font-medium min-h-[44px] inline-flex items-center",
+                    "rounded-none px-3.5 py-5 text-sm font-medium inline-flex items-center border-b-2 -mb-px",
                     "text-[var(--theme-accent)]",
-                    "transition-opacity duration-150",
-                    "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2",
+                    "transition-all duration-150",
+                    "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px]",
                     "focus-visible:outline-[var(--theme-accent)]",
                     isActive
-                      ? "opacity-100 border-b-2 border-[var(--theme-accent)]"
-                      : "opacity-70 hover:opacity-100",
+                      ? "border-[var(--theme-accent)] opacity-100"
+                      : "border-transparent opacity-60 hover:opacity-90 hover:border-[var(--theme-accent)]/40",
                   ].join(" ")}
                 >
                   {label}
@@ -108,18 +106,16 @@ export default function NavBar() {
             <li>
               <Link
                 href="/dashboard"
-                aria-current={
-                  pathname.startsWith("/dashboard") ? "page" : undefined
-                }
+                aria-current={pathname.startsWith("/dashboard") ? "page" : undefined}
                 className={[
-                  "rounded-lg px-3 py-3 text-sm font-medium min-h-[44px] inline-flex items-center",
+                  "rounded-none px-3.5 py-5 text-sm font-medium inline-flex items-center border-b-2 -mb-px",
                   "text-[var(--theme-accent)]",
-                  "transition-opacity duration-150",
-                  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2",
+                  "transition-all duration-150",
+                  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px]",
                   "focus-visible:outline-[var(--theme-accent)]",
                   pathname.startsWith("/dashboard")
-                    ? "opacity-100 border-b-2 border-[var(--theme-accent)]"
-                    : "opacity-70 hover:opacity-100",
+                    ? "border-[var(--theme-accent)] opacity-100"
+                    : "border-transparent opacity-60 hover:opacity-90 hover:border-[var(--theme-accent)]/40",
                 ].join(" ")}
               >
                 Dashboard
@@ -132,14 +128,14 @@ export default function NavBar() {
                 href="/admin"
                 aria-current={pathname === "/admin" ? "page" : undefined}
                 className={[
-                  "rounded-lg px-3 py-3 text-sm font-medium min-h-[44px] inline-flex items-center",
+                  "rounded-none px-3.5 py-5 text-sm font-medium inline-flex items-center border-b-2 -mb-px",
                   "text-[var(--theme-accent)]",
-                  "transition-opacity duration-150",
-                  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2",
+                  "transition-all duration-150",
+                  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px]",
                   "focus-visible:outline-[var(--theme-accent)]",
                   pathname === "/admin"
-                    ? "opacity-100 border-b-2 border-[var(--theme-accent)]"
-                    : "opacity-70 hover:opacity-100",
+                    ? "border-[var(--theme-accent)] opacity-100"
+                    : "border-transparent opacity-60 hover:opacity-90 hover:border-[var(--theme-accent)]/40",
                 ].join(" ")}
               >
                 Admin
@@ -149,9 +145,9 @@ export default function NavBar() {
         </ul>
 
         {/* Right-side actions */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2">
           {/* Search bar — desktop only */}
-          <div className="hidden md:block w-56">
+          <div className="hidden lg:block w-48 xl:w-56">
             <SearchBar />
           </div>
 
@@ -212,19 +208,22 @@ export default function NavBar() {
                 </span>
               )}
 
-              {/* Sign out button */}
+              {/* Sign out button — icon only on mobile, text on sm+ */}
               <button
                 onClick={() => signOut({ callbackUrl: "/" })}
                 className={[
-                  "hidden rounded-lg px-3 py-2.5 text-sm font-medium sm:block min-h-[44px]",
+                  "rounded-lg px-2 py-2 sm:px-3 sm:py-2.5 text-sm font-medium min-h-[44px]",
                   "border border-[var(--border)]",
-                  "text-[var(--theme-accent)] opacity-80",
+                  "text-[var(--theme-accent)] opacity-70",
                   "transition-opacity duration-150 hover:opacity-100",
                   "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2",
                   "focus-visible:outline-[var(--theme-accent)]",
+                  "flex items-center gap-1.5",
                 ].join(" ")}
+                aria-label="Sign out"
               >
-                Sign out
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 shrink-0" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" /></svg>
+                <span className="hidden sm:inline">Sign out</span>
               </button>
             </div>
           ) : (
@@ -243,7 +242,7 @@ export default function NavBar() {
             </a>
           )}
 
-          {/* Mobile nav toggle — hamburger menu (md and below) */}
+          {/* Mobile nav toggle — hamburger menu (below lg) */}
           <MobileMenu
             isAdmin={session?.user.role === "ADMIN"}
             isSignedIn={!!session}
@@ -364,7 +363,7 @@ function MobileMenu({
   };
 
   return (
-    <div className="md:hidden">
+    <div className="lg:hidden">
       {/* JS-enhanced hamburger button */}
       <button
         ref={triggerRef}
@@ -436,10 +435,11 @@ function MobileMenu({
             aria-modal="true"
             aria-label="Navigation menu"
             className={[
-              "absolute right-0 top-0 h-full w-64 max-w-[80vw]",
+              "absolute right-0 top-0 h-full w-72 max-w-[85vw]",
               "bg-[var(--theme-bg)] shadow-xl",
               "flex flex-col",
-              "pt-16 px-4",
+              "pt-16 px-4 pb-6",
+              "overflow-y-auto",
             ].join(" ")}
           >
             {/* Close button inside the menu panel */}
@@ -456,32 +456,26 @@ function MobileMenu({
                 "focus-visible:outline-[var(--theme-accent)]",
               ].join(" ")}
             >
-              <svg
-                aria-hidden="true"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={1.5}
-                stroke="currentColor"
-                className="h-6 w-6"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M6 18 18 6M6 6l12 12"
-                />
+              <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-6 w-6">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
               </svg>
             </button>
 
+            {/* Brand name at top of drawer */}
+            <p className="font-serif text-sm font-semibold tracking-wider text-[var(--theme-accent)]/40 uppercase mb-4 px-1">
+              Navigation
+            </p>
+
             {/* Navigation links */}
-            <ul role="list" className="flex flex-col gap-1">
+            <ul role="list" className="flex flex-col gap-0.5 flex-1">
               <li>
                 <Link
                   href="/search"
                   onClick={closeMenu}
-                  className="block rounded-lg px-4 py-3 text-base font-medium min-h-[44px] text-[var(--theme-accent)] opacity-70 hover:opacity-100 hover:bg-[var(--theme-accent)]/5 transition-opacity focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent)]"
+                  className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium min-h-[44px] text-[var(--theme-accent)] opacity-70 hover:opacity-100 hover:bg-[var(--theme-accent)]/5 transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent)]"
                 >
-                  🔍 Search
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 shrink-0" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg>
+                  Search
                 </Link>
               </li>
               {allLinks.map(({ href, label }) => {
@@ -493,13 +487,13 @@ function MobileMenu({
                       onClick={closeMenu}
                       aria-current={isActive ? "page" : undefined}
                       className={[
-                        "block rounded-lg px-4 py-3 text-base font-medium min-h-[44px]",
+                        "block rounded-lg px-3 py-3 text-sm font-medium min-h-[44px]",
                         "text-[var(--theme-accent)]",
-                        "transition-opacity duration-150",
+                        "transition-all duration-150",
                         "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2",
                         "focus-visible:outline-[var(--theme-accent)]",
                         isActive
-                          ? "opacity-100 bg-[var(--theme-accent)]/10 border-l-2 border-[var(--theme-accent)]"
+                          ? "opacity-100 bg-[var(--theme-accent)]/8 border-l-2 border-[var(--theme-accent)] pl-4"
                           : "opacity-70 hover:opacity-100 hover:bg-[var(--theme-accent)]/5",
                       ].join(" ")}
                     >

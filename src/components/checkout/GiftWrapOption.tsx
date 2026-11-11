@@ -11,7 +11,6 @@ export function GiftWrapOption() {
   const message = useGiftWrapStore((s) => s.message);
   const toggle = useGiftWrapStore((s) => s.toggle);
   const setMessage = useGiftWrapStore((s) => s.setMessage);
-  // Compute isValid from raw state instead of using the getter (which won't trigger re-renders)
   const isValid = message.length <= 200;
 
   return (

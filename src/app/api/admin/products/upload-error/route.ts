@@ -2,18 +2,22 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 
-async function requireAdmin() {
+type AdminAuthResult =
+  | { ok: true; userEmail: string }
+  | { ok: false; error: string };
+
+async function requireAdmin(): Promise<AdminAuthResult> {
   const session = await getServerSession(authOptions);
-  if (!session?.user || (session.user as any).role !== "ADMIN") {
-    return { error: "Unauthorized" };
+  if (!session?.user || (session.user as { role?: string }).role !== "ADMIN") {
+    return { ok: false, error: "Unauthorized" };
   }
-  return { user: session.user };
+  return { ok: true, userEmail: session.user.email ?? "unknown" };
 }
 
 export async function POST(request: Request) {
   const auth = await requireAdmin();
-  if ((auth as any).error) {
-    return NextResponse.json({ error: (auth as any).error }, { status: 401 });
+  if (!auth.ok) {
+    return NextResponse.json({ error: auth.error }, { status: 401 });
   }
 
   try {
@@ -21,7 +25,7 @@ export async function POST(request: Request) {
     const fileName = payload.fileName ?? "unknown";
     const error = payload.error ?? "(no error provided)";
     console.error(`Admin reported upload error for ${fileName}:`, error, {
-      user: (auth as any).user,
+      user: auth.userEmail,
     });
     return NextResponse.json({ ok: true });
   } catch (err) {

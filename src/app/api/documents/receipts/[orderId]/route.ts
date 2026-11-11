@@ -32,8 +32,10 @@ export async function GET(
     return NextResponse.json({ error: 'Order not found' }, { status: 404 });
   }
 
-  if (session.user.id !== order.userId && (session.user as any).role !== 'ADMIN') {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  if (session.user.id !== order.userId) {
+    const { requireAdminSession } = await import('@/lib/admin/auth');
+    const admin = await requireAdminSession();
+    if (!admin.ok) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
   if (order.status !== 'PAID') {
@@ -59,10 +61,10 @@ export async function GET(
   };
 
   try {
-    const pdfBuffer = await generateReceiptPDF(receiptData);
+    const pdfBytes = await generateReceiptPDF(receiptData);
     const filename = `lusso-receipt-${order.id.slice(0, 8).toUpperCase()}.pdf`;
 
-    return new Response(new Uint8Array(pdfBuffer), {
+    return new Response(pdfBytes, {
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',

@@ -45,17 +45,32 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
+      // On initial sign-in, `user` is populated (both credentials and OAuth).
       if (user) {
         token.id = user.id;
-        token.role = (user as any).role;
+        // Credentials provider returns role directly on the user object.
+        // OAuth providers do NOT — fetch from DB for both paths to be safe.
+        const dbUser = await prisma.user.findUnique({
+          where: { id: user.id },
+          select: { role: true },
+        });
+        token.role = dbUser?.role ?? 'CUSTOMER';
+      }
+      // On session update (trigger === 'update'), re-fetch role in case it changed.
+      if (trigger === 'update' && token.id) {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: token.id as string },
+          select: { role: true },
+        });
+        if (dbUser) token.role = dbUser.role;
       }
       return token;
     },
     session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string;
-        session.user.role = token.role as 'CUSTOMER' | 'ADMIN';
+        session.user.role = (token.role as 'CUSTOMER' | 'ADMIN') ?? 'CUSTOMER';
       }
       return session;
     },

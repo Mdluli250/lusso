@@ -8,6 +8,10 @@ import type { OrderStatus } from '@prisma/client';
 import { sendOrderEmail, sendDispatchEmail } from '@/lib/email';
 import { refundPayFastPayment } from '@/lib/payfast-recurring';
 
+function isAdmin(session: { user?: { role?: string } } | null): boolean {
+  return (session?.user as { role?: string } | undefined)?.role === 'ADMIN';
+}
+
 export async function updateOrderFulfillment(input: {
   orderId: string;
   fulfillmentStatus: 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
@@ -15,7 +19,7 @@ export async function updateOrderFulfillment(input: {
   trackingNumber?: string;
 }): Promise<{ success: true } | { error: string }> {
   const session = await getServerSession(authOptions);
-  if (!session?.user || (session.user as any).role !== 'ADMIN') return { error: 'Unauthorized' };
+  if (!isAdmin(session)) return { error: 'Unauthorized' };
   if (input.carrier && input.carrier.length > 100) return { error: 'Carrier name is too long.' };
   if (input.trackingNumber && input.trackingNumber.length > 200) return { error: 'Tracking number is too long.' };
   const order = await prisma.order.findUnique({ where: { id: input.orderId } });
@@ -55,7 +59,7 @@ export async function updateOrderFulfillment(input: {
 
 export async function refundOrder(input: { orderId: string; amountZAR: number; reason: string }): Promise<{ success: true } | { error: string }> {
   const session = await getServerSession(authOptions);
-  if (!session?.user || (session.user as any).role !== 'ADMIN') return { error: 'Unauthorized' };
+  if (!isAdmin(session)) return { error: 'Unauthorized' };
   const amount = Math.round(Number(input.amountZAR) * 100);
   if (!Number.isSafeInteger(amount) || amount < 1 || !input.reason.trim() || input.reason.length > 255) return { error: 'Provide a valid refund amount and reason.' };
   const order = await prisma.order.findUnique({ where: { id: input.orderId } });
@@ -98,7 +102,7 @@ export async function updateOrderStatus(
 ): Promise<{ success: true } | { error: string }> {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user || (session.user as any).role !== 'ADMIN') {
+    if (!isAdmin(session)) {
       return { error: 'Unauthorized' };
     }
 

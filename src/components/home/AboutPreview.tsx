@@ -30,26 +30,26 @@ export async function AboutPreview() {
 
   return (
     <section className="section-spacing bg-cream" aria-labelledby="about-preview-heading">
-      <div className="mx-auto max-w-3xl px-6 text-center">
+      <div className="mx-auto max-w-4xl px-6 lg:px-8 text-center">
         <h2
           id="about-preview-heading"
-          className="font-serif text-3xl md:text-4xl text-charcoal mb-6"
+          className="font-serif text-2xl sm:text-3xl text-charcoal mb-5"
         >
           {heading}
         </h2>
 
-        <p className="text-warm-grey text-base md:text-lg leading-relaxed mb-4">
+        <p className="text-warm-grey text-base leading-relaxed mb-4 max-w-2xl mx-auto">
           {body1}
         </p>
 
-        <p className="text-warm-grey text-base md:text-lg leading-relaxed mb-8">
+        <p className="text-warm-grey text-base leading-relaxed mb-8 max-w-2xl mx-auto">
           {body2}
         </p>
 
         <Link
           href="/about"
           style={{ color: 'var(--theme-bg)' }}
-          className="inline-flex items-center justify-center px-8 py-3 min-h-[44px] min-w-[120px] rounded-lg bg-theme-accent font-semibold text-base transition-opacity duration-150 hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-theme-accent"
+          className="inline-flex items-center justify-center px-8 py-3 min-h-[48px] rounded-xl bg-theme-accent font-semibold text-sm lg:text-base transition-all duration-150 hover:opacity-90 hover:scale-[1.02] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-theme-accent"
         >
           {ctaLabel}
         </Link>

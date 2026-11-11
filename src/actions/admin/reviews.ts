@@ -1,7 +1,5 @@
 'use server';
 
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
 export async function moderateReview(
@@ -9,9 +7,10 @@ export async function moderateReview(
   action: 'APPROVE' | 'REJECT'
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user || (session.user as any).role !== 'ADMIN') {
-      return { success: false, error: 'Unauthorized' };
+    const { requireAdminSession } = await import('@/lib/admin/auth');
+    const auth = await requireAdminSession();
+    if (!auth.ok) {
+      return { success: false, error: auth.error };
     }
 
     const review = await prisma.review.findUnique({

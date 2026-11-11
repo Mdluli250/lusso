@@ -1,7 +1,5 @@
 'use server';
 
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
 export async function updateVariantStock(
@@ -9,9 +7,10 @@ export async function updateVariantStock(
   newStock: number
 ): Promise<{ success: true } | { error: string }> {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user || (session.user as any).role !== 'ADMIN') {
-      return { error: 'Unauthorized' };
+    const { requireAdminSession } = await import('@/lib/admin/auth');
+    const auth = await requireAdminSession();
+    if (!auth.ok) {
+      return { error: auth.error };
     }
 
     if (newStock < 0) {

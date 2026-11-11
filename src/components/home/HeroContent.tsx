@@ -71,10 +71,8 @@ export function HeroContent({ heading, subtext, ctaLabel, bgImage }: HeroContent
   return (
     <section
       ref={sectionRef}
-      className="relative flex min-h-screen w-full items-center justify-center overflow-hidden"
-      style={{
-        backgroundColor: 'var(--brand-cream)',
-      }}
+      className="relative flex min-h-[85svh] w-full items-center justify-center overflow-hidden sm:min-h-screen"
+      style={{ backgroundColor: 'var(--brand-cream)' }}
       aria-label="Hero section — Lusso Candles"
     >
       {/* Background image with parallax */}
@@ -91,35 +89,51 @@ export function HeroContent({ heading, subtext, ctaLabel, bgImage }: HeroContent
         />
       )}
 
-      {/* Dark overlay for text readability */}
-      <div className="absolute inset-0 bg-black/20" />
+      {/* Gradient overlay — stronger at bottom for readability, lighter at top */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/25 to-black/10" />
 
-      {/* Content overlay with parallax */}
+      {/* Content */}
       <div
         ref={contentRef}
-        className="relative z-10 flex flex-col items-center gap-6 px-6 text-center will-change-transform"
+        className="relative z-10 mx-auto w-full max-w-4xl flex flex-col items-center gap-5 px-6 text-center will-change-transform sm:gap-7 sm:px-10 lg:px-16"
       >
         <h1
           ref={headingRef}
-          className="font-serif text-4xl font-bold leading-tight tracking-tight text-white drop-shadow-lg sm:text-5xl md:text-6xl lg:text-7xl"
+          className="font-serif text-3xl font-bold leading-[1.15] tracking-tight text-white drop-shadow-lg sm:text-5xl lg:text-6xl xl:text-7xl"
         >
           {heading}
         </h1>
 
         <p
           ref={subtextRef}
-          className="max-w-lg text-lg leading-relaxed text-white/90 drop-shadow-md sm:text-xl"
+          className="max-w-sm text-base leading-relaxed text-white/85 drop-shadow-md sm:max-w-lg sm:text-lg"
         >
           {subtext}
         </p>
 
-        <Link
-          ref={ctaRef}
-          href="/collection"
-          className="mt-4 inline-flex min-h-[44px] min-w-[120px] items-center justify-center rounded-lg bg-white/95 px-8 py-3 text-lg font-semibold text-[var(--brand-charcoal)] shadow-lg backdrop-blur-sm transition-all hover:bg-white hover:scale-[1.02] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-        >
-          {ctaLabel}
-        </Link>
+        <div className="flex flex-col items-center gap-3 sm:flex-row sm:gap-4 mt-2">
+          <Link
+            ref={ctaRef}
+            href="/collection"
+            className="inline-flex min-h-[52px] min-w-[180px] items-center justify-center rounded-xl bg-white/95 px-10 py-3.5 text-base font-semibold text-[var(--brand-charcoal)] shadow-xl backdrop-blur-sm transition-all hover:bg-white hover:scale-[1.03] hover:shadow-2xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white lg:text-lg"
+          >
+            {ctaLabel}
+          </Link>
+          <Link
+            href="/about"
+            className="inline-flex min-h-[52px] min-w-[160px] items-center justify-center rounded-xl border-2 border-white/50 px-8 py-3.5 text-base font-medium text-white/90 backdrop-blur-sm transition-all hover:border-white hover:text-white hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white lg:text-lg"
+          >
+            Our Story
+          </Link>
+        </div>
+      </div>
+
+      {/* Scroll indicator */}
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 text-white/50" aria-hidden="true">
+        <span className="text-xs tracking-widest uppercase">Scroll</span>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-4 w-4 animate-bounce">
+          <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+        </svg>
       </div>
     </section>
   );

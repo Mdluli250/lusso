@@ -23,8 +23,8 @@ export function CartDrawer() {
   const items = useCartStore((s) => s.items);
 
   return (
-    <div className="w-full max-w-4xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold text-[var(--theme-accent)] mb-6">
+    <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
+      <h1 className="text-xl sm:text-2xl font-bold text-[var(--theme-accent)] mb-5">
         Shopping Cart
       </h1>
 
@@ -38,9 +38,10 @@ export function CartDrawer() {
         <>
           <FreeShippingBar />
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* ── Left: items + upsell ── */}
-            <div className="lg:col-span-2 space-y-2">
+          {/* Mobile: stacked. Desktop: side-by-side */}
+          <div className="mt-4 flex flex-col lg:flex-row gap-6 lg:gap-8 items-start">
+            {/* ── Items + upsell ── */}
+            <div className="w-full lg:flex-1 space-y-1">
               <div className="divide-y divide-[var(--theme-accent)]/10">
                 {items.map((item) => (
                   <CartItem key={item.variantId} item={item} />
@@ -49,9 +50,9 @@ export function CartDrawer() {
               <CartUpsell />
             </div>
 
-            {/* ── Right: sticky sidebar ── */}
-            <div className="lg:col-span-1">
-              <div className="sticky top-24 space-y-4">
+            {/* ── Sidebar: gift wrap + promo + summary ── */}
+            <div className="w-full lg:w-80 shrink-0">
+              <div className="lg:sticky lg:top-24 space-y-4">
                 <GiftWrapOption />
                 <PromoCodeInput />
                 <CartSummary />

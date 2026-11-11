@@ -6,17 +6,21 @@ import { randomUUID } from "crypto";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 
-async function requireAdmin() {
+type AdminAuthResult =
+  | { ok: true }
+  | { ok: false; error: string };
+
+async function requireAdmin(): Promise<AdminAuthResult> {
   const session = await getServerSession(authOptions);
-  if (!session?.user || (session.user as any).role !== "ADMIN") {
-    return { error: "Unauthorized" };
+  if (!session?.user || (session.user as { role?: string }).role !== "ADMIN") {
+    return { ok: false, error: "Unauthorized" };
   }
-  return {};
+  return { ok: true };
 }
 
 export async function POST(request: Request) {
   const auth = await requireAdmin();
-  if (auth.error) {
+  if (!auth.ok) {
     return NextResponse.json({ error: auth.error }, { status: 401 });
   }
 

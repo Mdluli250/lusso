@@ -48,15 +48,15 @@ export default async function AboutPage() {
   return (
     <div className="bg-cream">
       {/* Page Header */}
-      <section className="section-spacing" aria-labelledby="about-heading">
-        <div className="mx-auto max-w-4xl px-6 text-center">
+      <section className="section-spacing bg-sand" aria-labelledby="about-heading">
+        <div className="mx-auto max-w-3xl px-6 lg:px-8 text-center">
           <h1
             id="about-heading"
-            className="font-serif text-4xl md:text-5xl text-charcoal mb-6"
+            className="font-serif text-3xl sm:text-4xl lg:text-5xl text-charcoal mb-5"
           >
             {content.get("about_page.heading")}
           </h1>
-          <p className="text-warm-grey text-lg md:text-xl leading-relaxed max-w-2xl mx-auto">
+          <p className="text-warm-grey text-base lg:text-lg leading-relaxed max-w-2xl mx-auto">
             {content.get("about_page.intro")}
           </p>
         </div>
@@ -64,36 +64,31 @@ export default async function AboutPage() {
 
       {/* Brand Story Section */}
       <section
-        className="section-spacing bg-white"
+        className="section-spacing"
         aria-labelledby="brand-story-heading"
       >
-        <div className="mx-auto max-w-4xl px-6 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+        <div className="mx-auto max-w-6xl px-6 lg:px-10 grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
           <div>
+            <span className="text-xs font-semibold tracking-widest uppercase text-warm-grey mb-3 block">Our Story</span>
             <h2
               id="brand-story-heading"
-              className="font-serif text-3xl md:text-4xl text-charcoal mb-6"
+              className="font-serif text-2xl sm:text-3xl text-charcoal mb-5"
             >
               {content.get("about_page.story_heading")}
             </h2>
 
-            <p className="text-warm-grey text-base md:text-lg leading-relaxed mb-4">
-              {content.get("about_page.story_body_1")}
-            </p>
+            <div className="space-y-4 text-warm-grey text-sm lg:text-base leading-relaxed">
+              <p>{content.get("about_page.story_body_1")}</p>
+              <p>{content.get("about_page.story_body_2")}</p>
+              <p>{content.get("about_page.story_body_3")}</p>
+            </div>
 
-            <p className="text-warm-grey text-base md:text-lg leading-relaxed mb-4">
-              {content.get("about_page.story_body_2")}
-            </p>
-
-            <p className="text-warm-grey text-base md:text-lg leading-relaxed mb-4">
-              {content.get("about_page.story_body_3")}
-            </p>
-
-            <p className="text-warm-grey text-base md:text-lg leading-relaxed font-semibold">
+            <p className="mt-5 text-charcoal text-sm lg:text-base font-semibold italic">
               {content.get("about_page.story_tagline")}
             </p>
           </div>
 
-          <div className="relative aspect-[4/5] w-full overflow-hidden rounded-xl">
+          <div className="relative aspect-[4/5] w-full overflow-hidden rounded-2xl shadow-lg">
             <Image
               src={content.get("about_page.story_image")!}
               alt="Lusso candle workshop with hand-poured soy candles cooling on a wooden bench"
@@ -107,9 +102,9 @@ export default async function AboutPage() {
       </section>
 
       {/* Philosophy Section */}
-      <section className="section-spacing" aria-labelledby="philosophy-heading">
-        <div className="mx-auto max-w-4xl px-6 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          <div className="order-2 lg:order-1 relative aspect-[4/5] w-full overflow-hidden rounded-xl">
+      <section className="section-spacing bg-sand" aria-labelledby="philosophy-heading">
+        <div className="mx-auto max-w-6xl px-6 lg:px-10 grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+          <div className="order-2 lg:order-1 relative aspect-[4/5] w-full overflow-hidden rounded-2xl shadow-lg">
             <Image
               src={content.get("about_page.philosophy_image")!}
               alt="Premium candle-making materials including soy wax flakes, beeswax, and botanical oils"
@@ -120,24 +115,19 @@ export default async function AboutPage() {
           </div>
 
           <div className="order-1 lg:order-2">
+            <span className="text-xs font-semibold tracking-widest uppercase text-warm-grey mb-3 block">Our Philosophy</span>
             <h2
               id="philosophy-heading"
-              className="font-serif text-3xl md:text-4xl text-charcoal mb-6"
+              className="font-serif text-2xl sm:text-3xl text-charcoal mb-5"
             >
               {content.get("about_page.philosophy_heading")}
             </h2>
 
-            <p className="text-warm-grey text-base md:text-lg leading-relaxed mb-4">
-              {content.get("about_page.philosophy_body_1")}
-            </p>
-
-            <p className="text-warm-grey text-base md:text-lg leading-relaxed mb-4">
-              {content.get("about_page.philosophy_body_2")}
-            </p>
-
-            <p className="text-warm-grey text-base md:text-lg leading-relaxed">
-              {content.get("about_page.philosophy_body_3")}
-            </p>
+            <div className="space-y-4 text-warm-grey text-sm lg:text-base leading-relaxed">
+              <p>{content.get("about_page.philosophy_body_1")}</p>
+              <p>{content.get("about_page.philosophy_body_2")}</p>
+              <p>{content.get("about_page.philosophy_body_3")}</p>
+            </div>
           </div>
         </div>
       </section>

@@ -53,17 +53,17 @@ export default function ComparePage() {
   if (filledCount < 2) {
     return (
       <main className="min-h-screen bg-[var(--theme-bg)] flex items-center justify-center px-4">
-        <div className="text-center space-y-4 max-w-md">
-          <h1 className="text-2xl font-bold text-[var(--theme-accent)]">
+        <div className="text-center space-y-4 max-w-sm">
+          <h1 className="text-xl sm:text-2xl font-bold text-[var(--theme-accent)]">
             Scent Comparison
           </h1>
-          <p className="text-[var(--theme-accent)]/70">
+          <p className="text-sm text-[var(--theme-accent)]/70">
             Select 2 products to compare them side by side. Browse our collection and click
             &quot;Compare&quot; on any product card.
           </p>
           <Link
             href="/collection"
-            className="inline-block px-6 py-3 border border-[var(--theme-accent)] rounded-md hover:bg-[var(--theme-accent)]/10 transition-colors text-[var(--theme-accent)]"
+            className="inline-block px-6 py-2.5 border border-[var(--theme-accent)] rounded-xl hover:bg-[var(--theme-accent)]/10 transition-colors text-sm text-[var(--theme-accent)] font-medium"
           >
             Browse Collection
           </Link>
@@ -79,7 +79,7 @@ export default function ComparePage() {
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-[var(--theme-accent)]">
+          <h1 className="text-xl sm:text-2xl font-bold text-[var(--theme-accent)]">
             Scent Comparison
           </h1>
           <Button variant="secondary" size="sm" onClick={clear}>

@@ -53,6 +53,9 @@ export default function OrderHistory({ orders: initialOrders }: OrderHistoryProp
   }, []);
 
   useEffect(() => {
+    // Fetch immediately on mount to hydrate with fresh data,
+    // then poll every 15 seconds for PENDING orders.
+    fetchOrders();
     const interval = setInterval(fetchOrders, 15_000);
     return () => clearInterval(interval);
   }, [fetchOrders]);

@@ -52,33 +52,33 @@ const TIPS = [
 export default function CandleCarePage() {
   return (
     <div className="min-h-screen bg-[var(--theme-bg)]">
-      <div className="max-w-3xl mx-auto px-6 py-16 sm:py-24">
+      <div className="max-w-2xl mx-auto px-6 py-12 sm:py-16">
 
-        <header className="mb-14 text-center">
-          <p className="text-3xl mb-3">🕯️</p>
-          <h1 className="text-4xl font-bold text-[var(--theme-accent)] mb-4">Candle Care Guide</h1>
-          <p className="text-[var(--theme-accent)]/60 max-w-xl mx-auto">
+        <header className="mb-10 text-center">
+          <p className="text-3xl mb-3" aria-hidden="true">🕯️</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-[var(--theme-accent)] mb-3">Candle Care Guide</h1>
+          <p className="text-sm text-[var(--theme-accent)]/60 max-w-md mx-auto">
             Follow these simple tips to get the most beautiful, longest-lasting burn from every Lusso candle.
           </p>
         </header>
 
-        <ul className="space-y-6" role="list">
+        <ul className="space-y-4" role="list">
           {TIPS.map((tip) => (
             <li
               key={tip.heading}
-              className="flex gap-5 rounded-2xl border border-[var(--theme-accent)]/10 bg-[var(--theme-accent)]/3 px-5 py-5"
+              className="flex gap-4 rounded-xl border border-[var(--theme-accent)]/10 bg-[var(--theme-accent)]/3 px-4 py-4"
             >
-              <span className="text-2xl shrink-0 mt-0.5" aria-hidden="true">{tip.icon}</span>
+              <span className="text-xl shrink-0 mt-0.5" aria-hidden="true">{tip.icon}</span>
               <div>
-                <h2 className="font-semibold text-[var(--theme-accent)] mb-1">{tip.heading}</h2>
+                <h2 className="text-sm font-semibold text-[var(--theme-accent)] mb-1">{tip.heading}</h2>
                 <p className="text-sm text-[var(--theme-accent)]/70 leading-relaxed">{tip.body}</p>
               </div>
             </li>
           ))}
         </ul>
 
-        <div className="mt-16 rounded-xl border border-[var(--theme-accent)]/15 bg-[var(--theme-accent)]/5 px-6 py-6 space-y-3">
-          <h2 className="font-semibold text-[var(--theme-accent)]">Safety reminder</h2>
+        <div className="mt-10 rounded-xl border border-[var(--theme-accent)]/15 bg-[var(--theme-accent)]/5 px-5 py-5 space-y-2">
+          <h2 className="text-sm font-semibold text-[var(--theme-accent)]">Safety reminder</h2>
           <ul className="text-sm text-[var(--theme-accent)]/70 space-y-1 list-disc pl-4">
             <li>Never leave a burning candle unattended.</li>
             <li>Keep away from children and pets.</li>
@@ -88,7 +88,7 @@ export default function CandleCarePage() {
           </ul>
         </div>
 
-        <p className="mt-10 text-center text-sm text-[var(--theme-accent)]/50">
+        <p className="mt-8 text-center text-xs text-[var(--theme-accent)]/50">
           Questions? <Link href="/contact" className="underline hover:no-underline">Contact us</Link> or read our <Link href="/faq" className="underline hover:no-underline">FAQ</Link>.
         </p>
       </div>

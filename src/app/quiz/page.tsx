@@ -17,11 +17,11 @@ export default function QuizPage() {
   return (
     <main className="min-h-screen bg-[var(--theme-bg)] py-12 px-4">
       <div className="max-w-2xl mx-auto">
-        <div className="text-center mb-10">
-          <h1 className="text-3xl font-bold text-[var(--theme-accent)] mb-3">
+        <div className="text-center mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-[var(--theme-accent)] mb-2">
             Find Your Perfect Scent
           </h1>
-          <p className="text-[var(--theme-accent)]/60">
+          <p className="text-sm text-[var(--theme-accent)]/60">
             Answer a few questions and we&apos;ll recommend the ideal candle for you.
           </p>
         </div>

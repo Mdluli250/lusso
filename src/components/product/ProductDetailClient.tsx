@@ -125,7 +125,7 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
 
   return (
     <div className="min-h-screen bg-[var(--theme-bg)] transition-colors duration-700">
-      <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-16 py-12 lg:py-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-8 lg:py-16">
         {/* Breadcrumb navigation */}
         <Breadcrumbs
           items={[
@@ -228,12 +228,12 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
             </div>
 
             {/* Thumbnail strip */}
-            <div className="flex gap-2 mt-3">
+            <div className="flex gap-2 mt-3 overflow-x-auto pb-1 scrollbar-none">
               {productImages.map((img, i) => (
                 <button
                   key={i}
                   onClick={() => setActiveImageIndex(i)}
-                  className={`relative w-16 h-16 rounded-lg overflow-hidden border-2 transition-all ${
+                  className={`relative shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-lg overflow-hidden border-2 transition-all ${
                     i === activeImageIndex
                       ? "border-[var(--theme-accent)]"
                       : "border-transparent opacity-60 hover:opacity-100"
@@ -254,11 +254,11 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
           {/* Right: Product info */}
           <div className="flex flex-col gap-6">
             {/* Name + Wishlist + Share */}
-            <div className="flex items-start justify-between gap-4">
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[var(--theme-accent)] leading-tight">
+            <div className="flex items-start justify-between gap-3">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[var(--theme-accent)] leading-tight">
                 {product.name}
               </h1>
-              <div className="flex items-center gap-2 shrink-0 mt-2">
+              <div className="flex items-center gap-2 shrink-0 mt-1">
                 <ShareButton title={product.name} text={`${product.name} — ${product.scentProfile} scent, ${product.burnTimeHours}h burn time`} />
                 <WishlistButton productId={product.id} />
               </div>
@@ -286,9 +286,9 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
             </div>
 
             {/* Price */}
-            <div className="pt-4 border-t border-[var(--theme-accent)]/15">
+            <div className="pt-3 border-t border-[var(--theme-accent)]/15">
               <span
-                className="text-3xl sm:text-4xl font-bold text-[var(--theme-accent)]"
+                className="text-2xl sm:text-3xl font-bold text-[var(--theme-accent)]"
                 aria-label={`Price: ${formatZAR(product.price)}`}
               >
                 {formatZAR(product.price)}
@@ -382,7 +382,7 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
       </div>
 
       {/* Sticky mobile add-to-cart bar */}
-      <div className="fixed bottom-0 left-0 right-0 z-30 md:hidden bg-[var(--theme-bg)] border-t border-[var(--theme-accent)]/15 px-4 py-3 flex items-center justify-between gap-3 shadow-lg">
+      <div className="fixed bottom-[var(--comparison-bar-height,0px)] left-0 right-0 z-30 md:hidden bg-[var(--theme-bg)] border-t border-[var(--theme-accent)]/15 px-4 py-3 flex items-center justify-between gap-3 shadow-lg">
         <div>
           <p className="text-sm font-semibold text-[var(--theme-accent)]">
             {product.name}

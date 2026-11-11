@@ -35,7 +35,7 @@ function SignInContent() {
     <div className="flex min-h-screen flex-col items-center justify-center bg-[var(--theme-bg)] px-4">
       <div className="w-full max-w-sm rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-8 shadow-xl">
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold tracking-tight text-[var(--theme-accent)]">Lusso</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-[var(--theme-accent)]">Lusso</h1>
           <p className="mt-2 text-sm text-[var(--muted)]">Sign in to your account</p>
         </div>
 

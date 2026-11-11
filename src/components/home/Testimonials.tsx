@@ -17,26 +17,32 @@ export async function Testimonials() {
   );
 
   return (
-    <section className="section-spacing bg-sand" aria-labelledby="testimonials-heading">
-      <div className="mx-auto max-w-4xl px-6">
+    <section className="section-spacing bg-cream" aria-labelledby="testimonials-heading">
+      <div className="mx-auto max-w-7xl px-6 lg:px-10">
         <h2
           id="testimonials-heading"
-          className="font-serif text-3xl md:text-4xl text-charcoal text-center mb-12"
+          className="font-serif text-2xl sm:text-3xl text-charcoal text-center mb-3"
         >
-          Reviews
+          What Our Customers Say
         </h2>
+        <p className="text-warm-grey text-center text-sm lg:text-base mb-10 lg:mb-12 max-w-xl mx-auto">
+          Thousands of homes across South Africa lit by Lusso.
+        </p>
 
-        <div className="grid gap-8 md:grid-cols-3">
+        <div className="grid gap-5 md:grid-cols-3 lg:gap-6">
           {testimonials.map((testimonial) => (
             <blockquote
               key={testimonial.name}
-              className="flex flex-col items-center text-center"
+              className="flex flex-col items-center text-center p-5 lg:p-6 rounded-2xl bg-sand border border-[var(--brand-sand)]"
             >
-              <p className="font-serif text-lg md:text-xl text-charcoal leading-relaxed italic mb-4">
+              <div className="flex text-amber-500 text-xs mb-3" aria-label="5 out of 5 stars">
+                {"★★★★★"}
+              </div>
+              <p className="font-serif text-base text-charcoal leading-relaxed italic mb-4 flex-1">
                 &ldquo;{testimonial.quote}&rdquo;
               </p>
-              <cite className="not-italic text-sm font-semibold tracking-wide uppercase text-warm-grey">
-                {testimonial.name}
+              <cite className="not-italic text-xs font-semibold tracking-widest uppercase text-warm-grey">
+                — {testimonial.name}
               </cite>
             </blockquote>
           ))}

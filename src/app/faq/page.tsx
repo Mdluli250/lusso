@@ -118,14 +118,14 @@ const FAQ_SECTIONS = [
 export default function FaqPage() {
   return (
     <div className="min-h-screen bg-[var(--theme-bg)]">
-      <div className="max-w-3xl mx-auto px-6 py-16 sm:py-24">
-        <h1 className="text-4xl font-bold text-[var(--theme-accent)] mb-3">Frequently Asked Questions</h1>
-        <p className="text-[var(--theme-accent)]/60 mb-12">Can&apos;t find what you&apos;re looking for? <Link href="/contact" className="underline hover:no-underline">Contact us</Link>.</p>
+      <div className="max-w-2xl mx-auto px-6 py-12 sm:py-16">
+        <h1 className="text-2xl sm:text-3xl font-bold text-[var(--theme-accent)] mb-2">Frequently Asked Questions</h1>
+        <p className="text-sm text-[var(--theme-accent)]/60 mb-10">Can&apos;t find what you&apos;re looking for? <Link href="/contact" className="underline hover:no-underline">Contact us</Link>.</p>
 
-        <div className="space-y-12">
+        <div className="space-y-10">
           {FAQ_SECTIONS.map((section) => (
             <div key={section.heading}>
-              <h2 className="text-lg font-semibold text-[var(--theme-accent)] mb-4 pb-2 border-b border-[var(--theme-accent)]/15">
+              <h2 className="text-sm font-semibold uppercase tracking-widest text-[var(--theme-accent)]/60 mb-3 pb-2 border-b border-[var(--theme-accent)]/15">
                 {section.heading}
               </h2>
               <FaqAccordion items={section.items} />
@@ -133,9 +133,9 @@ export default function FaqPage() {
           ))}
         </div>
 
-        <div className="mt-16 rounded-xl border border-[var(--theme-accent)]/15 bg-[var(--theme-accent)]/5 px-6 py-5 text-center space-y-2">
-          <p className="font-medium text-[var(--theme-accent)]">Still have questions?</p>
-          <p className="text-sm text-[var(--theme-accent)]/60">Our team is happy to help.</p>
+        <div className="mt-12 rounded-xl border border-[var(--theme-accent)]/15 bg-[var(--theme-accent)]/5 px-5 py-5 text-center space-y-2">
+          <p className="text-sm font-medium text-[var(--theme-accent)]">Still have questions?</p>
+          <p className="text-xs text-[var(--theme-accent)]/60">Our team is happy to help.</p>
           <Link
             href="/contact"
             className="inline-block mt-2 px-5 py-2.5 rounded-lg bg-[var(--theme-accent)] text-cream text-sm font-medium hover:opacity-90 transition-opacity"

@@ -4,7 +4,7 @@
  * using a hash of the product ID for consistent assignment.
  */
 
-const PRODUCT_IMAGES = [
+export const PRODUCT_IMAGES = [
   '/images/gallery/candle-closeup-1.png',
   '/images/gallery/styled-trio-1.png',
   '/images/gallery/candle-closeup-2.png',

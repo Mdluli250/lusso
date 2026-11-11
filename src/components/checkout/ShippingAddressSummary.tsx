@@ -22,6 +22,7 @@ interface Address {
 export function ShippingAddressSummary() {
   const [address, setAddress] = useState<Address | null>(null);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(false);
 
   useEffect(() => {
     fetch('/api/profile/address')
@@ -30,7 +31,10 @@ export function ShippingAddressSummary() {
         setAddress(data?.address ?? null);
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch(() => {
+        setFetchError(true);
+        setLoading(false);
+      });
   }, []);
 
   if (loading) {
@@ -38,6 +42,24 @@ export function ShippingAddressSummary() {
       <div className="rounded-xl border border-[var(--theme-accent)]/15 px-5 py-4 animate-pulse">
         <div className="h-4 w-32 bg-[var(--theme-accent)]/10 rounded mb-2" />
         <div className="h-3 w-48 bg-[var(--theme-accent)]/10 rounded" />
+      </div>
+    );
+  }
+
+  if (fetchError) {
+    return (
+      <div className="rounded-xl border border-red-200 bg-red-50 px-5 py-4">
+        <p className="text-sm text-red-600">
+          Could not load your delivery address. Please{' '}
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="underline hover:no-underline"
+          >
+            refresh the page
+          </button>{' '}
+          and try again.
+        </p>
       </div>
     );
   }

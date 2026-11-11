@@ -34,8 +34,8 @@ export function DocumentDownloadButton({ orderId, type, className = '' }: Docume
       const res = await fetch(url);
 
       if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error((body as any).error ?? `Server error ${res.status}`);
+        const body = await res.json().catch(() => ({} as Record<string, unknown>));
+        throw new Error(typeof body.error === 'string' ? body.error : `Server error ${res.status}`);
       }
 
       const blob = await res.blob();

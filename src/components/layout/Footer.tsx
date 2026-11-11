@@ -46,14 +46,14 @@ export default async function Footer() {
       ].join(' ')}
       role="contentinfo"
     >
-      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
         {/* Newsletter signup */}
         <div className="mb-8 pb-8 border-b border-[var(--border)]">
           <div className="max-w-md">
-            <h2 className="text-sm font-semibold mb-2">
+            <h2 className="text-sm font-semibold mb-1.5">
               {footerContent.get('footer.newsletter_heading')}
             </h2>
-            <p className="text-sm opacity-70 mb-3">
+            <p className="text-xs opacity-70 mb-3">
               {footerContent.get('footer.newsletter_subtext')}
             </p>
             <form className="flex gap-2" action="/api/email-capture" method="POST">
@@ -61,54 +61,44 @@ export default async function Footer() {
                 type="email"
                 name="email"
                 placeholder="your@email.com"
-                className="flex-1 px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--theme-bg)] text-[var(--theme-accent)] text-sm placeholder:text-[var(--muted)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]/30"
+                className="flex-1 min-w-0 px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--theme-bg)] text-[var(--theme-accent)] text-sm placeholder:text-[var(--muted)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)]/30"
               />
-              <button type="submit" className="px-4 py-2 rounded-lg bg-[var(--theme-accent)] text-cream text-sm font-medium hover:opacity-90 transition-opacity">
+              <button type="submit" className="shrink-0 px-4 py-2 rounded-lg bg-[var(--theme-accent)] text-cream text-sm font-medium hover:opacity-90 transition-opacity whitespace-nowrap">
                 Subscribe
               </button>
             </form>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-6">
-          {/* Brand & Sustainability */}
-          <div>
-            <div className="mb-3 flex items-center gap-2 text-sm font-semibold tracking-tight">
-              <svg
-                aria-hidden="true"
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-                className="h-4 w-4 shrink-0"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M12.963 2.286a.75.75 0 0 0-1.071-.136 9.742 9.742 0 0 0-3.539 6.176 7.547 7.547 0 0 1-1.705-1.715.75.75 0 0 0-1.152-.082A9 9 0 1 0 15.68 4.534a7.46 7.46 0 0 1-2.717-2.248ZM15.75 14.25a3.75 3.75 0 1 1-7.313-1.172c.628.465 1.35.81 2.133 1a5.99 5.99 0 0 1 1.925-3.546 3.75 3.75 0 0 1 3.255 3.718Z"
-                  clipRule="evenodd"
-                />
+        <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-12">
+          {/* Brand & Sustainability — takes 3 of 12 cols on desktop */}
+          <div className="col-span-2 sm:col-span-3 lg:col-span-3">
+            <div className="mb-3 flex items-center gap-2 text-base font-semibold tracking-tight">
+              <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5 shrink-0">
+                <path fillRule="evenodd" d="M12.963 2.286a.75.75 0 0 0-1.071-.136 9.742 9.742 0 0 0-3.539 6.176 7.547 7.547 0 0 1-1.705-1.715.75.75 0 0 0-1.152-.082A9 9 0 1 0 15.68 4.534a7.46 7.46 0 0 1-2.717-2.248ZM15.75 14.25a3.75 3.75 0 1 1-7.313-1.172c.628.465 1.35.81 2.133 1a5.99 5.99 0 0 1 1.925-3.546 3.75 3.75 0 0 1 3.255 3.718Z" clipRule="evenodd" />
               </svg>
-              <span>Lusso</span>
+              <span className="font-serif font-normal tracking-wider text-lg">Lusso</span>
             </div>
-            <p className="text-sm opacity-70 mb-3">
+            <p className="text-sm opacity-70 mb-4 leading-relaxed max-w-xs">
               {footerContent.get('footer.sustainability_text')}
             </p>
-            <div className="flex flex-col gap-1 text-xs opacity-60">
+            <div className="flex flex-col gap-1.5 text-xs opacity-60">
               <span>🕯️ Hand-poured in Centurion, SA</span>
               <span>🔒 Secure checkout</span>
               <span>🌿 Sustainably sourced</span>
             </div>
           </div>
 
-          {/* Business Hours */}
-          <div>
+          {/* Business Hours — 2 cols */}
+          <div className="lg:col-span-2">
             <h2 className="mb-3 text-sm font-semibold">Hours</h2>
-            <p className="text-sm opacity-70">
+            <p className="text-sm opacity-70 leading-relaxed">
               {businessInfo.get('business_info.hours')}
             </p>
           </div>
 
-          {/* Quick Nav Links */}
-          <div>
+          {/* Quick Nav Links — 2 cols */}
+          <div className="lg:col-span-2">
             <h2 className="mb-3 text-sm font-semibold">Explore</h2>
             <ul className="space-y-2 text-sm opacity-70">
               {[
@@ -121,10 +111,7 @@ export default async function Footer() {
                 { href: '/contact', label: 'Contact' },
               ].map(({ href, label }) => (
                 <li key={href}>
-                  <Link
-                    href={href}
-                    className="hover:opacity-100 transition-opacity focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent)] rounded-sm"
-                  >
+                  <Link href={href} className="hover:opacity-100 transition-opacity focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent)] rounded-sm">
                     {label}
                   </Link>
                 </li>
@@ -132,8 +119,8 @@ export default async function Footer() {
             </ul>
           </div>
 
-          {/* Help & Legal */}
-          <div>
+          {/* Help & Legal — 2 cols */}
+          <div className="lg:col-span-2">
             <h2 className="mb-3 text-sm font-semibold">Help &amp; Legal</h2>
             <ul className="space-y-2 text-sm opacity-70">
               {[
@@ -144,10 +131,7 @@ export default async function Footer() {
                 { href: '/privacy', label: 'Privacy Policy' },
               ].map(({ href, label }) => (
                 <li key={href}>
-                  <Link
-                    href={href}
-                    className="hover:opacity-100 transition-opacity focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent)] rounded-sm"
-                  >
+                  <Link href={href} className="hover:opacity-100 transition-opacity focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent)] rounded-sm">
                     {label}
                   </Link>
                 </li>
@@ -155,34 +139,28 @@ export default async function Footer() {
             </ul>
           </div>
 
-          {/* Contact Info */}
-          <div>
+          {/* Contact Info — 2 cols */}
+          <div className="lg:col-span-2">
             <h2 className="mb-3 text-sm font-semibold">Contact</h2>
-            <address className="not-italic text-sm opacity-70 space-y-1">
+            <address className="not-italic text-sm opacity-70 space-y-1.5">
               <p>{businessInfo.get('business_info.address')}</p>
               <p>
-                <a
-                  href={businessInfo.get('business_info.phone_href')}
-                  className="inline-flex min-h-[44px] items-center underline underline-offset-2 hover:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent)] rounded-sm"
-                >
+                <a href={businessInfo.get('business_info.phone_href')} className="inline-flex min-h-[44px] items-center underline underline-offset-2 hover:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent)] rounded-sm">
                   {businessInfo.get('business_info.phone')}
                 </a>
               </p>
               <p>
-                <a
-                  href={businessInfo.get('business_info.email_href')}
-                  className="inline-flex min-h-[44px] items-center underline underline-offset-2 hover:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent)] rounded-sm"
-                >
+                <a href={businessInfo.get('business_info.email_href')} className="inline-flex min-h-[44px] items-center underline underline-offset-2 hover:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent)] rounded-sm">
                   {businessInfo.get('business_info.email')}
                 </a>
               </p>
             </address>
           </div>
 
-          {/* Social Media Links */}
-          <div>
-            <h2 className="mb-3 text-sm font-semibold">Follow Us</h2>
-            <ul className="flex gap-3">
+          {/* Social Media — 1 col */}
+          <div className="lg:col-span-1">
+            <h2 className="mb-3 text-sm font-semibold">Follow</h2>
+            <ul className="flex flex-col gap-2">
               {SOCIAL_LINKS.map((link) => (
                 <li key={link.platform}>
                   <a
@@ -190,9 +168,10 @@ export default async function Footer() {
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label={`Follow us on ${link.platform}`}
-                    className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md opacity-70 hover:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent)]"
+                    className="inline-flex min-h-[44px] min-w-[44px] items-center gap-2.5 rounded-md opacity-70 hover:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent)] text-xs font-medium"
                   >
                     <SocialIcon platform={link.icon} />
+                    <span className="capitalize hidden lg:inline">{link.platform}</span>
                   </a>
                 </li>
               ))}

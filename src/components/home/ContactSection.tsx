@@ -20,46 +20,45 @@ export function ContactSection() {
       className="section-spacing bg-sand"
       aria-labelledby="contact-section-heading"
     >
-      <div className="mx-auto max-w-5xl px-6">
+      <div className="mx-auto max-w-7xl px-6 lg:px-10">
         <h2
           id="contact-section-heading"
-          className="font-serif text-3xl md:text-4xl text-charcoal mb-8 text-center"
+          className="font-serif text-2xl sm:text-3xl text-charcoal mb-3 text-center"
         >
           Visit Us
         </h2>
+        <p className="text-warm-grey text-center text-sm lg:text-base mb-8 lg:mb-10 max-w-xl mx-auto">
+          We'd love to meet you in person. Find us in Centurion.
+        </p>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start">
           {/* Contact Details */}
-          <address className="not-italic text-charcoal space-y-4">
-            <div>
-              <h3 className="font-serif text-xl text-charcoal mb-1">Address</h3>
-              <p className="text-warm-grey text-base leading-relaxed">
-                {BUSINESS_INFO.address}
-              </p>
-            </div>
+          <address className="not-italic text-charcoal space-y-5">
+            {[
+              { label: "Address", value: BUSINESS_INFO.address },
+              { label: "Hours", value: BUSINESS_INFO.hours },
+            ].map(({ label, value }) => (
+              <div key={label} className="border-b border-[var(--brand-sand)] pb-4">
+                <h3 className="text-xs font-semibold tracking-widest uppercase text-warm-grey mb-1.5">{label}</h3>
+                <p className="text-charcoal text-sm lg:text-base leading-relaxed">{value}</p>
+              </div>
+            ))}
 
-            <div>
-              <h3 className="font-serif text-xl text-charcoal mb-1">Hours</h3>
-              <p className="text-warm-grey text-base leading-relaxed">
-                {BUSINESS_INFO.hours}
-              </p>
-            </div>
-
-            <div>
-              <h3 className="font-serif text-xl text-charcoal mb-1">Phone</h3>
+            <div className="border-b border-[var(--brand-sand)] pb-4">
+              <h3 className="text-xs font-semibold tracking-widest uppercase text-warm-grey mb-1.5">Phone</h3>
               <a
                 href={BUSINESS_INFO.phoneHref}
-                className="text-charcoal underline underline-offset-2 hover:text-warm-grey transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-charcoal"
+                className="text-charcoal text-sm lg:text-base underline underline-offset-4 decoration-[var(--brand-taupe)] hover:decoration-charcoal transition-colors duration-150"
               >
                 {BUSINESS_INFO.phone}
               </a>
             </div>
 
             <div>
-              <h3 className="font-serif text-xl text-charcoal mb-1">Email</h3>
+              <h3 className="text-xs font-semibold tracking-widest uppercase text-warm-grey mb-1.5">Email</h3>
               <a
                 href={BUSINESS_INFO.emailHref}
-                className="text-charcoal underline underline-offset-2 hover:text-warm-grey transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-charcoal"
+                className="text-charcoal text-sm lg:text-base underline underline-offset-4 decoration-[var(--brand-taupe)] hover:decoration-charcoal transition-colors duration-150"
               >
                 {BUSINESS_INFO.email}
               </a>
@@ -67,10 +66,10 @@ export function ContactSection() {
           </address>
 
           {/* Embedded Map */}
-          <div className="w-full min-h-[200px]">
+          <div className="w-full h-[280px] lg:h-[400px]">
             {mapError ? (
               <div
-                className="flex items-center justify-center min-h-[200px] min-w-[300px] bg-cream rounded-lg border border-taupe p-6"
+                className="flex items-center justify-center w-full h-full bg-cream rounded-2xl border border-[var(--brand-sand)] p-6"
                 role="img"
                 aria-label="Map showing business location"
               >
@@ -82,10 +81,7 @@ export function ContactSection() {
               <iframe
                 src={BUSINESS_INFO.mapEmbedUrl}
                 title="Lusso Candles location on Google Maps"
-                className="w-full rounded-lg border border-taupe"
-                style={{ minWidth: '300px', minHeight: '200px', height: '100%' }}
-                width="100%"
-                height="350"
+                className="w-full h-full rounded-2xl border border-[var(--brand-sand)]"
                 allowFullScreen
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"

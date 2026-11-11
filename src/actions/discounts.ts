@@ -2,6 +2,7 @@
 
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
 import type {
   CartItemForDiscount,
   AppliedDiscount,
@@ -68,7 +69,6 @@ export async function applyPromoCode(
 
   // For non-email-capture codes, look up the actual stackable flag
   if (!validationResult.discount.isEmailCapture) {
-    const { prisma } = await import('@/lib/prisma');
     const dbCode = await prisma.discountCode.findUnique({
       where: { id: validationResult.discount.codeId },
       select: { stackable: true },

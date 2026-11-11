@@ -1,7 +1,5 @@
 'use server';
 
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { invalidateShippingCache } from '@/lib/shipping';
 
@@ -9,8 +7,9 @@ export async function saveShippingRates(input: {
   standardRateCents: number;
   freeThresholdCents: number;
 }): Promise<{ success: true } | { error: string }> {
-  const session = await getServerSession(authOptions);
-  if (!session?.user || (session.user as any).role !== 'ADMIN') return { error: 'Unauthorized' };
+  const { requireAdminSession } = await import('@/lib/admin/auth');
+  const auth = await requireAdminSession();
+  if (!auth.ok) return { error: auth.error };
 
   if (!Number.isInteger(input.standardRateCents) || input.standardRateCents < 0) return { error: 'Standard rate must be a non-negative whole number of cents.' };
   if (!Number.isInteger(input.freeThresholdCents) || input.freeThresholdCents < 0) return { error: 'Free-shipping threshold must be a non-negative whole number of cents.' };

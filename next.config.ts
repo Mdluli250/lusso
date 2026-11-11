@@ -3,8 +3,8 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   // Prisma and pg run server-side only — exclude from client bundle
   serverExternalPackages: ["@prisma/client", "@prisma/adapter-pg", "pg"],
-  // Allow dev access from 127.0.0.1
-  allowedDevOrigins: ["127.0.0.1"],
+  // Allow dev access from localhost and 127.0.0.1
+  allowedDevOrigins: ["localhost", "127.0.0.1"],
   // Allow external images
   images: {
     remotePatterns: [

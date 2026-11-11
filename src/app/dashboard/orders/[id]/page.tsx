@@ -52,7 +52,7 @@ export default async function DashboardOrderDetailPage({ params }: OrderDetailPa
   }).catch(() => null);
 
   return (
-    <div className="px-4 py-12 sm:px-6 lg:px-8">
+    <div className="px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
       <div className="max-w-4xl mx-auto space-y-8">
 
         <Link

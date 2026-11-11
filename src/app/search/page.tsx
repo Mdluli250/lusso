@@ -65,11 +65,11 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
 
   return (
     <div className="min-h-screen bg-[var(--theme-bg)]">
-      <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-16 py-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-8 sm:py-12">
         <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Search' }]} />
 
-        <header className="mb-10 space-y-6">
-          <h1 className="text-4xl font-bold text-[var(--theme-accent)]">
+        <header className="mb-8 space-y-5">
+          <h1 className="text-2xl sm:text-3xl font-bold text-[var(--theme-accent)]">
             {q ? `Results for "${q}"` : 'Search'}
           </h1>
           <div className="max-w-lg">

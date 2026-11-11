@@ -47,11 +47,11 @@ export default async function BundlePage() {
   return (
     <main className="min-h-screen bg-[var(--theme-bg)] py-12 px-4">
       <div className="max-w-5xl mx-auto">
-        <div className="text-center mb-10">
-          <h1 className="text-3xl font-bold text-[var(--theme-accent)] mb-3">
+        <div className="text-center mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-[var(--theme-accent)] mb-2">
             Build Your Bundle
           </h1>
-          <p className="text-[var(--theme-accent)]/60">
+          <p className="text-sm text-[var(--theme-accent)]/60">
             Pick any 3 candles and save 15% on your bundle.
           </p>
         </div>

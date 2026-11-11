@@ -64,6 +64,8 @@ export default function CheckoutPage() {
       if (items.length === 0) {
         setError('Your cart is empty. Please add items before checking out.');
         setLoading(false);
+        // Allow the user to navigate back and retry
+        checkoutStarted.current = false;
         return;
       }
 
@@ -78,12 +80,16 @@ export default function CheckoutPage() {
         console.error('Checkout initialization failed:', checkoutError);
         setError('Checkout could not be started. Please try again.');
         setLoading(false);
+        // Reset so the user can retry by clicking the button
+        checkoutStarted.current = false;
         return;
       }
 
       if ('error' in result) {
         setError(result.error);
         setLoading(false);
+        // Reset so the user can retry after fixing the problem
+        checkoutStarted.current = false;
         return;
       }
 
@@ -110,7 +116,7 @@ export default function CheckoutPage() {
       <main className="min-h-screen flex items-center justify-center bg-[var(--theme-bg)] text-[var(--theme-accent)]">
         <div className="text-center space-y-4">
           <div className="w-8 h-8 border-2 border-current border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="text-lg">Preparing your checkout&hellip;</p>
+          <p className="text-base">Preparing your checkout&hellip;</p>
         </div>
       </main>
     );
@@ -119,17 +125,28 @@ export default function CheckoutPage() {
   if (error) {
     const needsAddress = error.toLowerCase().includes('delivery address');
     const needsSignIn = error.toLowerCase().includes('signed in');
+    const isRetryable = !needsAddress && !needsSignIn && !error.toLowerCase().includes('empty');
+
+    function handleRetry() {
+      setError(null);
+      setLoading(true);
+      checkoutStarted.current = false;
+      // Re-trigger the checkout effect by toggling hydrated
+      setHydrated(false);
+      setTimeout(() => setHydrated(true), 0);
+    }
+
     return (
-      <main className="min-h-screen flex items-center justify-center bg-[var(--theme-bg)] text-[var(--theme-accent)]">
-        <div className="text-center space-y-4 max-w-md px-4">
+      <main className="min-h-screen flex items-center justify-center bg-[var(--theme-bg)] text-[var(--theme-accent)] px-4">
+        <div className="text-center space-y-4 max-w-sm w-full">
           <div className="text-4xl" aria-hidden="true">⚠️</div>
-          <h1 className="text-2xl font-semibold">Checkout Error</h1>
-          <p className="text-[var(--theme-accent)]/70">{error}</p>
-          <div className="flex gap-3 justify-center flex-wrap mt-4">
+          <h1 className="text-xl font-semibold">Checkout Error</h1>
+          <p className="text-sm text-[var(--theme-accent)]/70">{error}</p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center mt-4">
             {needsSignIn && (
               <a
                 href={`/auth/signin?callbackUrl=${encodeURIComponent('/checkout')}`}
-                className="inline-block px-6 py-3 bg-[var(--theme-accent)] text-cream rounded-lg hover:opacity-90 transition-opacity"
+                className="inline-flex items-center justify-center px-6 py-3 bg-[var(--theme-accent)] text-cream rounded-lg hover:opacity-90 transition-opacity text-sm font-medium"
               >
                 Sign in to continue
               </a>
@@ -137,14 +154,23 @@ export default function CheckoutPage() {
             {needsAddress && (
               <a
                 href="/dashboard/settings"
-                className="inline-block px-6 py-3 bg-[var(--theme-accent)] text-cream rounded-lg hover:opacity-90 transition-opacity"
+                className="inline-flex items-center justify-center px-6 py-3 bg-[var(--theme-accent)] text-cream rounded-lg hover:opacity-90 transition-opacity text-sm font-medium"
               >
                 Add delivery address
               </a>
             )}
+            {isRetryable && (
+              <button
+                type="button"
+                onClick={handleRetry}
+                className="inline-flex items-center justify-center px-6 py-3 bg-[var(--theme-accent)] text-cream rounded-lg hover:opacity-90 transition-opacity text-sm font-medium"
+              >
+                Try again
+              </button>
+            )}
             <a
               href="/cart"
-              className="inline-block px-6 py-3 border border-[var(--theme-accent)] rounded-lg hover:bg-[var(--theme-accent)]/10 transition-colors"
+              className="inline-flex items-center justify-center px-6 py-3 border border-[var(--theme-accent)] rounded-lg hover:bg-[var(--theme-accent)]/10 transition-colors text-sm font-medium"
             >
               Return to cart
             </a>
@@ -155,10 +181,10 @@ export default function CheckoutPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[var(--theme-bg)] text-[var(--theme-accent)] py-16 px-4">
-      <div className="max-w-2xl mx-auto space-y-8">
+    <main className="min-h-screen bg-[var(--theme-bg)] text-[var(--theme-accent)] py-10 px-4 sm:py-14">
+      <div className="max-w-xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-semibold">Complete Your Order</h1>
+          <h1 className="text-2xl sm:text-3xl font-semibold">Complete Your Order</h1>
           <a
             href="/cart"
             className="text-sm text-[var(--theme-accent)]/60 hover:text-[var(--theme-accent)] underline transition-colors"
@@ -174,7 +200,7 @@ export default function CheckoutPage() {
         {!sessionReady && <GiftWrapOption />}
 
         {/* Order cost summary */}
-        <div className="rounded-xl border border-[var(--theme-accent)]/15 px-5 py-4 space-y-2 text-sm">
+        <div className="rounded-xl border border-[var(--theme-accent)]/15 px-4 py-4 space-y-2 text-sm sm:px-5">
           <h2 className="font-semibold text-[var(--theme-accent)] mb-3">Order Summary</h2>
 
           <div className="flex justify-between text-[var(--theme-accent)]/70">
@@ -187,8 +213,8 @@ export default function CheckoutPage() {
           {appliedDiscounts.length > 0 && (
             <div className="space-y-1">
               {appliedDiscounts.map((d) => (
-                <div key={d.code} className="flex justify-between text-emerald-500">
-                  <span className="flex items-center gap-1">
+                <div key={d.code} className="flex justify-between text-emerald-600">
+                  <span className="flex items-center gap-1 flex-wrap">
                     <span className="text-xs font-mono bg-emerald-500/10 px-1.5 py-0.5 rounded">
                       {d.code}
                     </span>
@@ -201,7 +227,7 @@ export default function CheckoutPage() {
                     </span>
                   </span>
                   {d.type !== 'FREE_SHIPPING' && (
-                    <span className="tabular-nums">− {formatZAR(d.discountAmountZAR)}</span>
+                    <span className="tabular-nums shrink-0">− {formatZAR(d.discountAmountZAR)}</span>
                   )}
                 </div>
               ))}

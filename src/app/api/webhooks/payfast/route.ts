@@ -2,10 +2,7 @@ import { NextResponse } from 'next/server';
 
 import { prisma } from '@/lib/prisma';
 import { extractClientIp, checkRateLimit, createRateLimitResponse } from '@/lib/rate-limit';
-import { generateInvoice } from '@/lib/documents/invoice-generator';
-import { generateReceipt } from '@/lib/documents/receipt-generator';
-import type { InvoiceData, ReceiptData } from '@/lib/documents/types';
-import { sendOrderEmail, sendOrderConfirmationEmail, sendPaymentFailedEmail } from '@/lib/email';
+import { sendOrderConfirmationEmail, sendPaymentFailedEmail } from '@/lib/email';
 import { calculateNextDeliveryDate } from '@/lib/subscriptions';
 import {
   validateITNSignature,
@@ -123,20 +120,18 @@ export async function POST(request: Request): Promise<Response> {
 
   if (!newStatus) {
     console.log(
-      `[PayFast ITN] Non-terminal payment_status "${paymentStatus}" for order ${order.id} — no update.`
+      `[PayFast ITN] Non-terminal payment_status "${paymentStatus}" for order ${order.id} — acknowledging without update.`
     );
     return NextResponse.json({ received: true }, { status: 200 });
   }
 
   // ── Skip redundant writes for already-terminal orders ────────────────────────
-  if (order.status === 'PAID' || order.status === 'REFUNDED' || order.paymentStatus === 'REFUND_PENDING') {
-    console.log(
-      `[PayFast ITN] Order ${order.id} is already ${order.status} — skipping update.`
-    );
-    return NextResponse.json({ received: true }, { status: 200 });
-  }
+  // PayFast retries ITN delivery until it gets a 200. We always return 200 for
+  // terminal orders so retries stop, but we don't re-process them.
   if (order.status !== 'PENDING') {
-    console.log(`[PayFast ITN] Order ${order.id} is already terminal (${order.status}) — skipping late notification.`);
+    console.log(
+      `[PayFast ITN] Order ${order.id} is already ${order.status} — acknowledging without update.`
+    );
     return NextResponse.json({ received: true }, { status: 200 });
   }
 
@@ -215,7 +210,9 @@ export async function POST(request: Request): Promise<Response> {
     `[PayFast ITN] Order ${order.id} updated → ${resolvedStatus} (payment_status: ${paymentStatus})`
   );
 
-  // ── Generate invoice + receipt on successful payment ─────────────────────────
+  // ── Send confirmation email on successful payment ────────────────────────
+  // Documents (invoice/receipt) are generated on-demand via the API routes —
+  // no filesystem writes needed or possible on Vercel.
   if (resolvedStatus === 'PAID') {
     try {
       const orderWithUser = await prisma.order.findUnique({
@@ -244,61 +241,11 @@ export async function POST(request: Request): Promise<Response> {
           subtotalCents: Math.max(orderWithUser.totalAmountZAR - orderWithUser.shippingAmountZAR, 0),
           shippingCents: orderWithUser.shippingAmountZAR,
           totalCents: orderWithUser.totalAmountZAR,
-          shippingAddress: orderWithUser.shippingAddress as any,
+          shippingAddress: orderWithUser.shippingAddress as Record<string, string> | null,
         }).catch((emailError) => console.error('[PayFast ITN] Confirmation email failed:', emailError));
-
-        const invoiceData: InvoiceData = {
-          orderId: orderWithUser.id,
-          invoiceDate: new Date(),
-          customerName: orderWithUser.user.name || 'Customer',
-          customerEmail: orderWithUser.user.email,
-          items: items.map((item) => ({
-            name: item.name,
-            scent: item.scent,
-            quantity: item.quantity,
-            unitPriceCents: item.price,
-          })),
-          subtotalCents: Math.max(orderWithUser.totalAmountZAR - orderWithUser.shippingAmountZAR, 0),
-          totalCents: orderWithUser.totalAmountZAR,
-          shippingCents: orderWithUser.shippingAmountZAR,
-        };
-
-        const receiptData: ReceiptData = {
-          orderId: orderWithUser.id,
-          receiptDate: new Date(),
-          customerName: orderWithUser.user.name || 'Customer',
-          customerEmail: orderWithUser.user.email,
-          items: items.map((item) => ({
-            name: item.name,
-            quantity: item.quantity,
-            unitPriceCents: item.price,
-          })),
-          totalCents: orderWithUser.totalAmountZAR,
-          shippingCents: orderWithUser.shippingAmountZAR,
-        };
-
-        const [invoicePath, receiptPath] = await Promise.all([
-          generateInvoice(invoiceData),
-          generateReceipt(receiptData),
-        ]);
-
-        const updateData: { invoicePath?: string; receiptPath?: string } = {};
-        if (invoicePath) updateData.invoicePath = invoicePath;
-        if (receiptPath) updateData.receiptPath = receiptPath;
-
-        if (Object.keys(updateData).length > 0) {
-          await prisma.order.update({
-            where: { id: order.id },
-            data: updateData,
-          });
-        }
       }
     } catch (err) {
-      // Log but don't fail — PayFast would retry if we returned non-200.
-      console.error(
-        `[PayFast ITN] Document generation failed for order ${order.id}:`,
-        err
-      );
+      console.error(`[PayFast ITN] Post-payment processing failed for order ${order.id}:`, err);
     }
   }
 

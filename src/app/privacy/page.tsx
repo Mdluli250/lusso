@@ -2,7 +2,8 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Privacy Policy',
-  description: 'How Lusso collects, uses and protects your personal information in accordance with POPIA.',
+  description:
+    'How Lusso collects, uses and protects your personal information in accordance with POPIA.',
   robots: { index: true, follow: true },
 };
 
@@ -13,19 +14,27 @@ const COMPANY = 'Lusso Candles (Pty) Ltd';
 export default function PrivacyPage() {
   return (
     <div className="min-h-screen bg-[var(--theme-bg)]">
-      <div className="max-w-3xl mx-auto px-6 py-16 sm:py-24">
-        <h1 className="text-4xl font-bold text-[var(--theme-accent)] mb-2">Privacy Policy</h1>
-        <p className="text-sm text-[var(--theme-accent)]/50 mb-12">Effective date: {EFFECTIVE_DATE}</p>
+      <div className="max-w-2xl mx-auto px-6 py-12 sm:py-16">
+        <h1 className="text-2xl sm:text-3xl font-bold text-[var(--theme-accent)] mb-1">
+          Privacy Policy
+        </h1>
+        <p className="text-xs text-[var(--theme-accent)]/50 mb-10">
+          Effective date: {EFFECTIVE_DATE}
+        </p>
 
-        <div className="prose prose-sm max-w-none space-y-10 text-[var(--theme-accent)]/80 leading-relaxed">
+        <div className="space-y-7 text-[var(--theme-accent)]/80 leading-relaxed text-sm">
 
           <section>
-            <h2 className="text-xl font-semibold text-[var(--theme-accent)] mb-3">1. Who we are</h2>
-            <p>{COMPANY} (&ldquo;Lusso&rdquo;, &ldquo;we&rdquo;, &ldquo;us&rdquo;) operates the website lusso.co.za. This policy explains how we handle personal information in accordance with the Protection of Personal Information Act 4 of 2013 (&ldquo;POPIA&rdquo;).</p>
+            <h2 className="text-base font-semibold text-[var(--theme-accent)] mb-2">1. Who we are</h2>
+            <p>
+              {COMPANY} (&ldquo;Lusso&rdquo;, &ldquo;we&rdquo;, &ldquo;us&rdquo;) operates lusso.co.za.
+              This policy explains how we handle personal information in accordance with the Protection
+              of Personal Information Act 4 of 2013 (&ldquo;POPIA&rdquo;).
+            </p>
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold text-[var(--theme-accent)] mb-3">2. Information we collect</h2>
+            <h2 className="text-base font-semibold text-[var(--theme-accent)] mb-2">2. Information we collect</h2>
             <ul className="list-disc pl-5 space-y-1">
               <li><strong>Account information:</strong> name, email address, and password (hashed) when you create an account.</li>
               <li><strong>Order information:</strong> delivery address, order contents, and payment reference numbers.</li>
@@ -36,7 +45,7 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold text-[var(--theme-accent)] mb-3">3. How we use your information</h2>
+            <h2 className="text-base font-semibold text-[var(--theme-accent)] mb-2">3. How we use your information</h2>
             <ul className="list-disc pl-5 space-y-1">
               <li>Processing and fulfilling orders, including shipping and invoicing.</li>
               <li>Sending transactional emails (order confirmation, dispatch notifications).</li>
@@ -48,7 +57,7 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold text-[var(--theme-accent)] mb-3">4. Sharing your information</h2>
+            <h2 className="text-base font-semibold text-[var(--theme-accent)] mb-2">4. Sharing your information</h2>
             <p>We do not sell your personal information. We share it only with:</p>
             <ul className="list-disc pl-5 space-y-1 mt-2">
               <li><strong>PayFast</strong> — to process payments securely.</li>
@@ -59,12 +68,16 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold text-[var(--theme-accent)] mb-3">5. Data retention</h2>
-            <p>We retain order and account data for 5 years to meet tax and consumer protection obligations. You may request earlier deletion of your account data, subject to any outstanding obligations.</p>
+            <h2 className="text-base font-semibold text-[var(--theme-accent)] mb-2">5. Data retention</h2>
+            <p>
+              We retain order and account data for 5 years to meet tax and consumer protection
+              obligations. You may request earlier deletion of your account data, subject to any
+              outstanding obligations.
+            </p>
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold text-[var(--theme-accent)] mb-3">6. Your rights under POPIA</h2>
+            <h2 className="text-base font-semibold text-[var(--theme-accent)] mb-2">6. Your rights under POPIA</h2>
             <ul className="list-disc pl-5 space-y-1">
               <li>Right to access the personal information we hold about you.</li>
               <li>Right to correct inaccurate information.</li>
@@ -72,29 +85,65 @@ export default function PrivacyPage() {
               <li>Right to object to direct marketing at any time.</li>
               <li>Right to lodge a complaint with the Information Regulator.</li>
             </ul>
-            <p className="mt-3">To exercise your rights, email us at <a href={`mailto:${CONTACT_EMAIL}`} className="underline hover:no-underline">{CONTACT_EMAIL}</a>.</p>
+            <p className="mt-2">
+              To exercise your rights, email us at{' '}
+              <a href={`mailto:${CONTACT_EMAIL}`} className="underline hover:no-underline">
+                {CONTACT_EMAIL}
+              </a>
+              .
+            </p>
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold text-[var(--theme-accent)] mb-3">7. Cookies</h2>
-            <p>We use strictly necessary cookies for session management and authentication. We do not use third-party advertising or tracking cookies. Theme preferences are stored in <code className="text-xs bg-[var(--theme-accent)]/10 px-1 py-0.5 rounded">localStorage</code>.</p>
+            <h2 className="text-base font-semibold text-[var(--theme-accent)] mb-2">7. Cookies</h2>
+            <p>
+              We use strictly necessary cookies for session management and authentication. We do not
+              use third-party advertising or tracking cookies. Theme preferences are stored in{' '}
+              <code className="text-xs bg-[var(--theme-accent)]/10 px-1 py-0.5 rounded">
+                localStorage
+              </code>
+              .
+            </p>
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold text-[var(--theme-accent)] mb-3">8. Security</h2>
-            <p>We use industry-standard measures including HTTPS, bcrypt password hashing, and parameterised database queries. No method of transmission is 100% secure; we encourage strong passwords and prompt reporting of any suspected breach.</p>
+            <h2 className="text-base font-semibold text-[var(--theme-accent)] mb-2">8. Security</h2>
+            <p>
+              We use industry-standard measures including HTTPS, bcrypt password hashing, and
+              parameterised database queries. No method of transmission is 100% secure; we encourage
+              strong passwords and prompt reporting of any suspected breach.
+            </p>
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold text-[var(--theme-accent)] mb-3">9. Changes to this policy</h2>
-            <p>We may update this policy from time to time. Material changes will be communicated by email or a prominent notice on the website at least 14 days before they take effect.</p>
+            <h2 className="text-base font-semibold text-[var(--theme-accent)] mb-2">9. Changes to this policy</h2>
+            <p>
+              We may update this policy from time to time. Material changes will be communicated by
+              email or a prominent notice on the website at least 14 days before they take effect.
+            </p>
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold text-[var(--theme-accent)] mb-3">10. Contact</h2>
-            <p>Information Officer: <a href={`mailto:${CONTACT_EMAIL}`} className="underline hover:no-underline">{CONTACT_EMAIL}</a></p>
-            <p className="mt-1">Information Regulator (South Africa): <a href="https://inforegulator.org.za" target="_blank" rel="noopener noreferrer" className="underline hover:no-underline">inforegulator.org.za</a></p>
+            <h2 className="text-base font-semibold text-[var(--theme-accent)] mb-2">10. Contact</h2>
+            <p>
+              Information Officer:{' '}
+              <a href={`mailto:${CONTACT_EMAIL}`} className="underline hover:no-underline">
+                {CONTACT_EMAIL}
+              </a>
+            </p>
+            <p className="mt-1">
+              Information Regulator (South Africa):{' '}
+              <a
+                href="https://inforegulator.org.za"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline hover:no-underline"
+              >
+                inforegulator.org.za
+              </a>
+            </p>
           </section>
+
         </div>
       </div>
     </div>

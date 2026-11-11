@@ -50,14 +50,14 @@ export default async function ExperiencesPage() {
         className="section-spacing"
         aria-labelledby="experiences-heading"
       >
-        <div className="mx-auto max-w-4xl px-6 text-center">
+        <div className="mx-auto max-w-3xl px-6 text-center">
           <h1
             id="experiences-heading"
-            className="font-serif text-4xl md:text-5xl text-charcoal mb-6"
+            className="font-serif text-3xl sm:text-4xl lg:text-5xl text-charcoal mb-5"
           >
             Experiences
           </h1>
-          <div className="space-y-4 text-warm-grey text-lg md:text-xl leading-relaxed max-w-2xl mx-auto">
+          <div className="space-y-3 text-warm-grey text-sm lg:text-base leading-relaxed max-w-2xl mx-auto">
             <p>{content.get("experiences.intro_1")}</p>
             <p>{content.get("experiences.intro_2")}</p>
             <p>{content.get("experiences.intro_3")}</p>
@@ -73,33 +73,31 @@ export default async function ExperiencesPage() {
         className="section-spacing bg-white"
         aria-labelledby="picnics-heading"
       >
-        <div className="mx-auto max-w-4xl px-6 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+        <div className="mx-auto max-w-5xl px-6 grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14 items-center">
           <div>
+            <span className="text-xs font-semibold tracking-widest uppercase text-warm-grey mb-3 block">Experiences</span>
             <h2
               id="picnics-heading"
-              className="font-serif text-3xl md:text-4xl text-charcoal mb-6"
+              className="font-serif text-2xl sm:text-3xl text-charcoal mb-5"
             >
               {content.get("experiences.picnics_heading")}
             </h2>
 
-            <p className="text-warm-grey text-base md:text-lg leading-relaxed mb-4">
-              {content.get("experiences.picnics_body_1")}
-            </p>
-
-            <p className="text-warm-grey text-base md:text-lg leading-relaxed mb-6">
-              {content.get("experiences.picnics_body_2")}
-            </p>
+            <div className="space-y-3 text-warm-grey text-sm lg:text-base leading-relaxed mb-6">
+              <p>{content.get("experiences.picnics_body_1")}</p>
+              <p>{content.get("experiences.picnics_body_2")}</p>
+            </div>
 
             <a
               href="#inquiry-form"
               style={{ color: 'var(--theme-bg)' }}
-              className="inline-block min-h-[44px] min-w-[120px] rounded-md bg-theme-accent px-6 py-3 text-base font-medium text-center transition-opacity duration-150 hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-theme-accent"
+              className="inline-flex items-center min-h-[44px] rounded-xl bg-theme-accent px-6 py-2.5 text-sm font-medium text-center transition-opacity duration-150 hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-theme-accent"
             >
               Inquire About a Picnic
             </a>
           </div>
 
-          <div className="relative aspect-[4/5] w-full overflow-hidden rounded-xl">
+          <div className="relative aspect-[4/5] w-full overflow-hidden rounded-2xl shadow-md">
             <Image
               src={content.get("experiences.picnics_image")!}
               alt="Lusso Picnic setup with candles glowing at golden hour in an outdoor garden setting"
@@ -116,8 +114,8 @@ export default async function ExperiencesPage() {
         className="section-spacing"
         aria-labelledby="scent-styling-heading"
       >
-        <div className="mx-auto max-w-4xl px-6 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          <div className="order-2 lg:order-1 relative aspect-[4/5] w-full overflow-hidden rounded-xl">
+        <div className="mx-auto max-w-5xl px-6 grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14 items-center">
+          <div className="order-2 lg:order-1 relative aspect-[4/5] w-full overflow-hidden rounded-2xl shadow-md">
             <Image
               src={content.get("experiences.scent_image")!}
               alt="Bespoke scent-styling consultation with fragrance samples arranged on a marble surface"
@@ -128,25 +126,23 @@ export default async function ExperiencesPage() {
           </div>
 
           <div className="order-1 lg:order-2">
+            <span className="text-xs font-semibold tracking-widest uppercase text-warm-grey mb-3 block">Services</span>
             <h2
               id="scent-styling-heading"
-              className="font-serif text-3xl md:text-4xl text-charcoal mb-6"
+              className="font-serif text-2xl sm:text-3xl text-charcoal mb-5"
             >
               {content.get("experiences.scent_heading")}
             </h2>
 
-            <p className="text-warm-grey text-base md:text-lg leading-relaxed mb-4">
-              {content.get("experiences.scent_body_1")}
-            </p>
-
-            <p className="text-warm-grey text-base md:text-lg leading-relaxed mb-6">
-              {content.get("experiences.scent_body_2")}
-            </p>
+            <div className="space-y-3 text-warm-grey text-sm lg:text-base leading-relaxed mb-6">
+              <p>{content.get("experiences.scent_body_1")}</p>
+              <p>{content.get("experiences.scent_body_2")}</p>
+            </div>
 
             <a
               href="#inquiry-form"
               style={{ color: 'var(--theme-bg)' }}
-              className="inline-block min-h-[44px] min-w-[120px] rounded-md bg-theme-accent px-6 py-3 text-base font-medium text-center transition-opacity duration-150 hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-theme-accent"
+              className="inline-flex items-center min-h-[44px] rounded-xl bg-theme-accent px-6 py-2.5 text-sm font-medium text-center transition-opacity duration-150 hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-theme-accent"
             >
               Book a Consultation
             </a>
@@ -160,15 +156,15 @@ export default async function ExperiencesPage() {
         className="section-spacing bg-white"
         aria-labelledby="inquiry-heading"
       >
-        <div className="mx-auto max-w-4xl px-6">
-          <div className="text-center mb-10">
+        <div className="mx-auto max-w-2xl px-6">
+          <div className="text-center mb-8">
             <h2
               id="inquiry-heading"
-              className="font-serif text-3xl md:text-4xl text-charcoal mb-4"
+              className="font-serif text-2xl sm:text-3xl text-charcoal mb-3"
             >
               Get in Touch
             </h2>
-            <p className="text-warm-grey text-base md:text-lg leading-relaxed max-w-xl mx-auto">
+            <p className="text-warm-grey text-sm lg:text-base leading-relaxed max-w-lg mx-auto">
               Ready to create something memorable? Tell us about your event and
               we&apos;ll craft an experience tailored to you.
             </p>

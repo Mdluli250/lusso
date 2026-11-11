@@ -1,9 +1,19 @@
+/**
+ * Document storage utilities.
+ *
+ * NOTE: On Vercel (and other serverless platforms) the filesystem is read-only
+ * and ephemeral. PDF generation is done entirely in-memory using pdf-lib and
+ * served on demand via the API routes. No files are written to disk.
+ *
+ * These helpers are kept for local development only where DOCUMENT_STORAGE_PATH
+ * is configured and a writable filesystem is available.
+ */
+
 import path from 'path';
-import { mkdir, readFile } from 'fs/promises';
 
 /**
  * Get the base storage directory for documents.
- * Reads from DOCUMENT_STORAGE_PATH env var, defaults to './storage/documents'.
+ * Only meaningful in local development — not used on Vercel.
  */
 export function getStorageBasePath(): string {
   return process.env.DOCUMENT_STORAGE_PATH || './storage/documents';
@@ -15,19 +25,4 @@ export function getStorageBasePath(): string {
  */
 export function buildDocumentPath(type: 'invoices' | 'receipts', orderId: string): string {
   return path.join(type, `${orderId}.pdf`);
-}
-
-/**
- * Ensure the storage directory exists, creating it recursively if needed.
- */
-export async function ensureStorageDirectory(dirPath: string): Promise<void> {
-  await mkdir(dirPath, { recursive: true });
-}
-
-/**
- * Read a document file and return it as a Buffer.
- * Throws if file does not exist.
- */
-export async function readDocument(filePath: string): Promise<Buffer> {
-  return readFile(filePath);
 }

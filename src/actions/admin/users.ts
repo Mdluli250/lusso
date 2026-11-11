@@ -1,7 +1,5 @@
 'use server';
 
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
 type Result = { success: true } | { error: string };
@@ -10,11 +8,10 @@ export async function setUserRole(
   targetUserId: string,
   role: 'ADMIN' | 'CUSTOMER'
 ): Promise<Result> {
-  const session = await getServerSession(authOptions);
-  if (!session?.user || (session.user as any).role !== 'ADMIN') {
-    return { error: 'Unauthorized' };
-  }
-  if (session.user.id === targetUserId) {
+  const { requireAdminSession } = await import('@/lib/admin/auth');
+  const auth = await requireAdminSession();
+  if (!auth.ok) return { error: auth.error };
+  if (auth.userId === targetUserId) {
     return { error: 'You cannot change your own role.' };
   }
 

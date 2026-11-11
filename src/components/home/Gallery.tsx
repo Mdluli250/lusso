@@ -42,26 +42,39 @@ export async function Gallery() {
   }
 
   return (
-    <section className="section-spacing bg-sand" aria-labelledby="gallery-heading">
-      <div className="mx-auto max-w-6xl px-6">
+    <section className="section-spacing bg-cream" aria-labelledby="gallery-heading">
+      <div className="mx-auto max-w-7xl px-6 lg:px-10">
         <h2
           id="gallery-heading"
-          className="font-serif text-3xl md:text-4xl text-charcoal mb-8 text-center"
+          className="font-serif text-2xl sm:text-3xl text-charcoal mb-3 text-center"
         >
           Gallery
         </h2>
+        <p className="text-warm-grey text-center text-sm lg:text-base mb-8 lg:mb-10 max-w-xl mx-auto">
+          A glimpse into the warmth we craft.
+        </p>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {/* Masonry-style grid: alternating aspect ratios for visual rhythm */}
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4">
           {images.map((image, index) => (
-            <div key={image.src} className="overflow-hidden rounded-lg">
+            <div
+              key={image.src}
+              className={[
+                "overflow-hidden rounded-2xl relative group",
+                // Every 3rd image (0-indexed: 2, 5, ...) gets a taller aspect on desktop
+                index % 3 === 2 ? "aspect-[3/4]" : "aspect-[4/5]",
+              ].join(" ")}
+            >
               <Image
                 src={image.src}
                 alt={image.alt}
-                width={image.width}
-                height={image.height}
-                loading={index < 2 ? 'eager' : 'lazy'}
-                className="w-full h-auto object-cover transition-transform duration-300 hover:scale-105"
+                fill
+                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 33vw"
+                loading={index < 4 ? 'eager' : 'lazy'}
+                className="object-cover transition-transform duration-700 group-hover:scale-105"
               />
+              {/* Hover overlay */}
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/15 transition-colors duration-300" />
             </div>
           ))}
         </div>

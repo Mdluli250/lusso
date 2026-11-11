@@ -90,8 +90,9 @@ export async function updateReturnStatus(input: {
   status: 'APPROVED' | 'REJECTED' | 'COMPLETED';
   adminNote?: string;
 }): Promise<Result> {
-  const session = await getServerSession(authOptions);
-  if (!session?.user || (session.user as any).role !== 'ADMIN') return { error: 'Unauthorized' };
+  const { requireAdminSession } = await import('@/lib/admin/auth');
+  const auth = await requireAdminSession();
+  if (!auth.ok) return { error: auth.error };
 
   const ret = await prisma.returnRequest.findUnique({ where: { id: input.returnId } });
   if (!ret) return { error: 'Return request not found.' };
