@@ -241,7 +241,15 @@ export async function POST(request: Request): Promise<Response> {
           subtotalCents: Math.max(orderWithUser.totalAmountZAR - orderWithUser.shippingAmountZAR, 0),
           shippingCents: orderWithUser.shippingAmountZAR,
           totalCents: orderWithUser.totalAmountZAR,
-          shippingAddress: orderWithUser.shippingAddress as Record<string, string> | null,
+          shippingAddress: orderWithUser.shippingAddress as unknown as {
+            recipient: string;
+            addressLine1: string;
+            addressLine2?: string | null;
+            city: string;
+            province: string;
+            postalCode: string;
+            country: string;
+          } | null ?? undefined,
         }).catch((emailError) => console.error('[PayFast ITN] Confirmation email failed:', emailError));
       }
     } catch (err) {
