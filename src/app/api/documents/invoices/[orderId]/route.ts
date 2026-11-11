@@ -65,7 +65,7 @@ export async function GET(
     const pdfBytes = await generateInvoicePDF(invoiceData);
     const filename = `lusso-invoice-${order.id.slice(0, 8).toUpperCase()}.pdf`;
 
-    return new Response(pdfBytes, {
+    return new Response(Buffer.from(pdfBytes), {
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',
