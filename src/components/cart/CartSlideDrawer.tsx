@@ -94,10 +94,14 @@ export function CartSlideDrawer({ isOpen, onClose }: CartSlideDrawerProps) {
         aria-hidden="true"
       />
 
-      {/* Panel */}
+      {/* Panel — translate-x-full keeps it off-screen before GSAP takes over,
+           preventing a one-frame flash of the panel at its final position.
+           bg-[var(--background)] is the static cream colour (#faf7f2) which is
+           always opaque, avoiding any transparency caused by --theme-bg being
+           animated by GSAP at the wrong moment. */}
       <div
         ref={panelRef}
-        className="absolute right-0 top-0 h-full w-full max-w-md bg-[var(--theme-bg)] shadow-xl flex flex-col"
+        className="absolute right-0 top-0 h-full w-full max-w-md bg-[var(--background)] shadow-2xl flex flex-col translate-x-full"
         role="dialog"
         aria-modal="true"
         aria-labelledby={HEADING_ID}
