@@ -30,11 +30,11 @@ interface SuccessClientProps {
 }
 
 /** How long to keep polling before giving up (ms) */
-const POLL_TIMEOUT_MS = 60_000;
-/** Base interval between polls (ms); doubles on each attempt */
+const POLL_TIMEOUT_MS = 120_000;
+/** Base interval between polls (ms) */
 const POLL_INTERVAL_BASE_MS = 2_000;
 /** Cap the interval at this value (ms) */
-const POLL_INTERVAL_MAX_MS = 10_000;
+const POLL_INTERVAL_MAX_MS = 8_000;
 
 export function SuccessClient({
   orderId,
@@ -142,12 +142,39 @@ export function SuccessClient({
       {/* Pending indicator */}
       {isPending && (
         <div className="w-full max-w-sm h-40 mb-6 flex flex-col items-center justify-center gap-4">
-          <div className="w-10 h-10 border-2 border-[var(--theme-accent)] border-t-transparent rounded-full animate-spin" />
-          <p className="text-[var(--theme-accent)]/70 text-sm text-center max-w-xs">
-            {pollError
-              ? 'Payment confirmation is taking longer than expected. Check your email or visit your dashboard.'
-              : 'Confirming your payment…'}
-          </p>
+          {!pollError && (
+            <div className="w-10 h-10 border-2 border-[var(--theme-accent)] border-t-transparent rounded-full animate-spin" />
+          )}
+          {pollError ? (
+            <div className="text-center space-y-3">
+              <p className="text-[var(--theme-accent)]/70 text-sm text-center max-w-xs">
+                Payment confirmation is taking longer than expected. Your order has been received — check your email for confirmation.
+              </p>
+              <div className="flex flex-col gap-2">
+                <a
+                  href="/dashboard/orders"
+                  className="inline-flex items-center justify-center px-5 py-2.5 bg-[var(--theme-accent)] text-white rounded-lg hover:opacity-90 transition-opacity text-sm font-medium"
+                >
+                  View my orders
+                </a>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPollError(false);
+                    pollStartRef.current = Date.now();
+                    pollTimerRef.current = setTimeout(() => poll(0), 500);
+                  }}
+                  className="inline-flex items-center justify-center px-5 py-2.5 border border-[var(--theme-accent)] rounded-lg hover:bg-[var(--theme-accent)]/10 transition-colors text-sm font-medium"
+                >
+                  Check again
+                </button>
+              </div>
+            </div>
+          ) : (
+            <p className="text-[var(--theme-accent)]/70 text-sm text-center max-w-xs">
+              Confirming your payment&hellip;
+            </p>
+          )}
         </div>
       )}
 

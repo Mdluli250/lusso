@@ -14,27 +14,43 @@ interface Address {
   country: string;
 }
 
+interface ShippingAddressSummaryProps {
+  /** Called after the user saves a new address from the inline prompt */
+  onAddressAdded?: () => void;
+}
+
 /**
  * ShippingAddressSummary — Fetches the current user's saved delivery address
  * from /api/profile/address and renders it at checkout.
  * Provides a quick-link to update the address in account settings.
+ * When no address is saved, shows a prominent "Add address" link.
  */
-export function ShippingAddressSummary() {
+export function ShippingAddressSummary({ onAddressAdded }: ShippingAddressSummaryProps = {}) {
   const [address, setAddress] = useState<Address | null>(null);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState(false);
 
-  useEffect(() => {
+  function refresh() {
+    setLoading(true);
+    setFetchError(false);
     fetch('/api/profile/address')
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
-        setAddress(data?.address ?? null);
+        const addr = data?.address ?? null;
+        setAddress(addr);
         setLoading(false);
+        // If we just found an address that wasn't there before, notify parent
+        if (addr) onAddressAdded?.();
       })
       .catch(() => {
         setFetchError(true);
         setLoading(false);
       });
+  }
+
+  useEffect(() => {
+    refresh();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (loading) {
@@ -53,12 +69,11 @@ export function ShippingAddressSummary() {
           Could not load your delivery address. Please{' '}
           <button
             type="button"
-            onClick={() => window.location.reload()}
+            onClick={() => refresh()}
             className="underline hover:no-underline"
           >
-            refresh the page
-          </button>{' '}
-          and try again.
+            try again
+          </button>.
         </p>
       </div>
     );
@@ -85,13 +100,17 @@ export function ShippingAddressSummary() {
           <p>{address.country}</p>
         </address>
       ) : (
-        <p className="text-sm text-[var(--theme-accent)]/60">
-          No delivery address saved.{' '}
-          <Link href="/dashboard/settings" className="underline text-[var(--theme-accent)] hover:no-underline">
-            Add one now
-          </Link>{' '}
-          before completing your order.
-        </p>
+        <div className="space-y-3">
+          <p className="text-sm text-[var(--theme-accent)]/70">
+            You need a delivery address to complete your order.
+          </p>
+          <Link
+            href="/dashboard/settings"
+            className="inline-flex items-center justify-center w-full px-4 py-2.5 bg-[var(--theme-accent)] text-white rounded-lg hover:opacity-90 transition-opacity text-sm font-medium"
+          >
+            Add delivery address
+          </Link>
+        </div>
       )}
     </div>
   );

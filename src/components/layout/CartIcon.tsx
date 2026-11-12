@@ -54,7 +54,7 @@ export default function CartIcon() {
             className={[
               'absolute -right-1 -top-1',
               'flex h-5 w-5 items-center justify-center',
-              'rounded-full bg-[var(--theme-accent)] text-cream',
+              'rounded-full bg-[var(--theme-accent)] text-white',
               'text-[10px] font-bold leading-none',
             ].join(' ')}
           >

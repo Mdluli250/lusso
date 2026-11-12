@@ -82,8 +82,13 @@ export async function createCheckoutSession(
     const canonicalItems: CartItem[] = [];
     for (const item of cartItems) {
       const variant = variantsById.get(item.variantId);
-      if (!variant || variant.productId !== item.productId || variant.stock < item.quantity) {
-        return { error: `Insufficient stock for ${item.name}. Please update your cart.` };
+      // Mismatch means cart is stale or tampered — give a neutral refresh error
+      if (!variant || variant.productId !== item.productId) {
+        return { error: 'Your cart contains an outdated item. Please refresh the page and try again.' };
+      }
+      // Soft stock hint (non-atomic) — the real enforcement is in reserveInventory
+      if (variant.stock < item.quantity) {
+        return { error: `${item.name} only has ${variant.stock} unit${variant.stock === 1 ? '' : 's'} left. Please update your cart quantity.` };
       }
       canonicalItems.push({
         productId: variant.productId,
@@ -273,6 +278,10 @@ export async function createCheckoutSession(
     return { checkoutId: payfastUUID, orderId: order.id, merchantTransactionId: order.merchantTransactionId };
   } catch (error) {
     console.error('Checkout session creation failed:', error);
+    // Surface stock/reservation errors with their specific message
+    if (error instanceof Error && error.message.startsWith('Insufficient stock')) {
+      return { error: error.message };
+    }
     return { error: 'Failed to create checkout session. Please try again.' };
   }
 }

@@ -19,6 +19,8 @@ export default function CheckoutPage() {
   const [sessionReady, setSessionReady] = useState(false);
   // Tracks whether Zustand has rehydrated from localStorage yet
   const [hydrated, setHydrated] = useState(false);
+  // Tracks whether the user has a saved delivery address (pre-flight check)
+  const [hasAddress, setHasAddress] = useState<boolean | null>(null);
   const checkoutStarted = useRef(false);
 
   const items = useCartStore((state) => state.items);
@@ -45,6 +47,22 @@ export default function CheckoutPage() {
       .catch(() => {});
   }, []);
 
+  // Pre-flight: check whether the user already has a saved delivery address
+  // before firing createCheckoutSession. If not, show the inline address prompt
+  // instead of an error screen.
+  useEffect(() => {
+    if (!hydrated) return;
+    fetch('/api/profile/address')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        setHasAddress(!!(data?.address));
+      })
+      .catch(() => {
+        // Fail open — let the server action decide
+        setHasAddress(true);
+      });
+  }, [hydrated]);
+
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const discountTotal = appliedDiscounts.reduce((sum, d) => sum + d.discountAmountZAR, 0);
   const hasFreeShipping = appliedDiscounts.some((d) => d.type === 'FREE_SHIPPING');
@@ -53,9 +71,16 @@ export default function CheckoutPage() {
     Math.max(subtotal - discountTotal, 0) + estimatedShipping + (giftWrapEnabled ? 4900 : 0);
   const itemCount = items.reduce((n, i) => n + i.quantity, 0);
 
-  // Only start checkout after Zustand has rehydrated
+  // Only start checkout after Zustand has rehydrated AND address check is done
   useEffect(() => {
     if (!hydrated) return;
+    // Wait until address pre-flight resolves
+    if (hasAddress === null) return;
+    // If no address, show the page in "needs address" mode — stop loading, don't call server action
+    if (hasAddress === false) {
+      setLoading(false);
+      return;
+    }
 
     async function initCheckout() {
       if (checkoutStarted.current) return;
@@ -64,7 +89,6 @@ export default function CheckoutPage() {
       if (items.length === 0) {
         setError('Your cart is empty. Please add items before checking out.');
         setLoading(false);
-        // Allow the user to navigate back and retry
         checkoutStarted.current = false;
         return;
       }
@@ -80,15 +104,21 @@ export default function CheckoutPage() {
         console.error('Checkout initialization failed:', checkoutError);
         setError('Checkout could not be started. Please try again.');
         setLoading(false);
-        // Reset so the user can retry by clicking the button
         checkoutStarted.current = false;
         return;
       }
 
       if ('error' in result) {
+        // If the server also says no address (edge case: address deleted mid-flight),
+        // switch to the inline address prompt instead of error screen
+        if (result.error.toLowerCase().includes('delivery address')) {
+          setHasAddress(false);
+          setLoading(false);
+          checkoutStarted.current = false;
+          return;
+        }
         setError(result.error);
         setLoading(false);
-        // Reset so the user can retry after fixing the problem
         checkoutStarted.current = false;
         return;
       }
@@ -109,7 +139,7 @@ export default function CheckoutPage() {
 
     initCheckout();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hydrated]);
+  }, [hydrated, hasAddress]);
 
   if (loading) {
     return (
@@ -123,15 +153,14 @@ export default function CheckoutPage() {
   }
 
   if (error) {
-    const needsAddress = error.toLowerCase().includes('delivery address');
     const needsSignIn = error.toLowerCase().includes('signed in');
-    const isRetryable = !needsAddress && !needsSignIn && !error.toLowerCase().includes('empty');
+    const isRetryable = !needsSignIn && !error.toLowerCase().includes('empty');
 
     function handleRetry() {
       setError(null);
       setLoading(true);
       checkoutStarted.current = false;
-      // Re-trigger the checkout effect by toggling hydrated
+      setHasAddress(null);
       setHydrated(false);
       setTimeout(() => setHydrated(true), 0);
     }
@@ -146,24 +175,16 @@ export default function CheckoutPage() {
             {needsSignIn && (
               <a
                 href={`/auth/signin?callbackUrl=${encodeURIComponent('/checkout')}`}
-                className="inline-flex items-center justify-center px-6 py-3 bg-[var(--theme-accent)] text-cream rounded-lg hover:opacity-90 transition-opacity text-sm font-medium"
+                className="inline-flex items-center justify-center px-6 py-3 bg-[var(--theme-accent)] text-white rounded-lg hover:opacity-90 transition-opacity text-sm font-medium"
               >
                 Sign in to continue
-              </a>
-            )}
-            {needsAddress && (
-              <a
-                href="/dashboard/settings"
-                className="inline-flex items-center justify-center px-6 py-3 bg-[var(--theme-accent)] text-cream rounded-lg hover:opacity-90 transition-opacity text-sm font-medium"
-              >
-                Add delivery address
               </a>
             )}
             {isRetryable && (
               <button
                 type="button"
                 onClick={handleRetry}
-                className="inline-flex items-center justify-center px-6 py-3 bg-[var(--theme-accent)] text-cream rounded-lg hover:opacity-90 transition-opacity text-sm font-medium"
+                className="inline-flex items-center justify-center px-6 py-3 bg-[var(--theme-accent)] text-white rounded-lg hover:opacity-90 transition-opacity text-sm font-medium"
               >
                 Try again
               </button>
@@ -193,66 +214,82 @@ export default function CheckoutPage() {
           </a>
         </div>
 
-        {/* Shipping address */}
-        <ShippingAddressSummary />
+        {/* Shipping address — shown always; prompts to add one if missing */}
+        <ShippingAddressSummary
+          onAddressAdded={() => {
+            // User just saved an address — re-run the checkout flow
+            setHasAddress(true);
+            setLoading(true);
+            checkoutStarted.current = false;
+          }}
+        />
+
+        {/* If no address yet, show a clear CTA and stop here */}
+        {hasAddress === false && (
+          <div className="rounded-xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-800">
+            Please add a delivery address above before continuing to payment.
+          </div>
+        )}
 
         {/* Gift wrap — only before checkout session is locked */}
-        {!sessionReady && <GiftWrapOption />}
+        {hasAddress !== false && !sessionReady && <GiftWrapOption />}
 
         {/* Order cost summary */}
-        <div className="rounded-xl border border-[var(--theme-accent)]/15 px-4 py-4 space-y-2 text-sm sm:px-5">
-          <h2 className="font-semibold text-[var(--theme-accent)] mb-3">Order Summary</h2>
+        {hasAddress !== false && (
+          <div className="rounded-xl border border-[var(--theme-accent)]/15 px-4 py-4 space-y-2 text-sm sm:px-5">
+            <h2 className="font-semibold text-[var(--theme-accent)] mb-3">Order Summary</h2>
 
-          <div className="flex justify-between text-[var(--theme-accent)]/70">
-            <span>
-              Subtotal ({itemCount} item{itemCount !== 1 ? 's' : ''})
-            </span>
-            <span className="tabular-nums">{formatZAR(subtotal)}</span>
-          </div>
-
-          {appliedDiscounts.length > 0 && (
-            <div className="space-y-1">
-              {appliedDiscounts.map((d) => (
-                <div key={d.code} className="flex justify-between text-emerald-600">
-                  <span className="flex items-center gap-1 flex-wrap">
-                    <span className="text-xs font-mono bg-emerald-500/10 px-1.5 py-0.5 rounded">
-                      {d.code}
-                    </span>
-                    <span className="text-xs">
-                      {d.type === 'FREE_SHIPPING'
-                        ? 'Free shipping'
-                        : d.type === 'PERCENTAGE'
-                        ? 'Percentage discount'
-                        : 'Fixed discount'}
-                    </span>
-                  </span>
-                  {d.type !== 'FREE_SHIPPING' && (
-                    <span className="tabular-nums shrink-0">− {formatZAR(d.discountAmountZAR)}</span>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-
-          <div className="flex justify-between text-[var(--theme-accent)]/70">
-            <span>Shipping</span>
-            <span className="tabular-nums">
-              {estimatedShipping === 0 ? 'Free' : formatZAR(estimatedShipping)}
-            </span>
-          </div>
-
-          {giftWrapEnabled && (
             <div className="flex justify-between text-[var(--theme-accent)]/70">
-              <span>🎁 Gift wrapping</span>
-              <span className="tabular-nums">{formatZAR(4900)}</span>
+              <span>
+                Subtotal ({itemCount} item{itemCount !== 1 ? 's' : ''})
+              </span>
+              <span className="tabular-nums">{formatZAR(subtotal)}</span>
             </div>
-          )}
 
-          <div className="border-t border-[var(--theme-accent)]/10 pt-2 flex justify-between font-semibold text-[var(--theme-accent)]">
-            <span>Total (estimated)</span>
-            <span className="tabular-nums">{formatZAR(estimatedTotal)}</span>
+            {appliedDiscounts.length > 0 && (
+              <div className="space-y-1">
+                {appliedDiscounts.map((d) => (
+                  <div key={d.code} className="flex justify-between text-emerald-600">
+                    <span className="flex items-center gap-1 flex-wrap">
+                      <span className="text-xs font-mono bg-emerald-500/10 px-1.5 py-0.5 rounded">
+                        {d.code}
+                      </span>
+                      <span className="text-xs">
+                        {d.type === 'FREE_SHIPPING'
+                          ? 'Free shipping'
+                          : d.type === 'PERCENTAGE'
+                          ? 'Percentage discount'
+                          : 'Fixed discount'}
+                      </span>
+                    </span>
+                    {d.type !== 'FREE_SHIPPING' && (
+                      <span className="tabular-nums shrink-0">− {formatZAR(d.discountAmountZAR)}</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="flex justify-between text-[var(--theme-accent)]/70">
+              <span>Shipping</span>
+              <span className="tabular-nums">
+                {estimatedShipping === 0 ? 'Free' : formatZAR(estimatedShipping)}
+              </span>
+            </div>
+
+            {giftWrapEnabled && (
+              <div className="flex justify-between text-[var(--theme-accent)]/70">
+                <span>🎁 Gift wrapping</span>
+                <span className="tabular-nums">{formatZAR(4900)}</span>
+              </div>
+            )}
+
+            <div className="border-t border-[var(--theme-accent)]/10 pt-2 flex justify-between font-semibold text-[var(--theme-accent)]">
+              <span>Total (estimated)</span>
+              <span className="tabular-nums">{formatZAR(estimatedTotal)}</span>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* PayFast payment form — shown once checkout session is ready */}
         {checkoutId && merchantTransactionId && (
