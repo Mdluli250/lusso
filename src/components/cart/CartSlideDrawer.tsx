@@ -101,7 +101,7 @@ export function CartSlideDrawer({ isOpen, onClose }: CartSlideDrawerProps) {
            animated by GSAP at the wrong moment. */}
       <div
         ref={panelRef}
-        className="absolute right-0 top-0 h-full w-full max-w-md bg-[var(--background)] shadow-2xl flex flex-col translate-x-full"
+        className="absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-2xl flex flex-col translate-x-full"
         role="dialog"
         aria-modal="true"
         aria-labelledby={HEADING_ID}
