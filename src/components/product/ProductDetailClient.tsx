@@ -13,6 +13,7 @@
 
 import { useState, useCallback, useEffect } from "react";
 import Image from "next/image";
+import { AddedToCartPanel } from "@/components/cart/AddedToCartPanel";
 import { useColorTheme } from "@/components/animation/useColorTheme";
 import { useToast } from "@/components/ui/Toast";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
@@ -73,6 +74,7 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
   );
   const [imgError, setImgError] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [showAddedPanel, setShowAddedPanel] = useState(false);
   const addItem = useCartStore((state) => state.addItem);
   const removeItem = useCartStore((state) => state.removeItem);
   const { showToast } = useToast();
@@ -116,15 +118,19 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
       imageUrl: productImages[0] ?? "",
     });
 
-    showToast(`${product.name} added to cart`, {
-      action: { label: "Undo", onClick: () => removeItem(selectedVariant.id) },
-    });
+    setShowAddedPanel(true);
   }, [product, selectedVariant, isOutOfStock, addItem, removeItem, showToast]);
 
   const ingredients = getIngredients(product);
 
   return (
     <div className="min-h-screen bg-[var(--theme-bg)] transition-colors duration-700">
+      {showAddedPanel && (
+        <AddedToCartPanel
+          productName={product.name}
+          onClose={() => setShowAddedPanel(false)}
+        />
+      )}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-8 lg:py-16">
         {/* Breadcrumb navigation */}
         <Breadcrumbs

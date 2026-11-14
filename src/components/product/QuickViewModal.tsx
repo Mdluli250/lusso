@@ -16,10 +16,10 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/Button";
-import { useToast } from "@/components/ui/Toast";
 import { formatZAR } from "@/lib/formatCurrency";
 import { getProductImage } from "@/lib/getProductImage";
 import { useCartStore } from "@/store/cartStore";
+import { AddedToCartPanel } from "@/components/cart/AddedToCartPanel";
 import type { ProductWithVariants } from "./types";
 
 function getProductCardImage(product: ProductWithVariants) {
@@ -45,9 +45,8 @@ export function QuickViewModal({
 }: QuickViewModalProps) {
   const overlayRef = useRef<HTMLDivElement>(null);
   const addItem = useCartStore((state) => state.addItem);
-  const removeItem = useCartStore((state) => state.removeItem);
-  const { showToast } = useToast();
   const [imgError, setImgError] = useState(false);
+  const [showAddedPanel, setShowAddedPanel] = useState(false);
 
   // Close on Escape key
   useEffect(() => {
@@ -112,23 +111,27 @@ export function QuickViewModal({
       scent: defaultVariant.scent,
       price: product.price,
       modelPath: defaultVariant.modelPath,
-      // Use the same image resolution helper already used for the modal display
       imageUrl: getProductCardImage(product),
     });
 
-    showToast(`${product.name} added to cart`, {
-      action: { label: "Undo", onClick: () => removeItem(defaultVariant.id) },
-    });
+    setShowAddedPanel(true);
   };
 
   return (
-    <div
-      ref={overlayRef}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="quick-view-title"
-      onClick={(e) => {
+    <>
+      {showAddedPanel && (
+        <AddedToCartPanel
+          productName={product.name}
+          onClose={() => setShowAddedPanel(false)}
+        />
+      )}
+      <div
+        ref={overlayRef}
+        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="quick-view-title"
+        onClick={(e) => {
         if (e.target === overlayRef.current) onClose();
       }}
     >
@@ -314,5 +317,6 @@ export function QuickViewModal({
         </div>
       </div>
     </div>
+    </>
   );
 }

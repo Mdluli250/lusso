@@ -25,7 +25,7 @@ interface Review {
 interface ReviewsResponse {
   reviews: Review[];
   averageRating: number;
-  count: number;
+  totalCount: number;
 }
 
 interface ReviewListProps {
@@ -92,7 +92,7 @@ export function ReviewList({ productId }: ReviewListProps) {
       <div className="flex items-center gap-3 mb-4">
         <ReviewStars rating={data.averageRating} mode="display" size="sm" />
         <span className="text-sm text-[var(--theme-accent)]/70">
-          {data.averageRating.toFixed(1)} ({data.count} review{data.count !== 1 ? 's' : ''})
+          {data.averageRating.toFixed(1)} ({data.totalCount} review{data.totalCount !== 1 ? 's' : ''})
         </span>
       </div>
 

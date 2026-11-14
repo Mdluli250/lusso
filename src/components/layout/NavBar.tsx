@@ -227,17 +227,19 @@ export default function NavBar() {
               </button>
             </div>
           ) : (
-            /* Sign in button — navigates to the full sign-in page */
+            /* Sign in button — outline style works on any background */
             <a
               href="/auth/signin"
               className={[
-                "rounded-lg px-3 py-2.5 text-sm font-medium min-h-[44px] inline-flex items-center",
-                "bg-[var(--theme-accent)] text-cream",
-                "transition-opacity duration-150 hover:opacity-90",
+                "rounded-lg px-3 py-2.5 text-sm font-medium min-h-[44px] inline-flex items-center gap-1.5",
+                "border border-[var(--theme-accent)]",
+                "text-[var(--theme-accent)]",
+                "transition-colors duration-150 hover:bg-[var(--theme-accent)] hover:text-white",
                 "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2",
                 "focus-visible:outline-[var(--theme-accent)]",
               ].join(" ")}
             >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 shrink-0" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75" /></svg>
               Sign in
             </a>
           )}
@@ -355,9 +357,9 @@ function MobileMenu({
     firstFocusable?.focus();
   }, [isOpen]);
 
-  // Handle outside click on overlay backdrop
+  // Handle outside click on overlay backdrop — close if click is outside the drawer panel
   const handleOverlayClick = (e: React.MouseEvent) => {
-    if (e.target === overlayRef.current) {
+    if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
       closeMenu();
     }
   };
